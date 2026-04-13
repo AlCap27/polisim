@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PoliSim — Message Optimizer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#fafaf8;--bg2:#f0ede8;--bg3:#e8e4de;
+  --ink:#0a0a0a;--mid:#3a3a3a;--light:#7a7a7a;--ghost:#b0a898;
+  --line:#e0dbd4;--accent:#8a6a3a;--accent2:#c8a870;
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --sans:'DM Sans',system-ui,sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:100vh}
+
+/* NAV */
+.nav{padding:20px 40px;border-bottom:0.5px solid var(--line);display:flex;align-items:center;justify-content:space-between;background:var(--bg)}
+.logo{font-family:var(--mono);font-size:11px;letter-spacing:4px;color:var(--ink);text-decoration:none;text-transform:uppercase}
+.logo span{color:var(--accent)}
+.nav-back{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--light);text-decoration:none;text-transform:uppercase;transition:color .2s}
+.nav-back:hover{color:var(--ink)}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:360px 1fr;min-height:calc(100vh - 61px)}
+
+/* SIDEBAR FORM */
+.sidebar{border-right:0.5px solid var(--line);padding:28px 24px;background:var(--bg);overflow-y:auto;max-height:calc(100vh - 61px);position:sticky;top:0}
+.sidebar-title{font-family:var(--serif);font-size:22px;font-weight:300;color:var(--ink);margin-bottom:4px}
+.sidebar-sub{font-size:11px;color:var(--light);margin-bottom:24px;font-family:var(--mono);letter-spacing:1px;text-transform:uppercase}
+
+.field{margin-bottom:16px}
+.field label{display:block;font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--light);text-transform:uppercase;margin-bottom:6px}
+.field input,.field select,.field textarea{
+  width:100%;background:var(--bg2);border:0.5px solid var(--line);
+  color:var(--ink);padding:10px 12px;font-family:var(--sans);
+  font-size:13px;font-weight:300;transition:border-color .2s;outline:none;
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
+.field textarea{resize:vertical;min-height:56px;line-height:1.5}
+.field select option{background:var(--bg)}
+
+.divider{border:none;border-top:0.5px solid var(--line);margin:20px 0}
+
+/* Segmento tabs */
+.seg-tabs{display:flex;gap:0;margin-bottom:12px;border:0.5px solid var(--line)}
+.seg-tab{flex:1;padding:8px;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;text-align:center;cursor:pointer;background:var(--bg);color:var(--light);border:none;transition:all .2s}
+.seg-tab.active{background:var(--ink);color:var(--bg)}
+.seg-panel{display:none}
+.seg-panel.active{display:block}
+
+/* Run button */
+.run-btn{
+  width:100%;padding:14px;background:var(--ink);color:var(--bg);
+  border:none;cursor:pointer;font-family:var(--mono);font-size:11px;
+  letter-spacing:2px;text-transform:uppercase;margin-top:8px;
+  transition:opacity .2s;display:flex;align-items:center;justify-content:center;gap:10px;
+}
+.run-btn:hover{opacity:.88}
+.run-btn:disabled{opacity:.4;cursor:not-allowed}
+.dots{display:flex;gap:4px}
+.dot{width:4px;height:4px;border-radius:50%;background:var(--bg);animation:pulse .8s ease-in-out infinite}
+.dot:nth-child(2){animation-delay:.15s}
+.dot:nth-child(3){animation-delay:.3s}
+@keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+
+.status-msg{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-align:center;padding:8px 0;min-height:24px;color:var(--light)}
+.status-msg.ok{color:#4a7c4e}
+.status-msg.err{color:#b05040}
+
+/* CONTENT */
+.content{padding:32px 40px;overflow-y:auto;max-height:calc(100vh - 61px)}
+
+/* Empty state */
+.empty{text-align:center;padding:80px 20px;color:var(--ghost)}
+.empty-icon{font-size:36px;margin-bottom:16px;opacity:.3}
+.empty-title{font-family:var(--serif);font-size:28px;font-weight:300;color:rgba(10,10,10,.25);margin-bottom:8px}
+.empty-sub{font-size:12px;color:var(--ghost)}
+
+/* Results */
+.results{display:none}
+.results.show{display:block}
+.res-header{margin-bottom:28px;padding-bottom:16px;border-bottom:0.5px solid var(--line)}
+.res-tema{font-family:var(--serif);font-size:26px;font-weight:300;color:var(--ink);margin-bottom:4px}
+.res-meta{font-size:11px;color:var(--light);font-family:var(--mono);letter-spacing:.5px}
+
+/* Varianti */
+.varianti{display:flex;flex-direction:column;gap:14px;margin-bottom:28px}
+.variante{border:0.5px solid var(--line);transition:border-color .2s}
+.variante:hover{border-color:var(--ghost)}
+.variante.best{border-color:var(--accent)}
+.var-head{padding:12px 18px;background:var(--bg2);display:flex;align-items:center;gap:14px}
+.var-rank{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--accent);min-width:20px}
+.var-framing{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--light);text-transform:uppercase;flex:1}
+.var-score{font-family:var(--mono);font-size:13px;color:var(--ink);font-weight:500}
+.score-bar{width:80px;height:3px;background:var(--line);position:relative}
+.score-fill{height:100%;background:var(--accent);transition:width 1s ease}
+.var-body{padding:18px}
+.var-titolo{font-family:var(--serif);font-size:20px;font-weight:300;color:var(--ink);margin-bottom:8px;line-height:1.2}
+.var-testo{font-size:13px;color:var(--mid);line-height:1.7;margin-bottom:12px;font-weight:300}
+.var-kw{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.kw{font-family:var(--mono);font-size:8px;letter-spacing:1px;color:var(--light);border:0.5px solid var(--line);padding:2px 7px;text-transform:uppercase}
+.var-metriche{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.metrica{text-align:center;padding:6px 4px;background:var(--bg2)}
+.m-val{font-family:var(--mono);font-size:15px;color:var(--ink)}
+.m-label{font-family:var(--mono);font-size:7px;color:var(--light);letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+.var-insight{font-size:12px;color:var(--light);border-left:2px solid var(--accent2);padding-left:10px;font-style:italic;line-height:1.6}
+
+/* Raccomandazione */
+.raccomandazione{border:0.5px solid var(--accent);padding:18px 22px;margin-bottom:16px;background:rgba(138,106,58,.03)}
+.rec-label{font-family:var(--mono);font-size:8px;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:8px}
+.rec-text{font-size:13px;color:var(--ink);line-height:1.7;font-weight:300}
+.avv-text{font-size:12px;color:#b05040;margin-top:8px;font-style:italic}
+
+/* Segmento costruito */
+.seg-built{background:var(--bg2);border:0.5px solid var(--line);padding:16px;margin-bottom:16px}
+.seg-built-label{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:6px}
+.seg-built-name{font-family:var(--serif);font-size:18px;font-weight:300;color:var(--ink)}
+
+/* Mobile */
+@media(max-width:768px){
+  .layout{grid-template-columns:1fr}
+  .sidebar{max-height:none;position:static;border-right:none;border-bottom:0.5px solid var(--line)}
+  .content{max-height:none}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="logo" href="/">POLI<span>SIM</span>.DEV</a>
+  <a class="nav-back" href="/">← Torna alla home</a>
+</nav>
+
+<div class="layout">
+
+  <!-- SIDEBAR FORM -->
+  <div class="sidebar">
+    <div class="sidebar-title">Message Optimizer</div>
+    <div class="sidebar-sub">Stage 3 · Claude Sonnet 4.6</div>
+
+    <!-- Dominio -->
+    <div class="field">
+      <label>Dominio</label>
+      <select id="dominio" onchange="aggiornaDominio()">
+        <option value="partito">Partito / Movimento politico</option>
+        <option value="ong_lasciti">ONG — Lasciti testamentari</option>
+        <option value="ong_corporate">ONG — Partnership corporate</option>
+        <option value="brand">Brand / Prodotto</option>
+      </select>
+    </div>
+
+    <!-- Organizzazione -->
+    <div class="field">
+      <label>Nome organizzazione</label>
+      <input type="text" id="org-nome" value="Q-Italia" placeholder="Es. Q-Italia, Associazione X, Brand Y">
+    </div>
+    <div class="field">
+      <label>Descrizione (1-2 righe)</label>
+      <textarea id="org-desc" placeholder="Descrivi brevemente l'organizzazione e il suo posizionamento">Partito pro-AI, pacifista, progressista, anti-corruzione, reddito universale</textarea>
+    </div>
+
+    <!-- Tema -->
+    <div class="field">
+      <label>Tema / Messaggio</label>
+      <input type="text" id="tema" value="reddito universale di base" placeholder="Es. reddito universale, lascito testamentario...">
+    </div>
+
+    <hr class="divider">
+
+    <!-- Segmento -->
+    <div class="field">
+      <label>Segmento target</label>
+      <div class="seg-tabs">
+        <button class="seg-tab active" onclick="switchSeg('predefinito')">Predefinito</button>
+        <button class="seg-tab" onclick="switchSeg('custom')">Custom ISTAT</button>
+      </div>
+
+      <!-- Predefinito -->
+      <div class="seg-panel active" id="panel-predefinito">
+        <select id="segmento">
+          <option value="giovani_precari_sud">Giovani precari del Sud</option>
+          <option value="casalinghe_sud">Casalinghe disoccupate del Sud</option>
+          <option value="operai_nord">Operai e artigiani del Nord</option>
+          <option value="laureati_urbani">Laureati urbani progressisti</option>
+          <option value="astensionisti_valoriali">Astensionisti valoriali</option>
+          <option value="pensionati_centro_nord">Pensionati del Centro-Nord</option>
+          <option value="donatori_lasciti">Donatori lascito testamentario</option>
+          <option value="responsabili_csr">Responsabili CSR aziende</option>
+          <option value="donne_25_40_urbane">Donne 25-40 urbane consapevoli</option>
+          <option value="imprenditori_pmi">Imprenditori e titolari PMI</option>
+        </select>
+      </div>
+
+      <!-- Custom ISTAT -->
+      <div class="seg-panel" id="panel-custom">
+        <div class="field">
+          <label>Età</label>
+          <select id="c-eta">
+            <option value="18-30">18-30 anni</option>
+            <option value="30-45">30-45 anni</option>
+            <option value="45-60" selected>45-60 anni</option>
+            <option value="60+">60+ anni</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Area geografica</label>
+          <select id="c-area">
+            <option value="nord-ovest">Nord-Ovest</option>
+            <option value="nord-est">Nord-Est</option>
+            <option value="centro">Centro</option>
+            <option value="sud" selected>Sud</option>
+            <option value="sud-isole">Sud e Isole</option>
+            <option value="italia">Italia</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Istruzione</label>
+          <select id="c-istruzione">
+            <option value="nessun-titolo">Nessun titolo</option>
+            <option value="media" selected>Media inferiore</option>
+            <option value="diploma">Diploma</option>
+            <option value="laurea">Laurea</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Occupazione</label>
+          <select id="c-occupazione">
+            <option value="occupato">Occupato</option>
+            <option value="disoccupato">Disoccupato</option>
+            <option value="inattivo" selected>Inattivo / Casalinga</option>
+            <option value="pensionato">Pensionato</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Genere</label>
+          <select id="c-genere">
+            <option value="tutti">Tutti</option>
+            <option value="donne" selected>Donne</option>
+            <option value="uomini">Uomini</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Regione (opzionale)</label>
+          <input type="text" id="c-regione" placeholder="Es. Campania, Lombardia">
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Regione / Contesto</label>
+      <input type="text" id="regione" value="Campania" placeholder="Es. Campania, Lombardia, Italia">
+    </div>
+
+    <button class="run-btn" id="run-btn" onclick="esegui()">
+      <span id="btn-label">◆ &nbsp;Genera varianti</span>
+      <span id="btn-loading" style="display:none">
+        <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+      </span>
+    </button>
+    <div class="status-msg" id="status"></div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <div class="empty" id="empty">
+      <div class="empty-icon">◈</div>
+      <div class="empty-title">Configura e avvia</div>
+      <div class="empty-sub">Scegli dominio, tema e segmento — genera 4 varianti di messaggio calibrate</div>
+    </div>
+
+    <div class="results" id="results">
+      <div class="res-header">
+        <div class="res-tema" id="res-tema"></div>
+        <div class="res-meta" id="res-meta"></div>
+      </div>
+      <div id="seg-built-box"></div>
+      <div class="varianti" id="varianti"></div>
+      <div class="raccomandazione" id="raccomandazione"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const API = "http://109.123.247.161:8001";
+let segMode = "predefinito";
+let segmentoCustom = null;
+
+function switchSeg(mode) {
+  segMode = mode;
+  document.querySelectorAll('.seg-tab').forEach((t,i) =>
+    t.classList.toggle('active', (i===0&&mode==='predefinito')||(i===1&&mode==='custom')));
+  document.getElementById('panel-predefinito').classList.toggle('active', mode==='predefinito');
+  document.getElementById('panel-custom').classList.toggle('active', mode==='custom');
+}
+
+function aggiornaDominio() {
+  const d = document.getElementById('dominio').value;
+  const presets = {
+    partito: {org:"Q-Italia", desc:"Partito pro-AI, pacifista, progressista, anti-corruzione, reddito universale", tema:"reddito universale di base", seg:"giovani_precari_sud"},
+    ong_lasciti: {org:"Associazione Generosità", desc:"ONG che raccoglie lasciti testamentari per progetti umanitari", tema:"lasciare un segno che dura oltre la vita", seg:"donatori_lasciti"},
+    ong_corporate: {org:"Impatto Sociale", desc:"ONG che sviluppa partnership CSR con aziende", tema:"partnership ESG certificata con impatto misurabile", seg:"responsabili_csr"},
+    brand: {org:"NudeBase", desc:"Brand fondotinta inclusivo, vegan, prezzi accessibili", tema:"fondotinta inclusivo vegan 40 tonalità", seg:"donne_25_40_urbane"},
+  };
+  const p = presets[d];
+  if (p) {
+    document.getElementById('org-nome').value = p.org;
+    document.getElementById('org-desc').value = p.desc;
+    document.getElementById('tema').value = p.tema;
+    document.getElementById('segmento').value = p.seg;
+  }
+}
+
+function setStatus(msg, type) {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = 'status-msg' + (type ? ' '+type : '');
+}
+
+function setBusy(busy) {
+  const btn = document.getElementById('run-btn');
+  btn.disabled = busy;
+  document.getElementById('btn-label').style.display = busy ? 'none' : 'flex';
+  document.getElementById('btn-loading').style.display = busy ? 'flex' : 'none';
+}
+
+async function esegui() {
+  const tema = document.getElementById('tema').value.trim();
+  const dominio = document.getElementById('dominio').value;
+  const regione = document.getElementById('regione').value.trim() || 'Italia';
+  const orgNome = document.getElementById('org-nome').value.trim();
+  const orgDesc = document.getElementById('org-desc').value.trim();
+
+  if (!tema) { setStatus('Inserisci un tema', 'err'); return; }
+
+  setBusy(true);
+  document.getElementById('empty').style.display = 'none';
+  document.getElementById('results').classList.remove('show');
+
+  try {
+    let body = { tema, dominio, regione, org_nome: orgNome, org_desc: orgDesc };
+
+    if (segMode === 'custom') {
+      // Step 1: build segment
+      setStatus('◆  Costruzione segmento su dati ISTAT...', '');
+      const segReq = {
+        eta: document.getElementById('c-eta').value,
+        area: document.getElementById('c-area').value,
+        istruzione: document.getElementById('c-istruzione').value,
+        occupazione: document.getElementById('c-occupazione').value,
+        genere: document.getElementById('c-genere').value,
+        regione: document.getElementById('c-regione').value || regione,
+        dominio,
+      };
+      const segRes = await fetch(`${API}/api/build-segment`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(segReq)
+      });
+      if (!segRes.ok) throw new Error('Errore build segment');
+      segmentoCustom = await segRes.json();
+      body.segmento_custom = segmentoCustom;
+      body.segmento_key = '';
+    } else {
+      body.segmento_key = document.getElementById('segmento').value;
+      segmentoCustom = null;
+    }
+
+    setStatus('◆  Generazione varianti con Claude...', '');
+    const res = await fetch(`${API}/api/optimize`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || 'Errore API');
+    }
+    const data = await res.json();
+    setStatus('✓  Analisi completata', 'ok');
+    renderResults(data);
+  } catch(e) {
+    setStatus('✗  ' + e.message, 'err');
+    document.getElementById('empty').style.display = 'block';
+  } finally {
+    setBusy(false);
+  }
+}
+
+function renderResults(data) {
+  document.getElementById('results').classList.add('show');
+  document.getElementById('res-tema').textContent = data.tema;
+  document.getElementById('res-meta').textContent =
+    `${data.segmento} · ${data.regione} · ${data.dominio} · ${data.label_score}`;
+
+  // Segmento custom box
+  const scb = document.getElementById('seg-built-box');
+  if (segmentoCustom) {
+    scb.innerHTML = `<div class="seg-built">
+      <div class="seg-built-label">Segmento costruito su dati ISTAT</div>
+      <div class="seg-built-name">${segmentoCustom.label || ''}</div>
+    </div>`;
+  } else {
+    scb.innerHTML = '';
+  }
+
+  // Varianti
+  const grid = document.getElementById('varianti');
+  const medals = ['1°','2°','3°','4°'];
+  grid.innerHTML = data.varianti.map((v, rank) => {
+    const score = (v.score_complessivo||0).toFixed(2);
+    const fill = Math.min(100, (v.score_complessivo||0)*10);
+    const kw = (v.parole_chiave||[]).map(k=>`<span class="kw">${k}</span>`).join('');
+    const metriche = (data.metriche||[]).map(m =>
+      `<div class="metrica"><div class="m-val">${v[m]??'—'}</div><div class="m-label">${m.replace(/_/g,' ').substring(0,10)}</div></div>`
+    ).join('');
+    return `<div class="variante${rank===0?' best':''}">
+      <div class="var-head">
+        <span class="var-rank">${medals[rank]||''}</span>
+        <span class="var-framing">${v.framing||''}</span>
+        <div class="score-bar"><div class="score-fill" style="width:${fill}%"></div></div>
+        <span class="var-score">${score}/10</span>
+      </div>
+      <div class="var-body">
+        <div class="var-titolo">"${v.titolo||''}"</div>
+        <div class="var-testo">${v.testo||''}</div>
+        ${kw?`<div class="var-kw">${kw}</div>`:''}
+        <div class="var-metriche">${metriche}</div>
+        ${v.insight?`<div class="var-insight">${v.insight}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Raccomandazione
+  document.getElementById('raccomandazione').innerHTML = `
+    <div class="rec-label">◆ Raccomandazione</div>
+    <div class="rec-text">${data.raccomandazione||''}</div>
+    ${data.avvertenza?`<div class="avv-text">⚠ ${data.avvertenza}</div>`:''}`;
+}
+</script>
+</body>
+</html>
