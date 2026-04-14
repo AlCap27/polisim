@@ -172,7 +172,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:10
 <nav class="nav" style="display:none" id="main-nav">
   <a class="logo" href="/">POLI<span>SIM</span>.DEV</a>
   <div class="nav-right">
-    <span class="nav-tester" id="nav-tester"></span>
+    <span class="nav-tester" id="nav-tester"></span><button onclick="logout()" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--light);background:none;border:0.5px solid var(--line);padding:4px 10px;cursor:pointer;text-transform:uppercase">Esci</button>
     <a class="nav-tool" href="/simulatore.html" style="font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--light);text-decoration:none;text-transform:uppercase">Simulatore 2027</a><a class="nav-back" href="/">← Home</a>
   </div>
 </nav>
@@ -362,6 +362,7 @@ function checkGate() {
   }
 }
 
+function logout(){currentAccess=null;location.reload()}
 function initTool() {
   // Popola domini
   const sel = document.getElementById('dominio');
