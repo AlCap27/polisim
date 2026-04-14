@@ -3,9 +3,57 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PoliSim.dev — Variante Bianca</title>
+<title>PoliSim — Analisi politica e ottimizzazione dei messaggi con AI | polisim.dev</title>
+<meta name="description" content="PoliSim ottimizza la comunicazione politica, ONG e brand con AI. Genera 4 varianti di messaggio calibrate su dati ISTAT reali. Simula scenari elettorali 2027 su 147 collegi Camera e 74 Senato.">
+<meta name="keywords" content="analisi politica AI, ottimizzazione messaggi politici, simulatore elettorale 2027, framing politico, comunicazione ONG, segmentazione demografica ISTAT">
+<meta property="og:title" content="PoliSim — Ogni messaggio raggiunge il suo segmento">
+<meta property="og:description" content="Genera e valuta varianti di messaggio calibrate su dati demografici reali. Per partiti, ONG e brand.">
+<meta property="og:url" content="https://polisim.dev">
+<meta property="og:type" content="website">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://polisim.dev">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Cos'è PoliSim?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "PoliSim è il primo strumento italiano di analisi politica e ottimizzazione della comunicazione basato su AI. Genera 4 varianti di messaggio con framing diversi calibrate su dati demografici ISTAT reali, e simula scenari elettorali per le elezioni politiche 2027 su 147 collegi Camera e 74 Senato."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Come funziona il Message Optimizer di PoliSim?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Inserisci il tema, scegli il segmento target (predefinito o costruito su dati ISTAT) e la regione. PoliSim genera 4 varianti con framing economico, valoriale, pratico ed emotivo, le valuta su metriche specifiche per il tuo dominio e raccomanda quale usare con avvertenze sul segmento."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "PoliSim è adatto anche a ONG e brand?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Sì. PoliSim ha moduli separati per partiti e movimenti, ONG (lasciti testamentari e partnership corporate) e brand. Ogni dominio ha metriche dedicate e segmenti specifici. Gli accessi sono separati per tipo di cliente."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Su quali dati si basa PoliSim?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "I profili demografici sono costruiti sul Censimento permanente ISTAT 2021 e sulla Rilevazione sulle Forze di Lavoro. I dati elettorali provengono da Eligendo OpenData del Ministero dell'Interno. Il motore di linguaggio è Claude Sonnet di Anthropic."
+      }
+    }
+  ]
+}
+</script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -31,15 +79,15 @@ body { background: var(--bg); color: var(--ink); font-family: var(--font-sans); 
   display: flex; align-items: center; justify-content: space-between;
   padding: 28px 56px;
 }
-.nav-logo { font-family: var(--font-mono); font-size: 12px; letter-spacing: 4px; color: var(--bg); font-weight: 400; text-transform: uppercase; }
+.nav-logo { font-family: var(--font-mono); font-size: 12px; letter-spacing: 4px; color: var(--bg); font-weight: 400; text-transform: uppercase; text-decoration: none; }
 .nav-logo span { color: var(--accent-lt); }
 .nav-links { display: flex; gap: 36px; font-size: 12px; letter-spacing: 1.5px; color: rgba(250,250,248,0.6); text-transform: uppercase; }
 .nav-links a { color: inherit; text-decoration: none; transition: color .2s; }
 .nav-links a:hover { color: var(--bg); }
-.nav-cta { font-family: var(--font-mono); font-size: 11px; letter-spacing: 2px; color: var(--ink); background: var(--bg); border: none; padding: 10px 24px; cursor: pointer; text-transform: uppercase; transition: opacity .2s; }
+.nav-cta { font-family: var(--font-mono); font-size: 11px; letter-spacing: 2px; color: var(--ink); background: var(--bg); border: none; padding: 10px 24px; cursor: pointer; text-transform: uppercase; transition: opacity .2s; text-decoration: none; display: inline-block; }
 .nav-cta:hover { opacity: .85; }
 
-/* HERO — foto con overlay chiaro */
+/* HERO */
 .hero {
   position: relative; min-height: 100vh;
   display: flex; flex-direction: column;
@@ -58,27 +106,16 @@ body { background: var(--bg); color: var(--ink); font-family: var(--font-sans); 
   background-size: 11px 11px, 17px 17px;
   background-position: 0 0, 5px 8px;
 }
-/* Overlay bianco dal basso — il testo è su bianco */
 .hero-overlay {
   position: absolute; inset: 0; z-index: 1;
-  background: linear-gradient(
-    to top,
-    rgba(250,250,248,0.97) 0%,
-    rgba(250,250,248,0.85) 35%,
-    rgba(250,250,248,0.3) 60%,
-    rgba(250,250,248,0.1) 100%
-  );
+  background: linear-gradient(to top, rgba(250,250,248,0.97) 0%, rgba(250,250,248,0.85) 35%, rgba(250,250,248,0.3) 60%, rgba(250,250,248,0.1) 100%);
 }
 .hero-code {
   position: absolute; inset: 0; z-index: 1;
   display: flex; justify-content: space-between;
   pointer-events: none; overflow: hidden;
 }
-.code-stream {
-  font-family: var(--font-mono); font-size: 9px; line-height: 1.7;
-  white-space: nowrap; padding: 0 20px;
-  animation: stream-up linear infinite;
-}
+.code-stream { font-family: var(--font-mono); font-size: 9px; line-height: 1.7; white-space: nowrap; padding: 0 20px; animation: stream-up linear infinite; }
 .cs-left  { color: rgba(80,60,20,0.06); animation-duration: 22s; }
 .cs-right { color: rgba(30,60,100,0.05); animation-duration: 28s; text-align: right; }
 @keyframes stream-up { from { transform: translateY(100vh); } to { transform: translateY(-100%); } }
@@ -104,7 +141,7 @@ body { background: var(--bg); color: var(--ink); font-family: var(--font-sans); 
   padding: 16px 24px; background: var(--ink); color: var(--bg);
   border: none; cursor: pointer; font-family: var(--font-sans);
   font-size: 13px; font-weight: 500; letter-spacing: .5px;
-  transition: opacity .2s;
+  transition: opacity .2s; text-decoration: none;
 }
 .cta-primary:hover { opacity: .85; }
 .cta-primary .arrow { font-size: 18px; }
@@ -113,7 +150,7 @@ body { background: var(--bg); color: var(--ink); font-family: var(--font-sans); 
   padding: 16px 24px; background: transparent; color: var(--ink);
   border: 0.5px solid var(--line); cursor: pointer;
   font-family: var(--font-sans); font-size: 13px; font-weight: 300;
-  letter-spacing: .5px; transition: border-color .2s;
+  letter-spacing: .5px; transition: border-color .2s; text-decoration: none;
 }
 .cta-secondary:hover { border-color: var(--ink-mid); }
 .cta-secondary .arrow { font-size: 18px; opacity: .4; }
@@ -121,47 +158,25 @@ body { background: var(--bg); color: var(--ink); font-family: var(--font-sans); 
 
 /* CITAZIONE AEI */
 .aei-quote {
-  background: var(--ink); padding: 60px 56px;
+  background: var(--ink); padding: 48px 56px;
   display: grid; grid-template-columns: 1fr auto;
   gap: 40px; align-items: center;
 }
-.aei-text { font-family: var(--font-serif); font-size: clamp(28px, 3.5vw, 46px); font-weight: 300; line-height: 1.2; color: var(--bg); letter-spacing: -.5px; }
+.aei-text { font-family: var(--font-serif); font-size: clamp(22px, 2.5vw, 34px); font-weight: 300; line-height: 1.3; color: var(--bg); letter-spacing: -.3px; }
 .aei-text em { font-style: italic; color: var(--accent-lt); }
 .aei-source { font-family: var(--font-mono); font-size: 10px; color: rgba(250,250,248,.4); letter-spacing: 1.5px; text-transform: uppercase; line-height: 1.8; text-align: right; min-width: 160px; }
 .aei-source strong { color: var(--bg); display: block; font-size: 12px; }
 
-/* TICKER — su sfondo scuro, più evidente */
-.ticker-wrap {
-  background: #121210;
-  padding: 0;
-}
-.ticker-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 18px 56px 0;
-}
-.ticker-label {
-  font-family: var(--font-mono); font-size: 9px;
-  letter-spacing: 3px; color: rgba(250,250,248,.3);
-  text-transform: uppercase;
-}
+/* TICKER */
+.ticker-wrap { background: #121210; padding: 0; }
+.ticker-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 56px 0; }
+.ticker-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 3px; color: rgba(250,250,248,.3); text-transform: uppercase; }
 .ticker-label span { color: var(--accent-lt); margin-right: 8px; }
-.ticker-count {
-  font-family: var(--font-mono); font-size: 9px;
-  color: rgba(250,250,248,.2); letter-spacing: 1px;
-}
-.ticker-track {
-  display: flex; width: max-content; padding: 12px 0 18px;
-  animation: ticker-run 55s linear infinite;
-}
+.ticker-count { font-family: var(--font-mono); font-size: 9px; color: rgba(250,250,248,.2); letter-spacing: 1px; }
+.ticker-track { display: flex; width: max-content; padding: 12px 0 18px; animation: ticker-run 55s linear infinite; }
 .ticker-track:hover { animation-play-state: paused; }
 @keyframes ticker-run { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-.ticker-item {
-  display: inline-flex; align-items: center; gap: 20px;
-  padding: 10px 36px;
-  border-right: 0.5px solid rgba(250,250,248,.07);
-  cursor: pointer; white-space: nowrap; text-decoration: none;
-  transition: background .2s;
-}
+.ticker-item { display: inline-flex; align-items: center; gap: 20px; padding: 10px 36px; border-right: 0.5px solid rgba(250,250,248,.07); cursor: pointer; white-space: nowrap; text-decoration: none; transition: background .2s; }
 .ticker-item:hover { background: rgba(255,255,255,.03); }
 .t-source { font-family: var(--font-mono); font-size: 9px; color: var(--accent-lt); letter-spacing: 1px; text-transform: uppercase; flex-shrink: 0; }
 .t-text { font-size: 12px; color: rgba(250,250,248,.45); max-width: 400px; }
@@ -194,7 +209,7 @@ body { background: var(--bg); color: var(--ink); font-family: var(--font-sans); 
 .p-features { display: flex; flex-direction: column; gap: 8px; }
 .p-feat { display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--ink-light); }
 .p-feat::before { content: ''; width: 20px; height: 0.5px; background: var(--ink-ghost); flex-shrink: 0; }
-.p-cta { display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 2px; color: var(--ink); text-transform: uppercase; margin-top: auto; border-bottom: 0.5px solid var(--line); padding-bottom: 4px; width: fit-content; transition: border-color .2s; cursor: pointer; }
+.p-cta { display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 2px; color: var(--ink); text-transform: uppercase; margin-top: auto; border-bottom: 0.5px solid var(--line); padding-bottom: 4px; width: fit-content; transition: border-color .2s; cursor: pointer; text-decoration: none; }
 .p-cta:hover { border-color: var(--ink); }
 
 /* Audience */
@@ -204,34 +219,69 @@ body { background: var(--bg); color: var(--ink); font-family: var(--font-sans); 
 .aud-title { font-family: var(--font-serif); font-size: 26px; font-weight: 300; color: var(--ink); margin-bottom: 14px; line-height: 1.1; }
 .aud-desc { font-size: 12px; color: var(--ink-mid); line-height: 1.7; font-weight: 300; }
 
-/* Footer */
-.footer { padding: 32px 56px; display: flex; align-items: center; justify-content: space-between; border-top: 0.5px solid var(--line); background: var(--bg); }
-.footer-logo { font-family: var(--font-mono); font-size: 11px; letter-spacing: 3px; color: var(--ink-light); text-transform: uppercase; }
-.footer-links { display: flex; gap: 28px; font-family: var(--font-mono); font-size: 10px; color: var(--ink-light); letter-spacing: 1px; text-transform: uppercase; }
+/* FOOTER */
+.footer {
+  padding: 40px 56px 32px;
+  border-top: 0.5px solid var(--line);
+  background: var(--bg);
+}
+.footer-top {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 28px; padding-bottom: 28px;
+  border-bottom: 0.5px solid var(--line);
+}
+.footer-brand .footer-logo {
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: 4px;
+  color: var(--ink); text-transform: uppercase; margin-bottom: 8px;
+}
+.footer-brand .footer-logo span { color: var(--accent); }
+.footer-brand p {
+  font-size: 11px; color: var(--ink-light); line-height: 1.6;
+  max-width: 260px; font-weight: 300;
+}
+.footer-nav {
+  display: flex; gap: 56px;
+}
+.footer-col h4 {
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: 2px;
+  color: var(--ink-light); text-transform: uppercase; margin-bottom: 14px;
+}
+.footer-col a {
+  display: block; font-size: 12px; color: var(--ink-mid);
+  text-decoration: none; margin-bottom: 8px;
+  transition: color .2s; font-weight: 300;
+}
+.footer-col a:hover { color: var(--ink); }
+.footer-bottom {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.footer-copy { font-family: var(--font-mono); font-size: 9px; color: var(--ink-ghost); letter-spacing: 1px; }
+.footer-powered { font-family: var(--font-mono); font-size: 9px; color: var(--ink-ghost); letter-spacing: 1px; }
+.footer-powered span { color: var(--ink-light); }
 </style>
 </head>
 <body>
 
 <nav class="nav">
-  <div class="nav-logo">POLI<span>SIM</span>.DEV</div>
+  <a class="nav-logo" href="/"><span>POLI</span>SIM.DEV</a>
   <div class="nav-links">
-    <a href="#">Come funziona</a>
-    <a href="#">Per partiti</a>
-    <a href="#">Per ONG</a>
-    <a href="#">Per brand</a>
+    <a href="/come-funziona.html">Come funziona</a>
+    <a href="/tool.html">Per partiti</a>
+    <a href="/tool.html">Per ONG</a>
+    <a href="/tool.html">Per brand</a>
   </div>
-  <button class="nav-cta">Accedi</button>
+  <a class="nav-cta" href="/tool.html">Accedi</a>
 </nav>
 
 <section class="hero">
   <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
   <div class="hero-code">
     <div class="code-stream cs-left" id="cs1"></div>
     <div class="code-stream cs-right" id="cs2"></div>
   </div>
-  <div class="hero-overlay"></div>
   <div class="hero-content">
-    <div class="hero-eyebrow">Polisim · Message Optimizer · Electoral Forecast</div>
+    <div class="hero-eyebrow">PoliSim · Message Optimizer · Electoral Forecast</div>
     <h1 class="hero-title">
       Ogni messaggio<br>
       raggiunge il suo<br>
@@ -245,19 +295,19 @@ body { background: var(--bg); color: var(--ink); font-family: var(--font-sans); 
         per partiti, ONG e brand.
       </p>
       <div class="hero-ctas">
-        <button class="cta-primary">Simulatore elettorale 2027 <span class="arrow">→</span></button>
-        <button class="cta-secondary">Ottimizza il tuo messaggio <span class="arrow">→</span></button>
+        <a class="cta-primary" href="/tool.html">Simulatore elettorale 2027 <span class="arrow">→</span></a>
+        <a class="cta-secondary" href="/tool.html">Ottimizza il tuo messaggio <span class="arrow">→</span></a>
       </div>
     </div>
   </div>
   <div class="photo-label">Shibuya Crossing · Tokyo</div>
 </section>
 
-<!-- CITAZIONE AEI — blocco nero su bianco, contrasto forte -->
+<!-- CITAZIONE AEI — testo più piccolo -->
 <div class="aei-quote">
   <div class="aei-text">
-    "I messaggi ottimizzati con AI spostano le opinioni
-    fino a <em>25 punti percentuali.</em>"
+    Messaggi ottimizzati con AI spostano le opinioni
+    fino a <em>25 punti percentuali</em> rispetto ai messaggi non ottimizzati.
   </div>
   <div class="aei-source">
     <strong>AEI · 2025</strong>
@@ -273,10 +323,10 @@ body { background: var(--bg); color: var(--ink); font-family: var(--font-sans); 
   <div class="stat-item"><div class="stat-n">74</div><div class="stat-l">Collegi Senato</div></div>
   <div class="stat-item"><div class="stat-n">20</div><div class="stat-l">Regioni italiane</div></div>
   <div class="stat-item"><div class="stat-n">4</div><div class="stat-l">Varianti framing</div></div>
-  <div class="stat-item"><div class="stat-n">2022</div><div class="stat-l">Dati Eligendo</div></div>
+  <div class="stat-item"><div class="stat-n">2021</div><div class="stat-l">Dati ISTAT</div></div>
 </div>
 
-<!-- TICKER — più evidente, sfondo scuro in contrasto col bianco -->
+<!-- TICKER -->
 <div class="ticker-wrap">
   <div class="ticker-header">
     <div class="ticker-label"><span>◆</span>Validazione metodologica — letteratura accademica</div>
@@ -301,7 +351,7 @@ body { background: var(--bg); color: var(--ink); font-family: var(--font-sans); 
         <div class="p-feat">Proiezioni per regione e macro-area</div>
         <div class="p-feat">Stima potenziale nuovo partito</div>
       </div>
-      <div class="p-cta">Prova il simulatore →</div>
+      <a class="p-cta" href="/tool.html">Prova il simulatore →</a>
     </div>
     <div class="product-card featured">
       <div class="p-tag">Stage 3 · Message Optimizer</div>
@@ -309,11 +359,11 @@ body { background: var(--bg); color: var(--ink); font-family: var(--font-sans); 
       <div class="p-desc">4 varianti di framing calibrate sul profilo reale del segmento target. Metriche specifiche per partiti, ONG e brand.</div>
       <div class="p-features">
         <div class="p-feat">Framing economico, valoriale, pratico, emotivo</div>
-        <div class="p-feat">Profilo psicografico completo per segmento</div>
+        <div class="p-feat">Profilo psicografico su dati ISTAT 2021</div>
         <div class="p-feat">Metriche per partiti, ONG e brand</div>
-        <div class="p-feat">Export PDF del report</div>
+        <div class="p-feat">Costruttore segmenti custom</div>
       </div>
-      <div class="p-cta">Ottimizza il messaggio →</div>
+      <a class="p-cta" href="/tool.html">Ottimizza il messaggio →</a>
     </div>
   </div>
 </section>
@@ -343,9 +393,34 @@ body { background: var(--bg); color: var(--ink); font-family: var(--font-sans); 
 </section>
 
 <footer class="footer">
-  <div class="footer-logo">PoliSim.dev — 2026</div>
-  <div class="footer-links">
-    <span>Metodologia</span><span>Fonti</span><span>GDPR</span><span>API</span><span>Contatti</span>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <div class="footer-logo"><span>POLI</span>SIM.DEV</div>
+      <p>Analisi politica e ottimizzazione della comunicazione con AI.<br>Dati ISTAT · Eligendo · Claude Sonnet (Anthropic)</p>
+    </div>
+    <div class="footer-nav">
+      <div class="footer-col">
+        <h4>Strumenti</h4>
+        <a href="/tool.html">Message Optimizer</a>
+        <a href="/tool.html">Simulatore 2027</a>
+        <a href="/anonimizza.html">Anonimizzatore dati</a>
+      </div>
+      <div class="footer-col">
+        <h4>Informazioni</h4>
+        <a href="/metodologia.html">Metodologia</a>
+        <a href="/fonti.html">Fonti accademiche</a>
+        <a href="/gdpr.html">GDPR e Privacy</a>
+      </div>
+      <div class="footer-col">
+        <h4>Contatti</h4>
+        <a href="mailto:info@polisim.dev">info@polisim.dev</a>
+        <a href="mailto:admin@qitalia.org">admin@qitalia.org</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2026 PoliSim — polisim.dev — Tutti i diritti riservati</div>
+    <div class="footer-powered">Powered by <span>Claude Sonnet · Anthropic</span></div>
   </div>
 </footer>
 

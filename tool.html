@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PoliSim — Message Optimizer</title>
+<meta name="description" content="Genera e valuta varianti di messaggio calibrate su dati demografici ISTAT reali. Per partiti, ONG e brand.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -19,17 +20,47 @@
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:100vh}
 
+/* GATE DI ACCESSO */
+.gate{
+  position:fixed;inset:0;background:var(--bg);z-index:1000;
+  display:flex;align-items:center;justify-content:center;
+}
+.gate-box{
+  width:360px;text-align:center;padding:48px 40px;
+  border:0.5px solid var(--line);
+}
+.gate-logo{font-family:var(--mono);font-size:11px;letter-spacing:4px;color:var(--ink);text-transform:uppercase;margin-bottom:32px}
+.gate-logo span{color:var(--accent)}
+.gate-title{font-family:var(--serif);font-size:26px;font-weight:300;color:var(--ink);margin-bottom:8px}
+.gate-sub{font-size:12px;color:var(--light);margin-bottom:28px;font-weight:300}
+.gate-input{
+  width:100%;background:var(--bg2);border:0.5px solid var(--line);
+  color:var(--ink);padding:12px 14px;font-family:var(--mono);
+  font-size:13px;text-align:center;letter-spacing:2px;
+  outline:none;margin-bottom:12px;
+}
+.gate-input:focus{border-color:var(--accent)}
+.gate-btn{
+  width:100%;padding:13px;background:var(--ink);color:var(--bg);
+  border:none;cursor:pointer;font-family:var(--mono);font-size:10px;
+  letter-spacing:2px;text-transform:uppercase;transition:opacity .2s;
+}
+.gate-btn:hover{opacity:.85}
+.gate-err{font-family:var(--mono);font-size:10px;color:#b05040;margin-top:8px;min-height:16px}
+
 /* NAV */
 .nav{padding:20px 40px;border-bottom:0.5px solid var(--line);display:flex;align-items:center;justify-content:space-between;background:var(--bg)}
 .logo{font-family:var(--mono);font-size:11px;letter-spacing:4px;color:var(--ink);text-decoration:none;text-transform:uppercase}
 .logo span{color:var(--accent)}
+.nav-right{display:flex;align-items:center;gap:20px}
 .nav-back{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--light);text-decoration:none;text-transform:uppercase;transition:color .2s}
 .nav-back:hover{color:var(--ink)}
+.nav-tester{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--accent);text-transform:uppercase;background:var(--bg2);padding:4px 10px;border:0.5px solid var(--line)}
 
 /* LAYOUT */
 .layout{display:grid;grid-template-columns:360px 1fr;min-height:calc(100vh - 61px)}
 
-/* SIDEBAR FORM */
+/* SIDEBAR */
 .sidebar{border-right:0.5px solid var(--line);padding:28px 24px;background:var(--bg);overflow-y:auto;max-height:calc(100vh - 61px);position:sticky;top:0}
 .sidebar-title{font-family:var(--serif);font-size:22px;font-weight:300;color:var(--ink);margin-bottom:4px}
 .sidebar-sub{font-size:11px;color:var(--light);margin-bottom:24px;font-family:var(--mono);letter-spacing:1px;text-transform:uppercase}
@@ -43,8 +74,6 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:10
 }
 .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
 .field textarea{resize:vertical;min-height:56px;line-height:1.5}
-.field select option{background:var(--bg)}
-
 .divider{border:none;border-top:0.5px solid var(--line);margin:20px 0}
 
 /* Segmento tabs */
@@ -68,15 +97,12 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:10
 .dot:nth-child(2){animation-delay:.15s}
 .dot:nth-child(3){animation-delay:.3s}
 @keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
-
 .status-msg{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-align:center;padding:8px 0;min-height:24px;color:var(--light)}
 .status-msg.ok{color:#4a7c4e}
 .status-msg.err{color:#b05040}
 
 /* CONTENT */
 .content{padding:32px 40px;overflow-y:auto;max-height:calc(100vh - 61px)}
-
-/* Empty state */
 .empty{text-align:center;padding:80px 20px;color:var(--ghost)}
 .empty-icon{font-size:36px;margin-bottom:16px;opacity:.3}
 .empty-title{font-family:var(--serif);font-size:28px;font-weight:300;color:rgba(10,10,10,.25);margin-bottom:8px}
@@ -122,7 +148,6 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:10
 .seg-built-label{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:6px}
 .seg-built-name{font-family:var(--serif);font-size:18px;font-weight:300;color:var(--ink)}
 
-/* Mobile */
 @media(max-width:768px){
   .layout{grid-template-columns:1fr}
   .sidebar{max-height:none;position:static;border-right:none;border-bottom:0.5px solid var(--line)}
@@ -132,72 +157,63 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:10
 </head>
 <body>
 
-<nav class="nav">
+<!-- GATE DI ACCESSO -->
+<div class="gate" id="gate">
+  <div class="gate-box">
+    <div class="gate-logo">POLI<span>SIM</span>.DEV</div>
+    <div class="gate-title">Accesso beta</div>
+    <div class="gate-sub">Inserisci la password ricevuta via email</div>
+    <input class="gate-input" type="password" id="gate-pwd" placeholder="••••••••••••" onkeydown="if(event.key==='Enter')checkGate()">
+    <button class="gate-btn" onclick="checkGate()">Entra →</button>
+    <div class="gate-err" id="gate-err"></div>
+  </div>
+</div>
+
+<nav class="nav" style="display:none" id="main-nav">
   <a class="logo" href="/">POLI<span>SIM</span>.DEV</a>
-  <a class="nav-back" href="/">← Torna alla home</a>
+  <div class="nav-right">
+    <span class="nav-tester" id="nav-tester"></span>
+    <a class="nav-back" href="/">← Home</a>
+  </div>
 </nav>
 
-<div class="layout">
+<div class="layout" style="display:none" id="main-layout">
 
-  <!-- SIDEBAR FORM -->
+  <!-- SIDEBAR -->
   <div class="sidebar">
     <div class="sidebar-title">Message Optimizer</div>
-    <div class="sidebar-sub">Stage 3 · Claude Sonnet 4.6</div>
+    <div class="sidebar-sub" id="sidebar-sub">Stage 3 · Claude Sonnet 4.6</div>
 
-    <!-- Dominio -->
-    <div class="field">
+    <!-- Dominio — filtrato per tipo tester -->
+    <div class="field" id="field-dominio">
       <label>Dominio</label>
-      <select id="dominio" onchange="aggiornaDominio()">
-        <option value="partito">Partito / Movimento politico</option>
-        <option value="ong_lasciti">ONG — Lasciti testamentari</option>
-        <option value="ong_corporate">ONG — Partnership corporate</option>
-        <option value="brand">Brand / Prodotto</option>
-      </select>
+      <select id="dominio" onchange="aggiornaDominio()"></select>
     </div>
 
-    <!-- Organizzazione -->
     <div class="field">
       <label>Nome organizzazione</label>
-      <input type="text" id="org-nome" value="Q-Italia" placeholder="Es. Q-Italia, Associazione X, Brand Y">
+      <input type="text" id="org-nome" placeholder="Es. Q-Italia, Associazione X, Brand Y">
     </div>
     <div class="field">
       <label>Descrizione (1-2 righe)</label>
-      <textarea id="org-desc" placeholder="Descrivi brevemente l'organizzazione e il suo posizionamento">Partito pro-AI, pacifista, progressista, anti-corruzione, reddito universale</textarea>
+      <textarea id="org-desc" placeholder="Descrivi brevemente l'organizzazione"></textarea>
     </div>
-
-    <!-- Tema -->
     <div class="field">
       <label>Tema / Messaggio</label>
-      <input type="text" id="tema" value="reddito universale di base" placeholder="Es. reddito universale, lascito testamentario...">
+      <input type="text" id="tema" placeholder="Es. reddito di base, lascito testamentario...">
     </div>
 
     <hr class="divider">
 
-    <!-- Segmento -->
     <div class="field">
       <label>Segmento target</label>
       <div class="seg-tabs">
         <button class="seg-tab active" onclick="switchSeg('predefinito')">Predefinito</button>
         <button class="seg-tab" onclick="switchSeg('custom')">Custom ISTAT</button>
       </div>
-
-      <!-- Predefinito -->
       <div class="seg-panel active" id="panel-predefinito">
-        <select id="segmento">
-          <option value="giovani_precari_sud">Giovani precari del Sud</option>
-          <option value="casalinghe_sud">Casalinghe disoccupate del Sud</option>
-          <option value="operai_nord">Operai e artigiani del Nord</option>
-          <option value="laureati_urbani">Laureati urbani progressisti</option>
-          <option value="astensionisti_valoriali">Astensionisti valoriali</option>
-          <option value="pensionati_centro_nord">Pensionati del Centro-Nord</option>
-          <option value="donatori_lasciti">Donatori lascito testamentario</option>
-          <option value="responsabili_csr">Responsabili CSR aziende</option>
-          <option value="donne_25_40_urbane">Donne 25-40 urbane consapevoli</option>
-          <option value="imprenditori_pmi">Imprenditori e titolari PMI</option>
-        </select>
+        <select id="segmento"></select>
       </div>
-
-      <!-- Custom ISTAT -->
       <div class="seg-panel" id="panel-custom">
         <div class="field">
           <label>Età</label>
@@ -216,7 +232,6 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:10
             <option value="centro">Centro</option>
             <option value="sud" selected>Sud</option>
             <option value="sud-isole">Sud e Isole</option>
-            <option value="italia">Italia</option>
           </select>
         </div>
         <div class="field">
@@ -254,7 +269,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:10
 
     <div class="field">
       <label>Regione / Contesto</label>
-      <input type="text" id="regione" value="Campania" placeholder="Es. Campania, Lombardia, Italia">
+      <input type="text" id="regione" value="Italia" placeholder="Es. Campania, Lombardia">
     </div>
 
     <button class="run-btn" id="run-btn" onclick="esegui()">
@@ -268,13 +283,11 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:10
 
   <!-- CONTENT -->
   <div class="content">
-
     <div class="empty" id="empty">
       <div class="empty-icon">◈</div>
       <div class="empty-title">Configura e avvia</div>
       <div class="empty-sub">Scegli dominio, tema e segmento — genera 4 varianti di messaggio calibrate</div>
     </div>
-
     <div class="results" id="results">
       <div class="res-header">
         <div class="res-tema" id="res-tema"></div>
@@ -284,14 +297,98 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:10
       <div class="varianti" id="varianti"></div>
       <div class="raccomandazione" id="raccomandazione"></div>
     </div>
-
   </div>
 </div>
 
 <script>
 const API = "https://api.polisim.dev";
+
+// ── Configurazione accessi ────────────────────────────────────────
+const ACCESSI = {
+  // Tester
+  "pol2026test":   { tipo:"politico",  label:"Consulente politico",  domini:["partito"],                                       segmenti:["giovani_precari_sud","casalinghe_sud","operai_nord","laureati_urbani","astensionisti_valoriali","pensionati_centro_nord"] },
+  "ong2026test":   { tipo:"ong",       label:"Tester ONG",           domini:["ong_lasciti","ong_corporate"],                   segmenti:["donatori_lasciti","responsabili_csr"] },
+  "brand2026test": { tipo:"brand",     label:"Tester Brand",         domini:["brand"],                                         segmenti:["donne_25_40_urbane","imprenditori_pmi"] },
+  // Admin — accesso completo
+  "admin-polisim-2026": { tipo:"admin", label:"Admin",               domini:["partito","ong_lasciti","ong_corporate","brand"],  segmenti:["giovani_precari_sud","casalinghe_sud","operai_nord","laureati_urbani","astensionisti_valoriali","pensionati_centro_nord","donatori_lasciti","responsabili_csr","donne_25_40_urbane","imprenditori_pmi"] },
+};
+
+const DOMINI_LABEL = {
+  partito:       "Partito / Movimento politico",
+  ong_lasciti:   "ONG — Lasciti testamentari",
+  ong_corporate: "ONG — Partnership corporate",
+  brand:         "Brand / Prodotto",
+};
+
+const SEGMENTI_LABEL = {
+  giovani_precari_sud:     "Giovani precari del Sud",
+  casalinghe_sud:          "Casalinghe disoccupate del Sud",
+  operai_nord:             "Operai e artigiani del Nord",
+  laureati_urbani:         "Laureati urbani progressisti",
+  astensionisti_valoriali: "Astensionisti valoriali",
+  pensionati_centro_nord:  "Pensionati del Centro-Nord",
+  donatori_lasciti:        "Donatori lascito testamentario",
+  responsabili_csr:        "Responsabili CSR aziende",
+  donne_25_40_urbane:      "Donne 25-40 urbane consapevoli",
+  imprenditori_pmi:        "Imprenditori e titolari PMI",
+};
+
+const PRESETS = {
+  partito:       { org:"Q-Italia",           desc:"Partito pro-AI, pacifista, progressista, anti-corruzione, reddito di base", tema:"reddito di base", seg:"giovani_precari_sud",  reg:"Campania" },
+  ong_lasciti:   { org:"Associazione X",     desc:"ONG che raccoglie lasciti testamentari per progetti umanitari",             tema:"lasciare un segno che dura oltre la vita",    seg:"donatori_lasciti",       reg:"Toscana" },
+  ong_corporate: { org:"Impatto Sociale",    desc:"ONG che sviluppa partnership CSR con aziende",                              tema:"partnership ESG certificata con impatto misurabile", seg:"responsabili_csr", reg:"Milano" },
+  brand:         { org:"NudeBase",           desc:"Brand fondotinta inclusivo, vegan, prezzi accessibili",                     tema:"fondotinta inclusivo vegan 40 tonalità",      seg:"donne_25_40_urbane",     reg:"Milano" },
+};
+
+let currentAccess = null;
 let segMode = "predefinito";
 let segmentoCustom = null;
+
+// ── Gate ─────────────────────────────────────────────────────────
+function checkGate() {
+  const pwd = document.getElementById('gate-pwd').value.trim();
+  if (ACCESSI[pwd]) {
+    currentAccess = { ...ACCESSI[pwd], pwd };
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('main-nav').style.display = 'flex';
+    document.getElementById('main-layout').style.display = 'grid';
+    document.getElementById('nav-tester').textContent = currentAccess.label;
+    document.getElementById('sidebar-sub').textContent =
+      `Stage 3 · Claude Sonnet 4.6 · ${currentAccess.label}`;
+    initTool();
+  } else {
+    document.getElementById('gate-err').textContent = 'Password non valida';
+    setTimeout(() => document.getElementById('gate-err').textContent = '', 2000);
+  }
+}
+
+function initTool() {
+  // Popola domini
+  const sel = document.getElementById('dominio');
+  sel.innerHTML = currentAccess.domini.map(d =>
+    `<option value="${d}">${DOMINI_LABEL[d]}</option>`).join('');
+
+  // Popola segmenti
+  const segs = document.getElementById('segmento');
+  segs.innerHTML = currentAccess.segmenti.map(s =>
+    `<option value="${s}">${SEGMENTI_LABEL[s]}</option>`).join('');
+
+  aggiornaDominio();
+}
+
+function aggiornaDominio() {
+  const d = document.getElementById('dominio').value;
+  const p = PRESETS[d];
+  if (p) {
+    document.getElementById('org-nome').value = p.org;
+    document.getElementById('org-desc').value = p.desc;
+    document.getElementById('tema').value = p.tema;
+    document.getElementById('regione').value = p.reg;
+    // Setta segmento se disponibile
+    const seg = document.getElementById('segmento');
+    if ([...seg.options].some(o => o.value === p.seg)) seg.value = p.seg;
+  }
+}
 
 function switchSeg(mode) {
   segMode = mode;
@@ -299,23 +396,6 @@ function switchSeg(mode) {
     t.classList.toggle('active', (i===0&&mode==='predefinito')||(i===1&&mode==='custom')));
   document.getElementById('panel-predefinito').classList.toggle('active', mode==='predefinito');
   document.getElementById('panel-custom').classList.toggle('active', mode==='custom');
-}
-
-function aggiornaDominio() {
-  const d = document.getElementById('dominio').value;
-  const presets = {
-    partito: {org:"Q-Italia", desc:"Partito pro-AI, pacifista, progressista, anti-corruzione, reddito universale", tema:"reddito universale di base", seg:"giovani_precari_sud"},
-    ong_lasciti: {org:"Associazione Generosità", desc:"ONG che raccoglie lasciti testamentari per progetti umanitari", tema:"lasciare un segno che dura oltre la vita", seg:"donatori_lasciti"},
-    ong_corporate: {org:"Impatto Sociale", desc:"ONG che sviluppa partnership CSR con aziende", tema:"partnership ESG certificata con impatto misurabile", seg:"responsabili_csr"},
-    brand: {org:"NudeBase", desc:"Brand fondotinta inclusivo, vegan, prezzi accessibili", tema:"fondotinta inclusivo vegan 40 tonalità", seg:"donne_25_40_urbane"},
-  };
-  const p = presets[d];
-  if (p) {
-    document.getElementById('org-nome').value = p.org;
-    document.getElementById('org-desc').value = p.desc;
-    document.getElementById('tema').value = p.tema;
-    document.getElementById('segmento').value = p.seg;
-  }
 }
 
 function setStatus(msg, type) {
@@ -332,7 +412,7 @@ function setBusy(busy) {
 }
 
 async function esegui() {
-  const tema = document.getElementById('tema').value.trim();
+  const tema    = document.getElementById('tema').value.trim();
   const dominio = document.getElementById('dominio').value;
   const regione = document.getElementById('regione').value.trim() || 'Italia';
   const orgNome = document.getElementById('org-nome').value.trim();
@@ -345,23 +425,26 @@ async function esegui() {
   document.getElementById('results').classList.remove('show');
 
   try {
-    let body = { tema, dominio, regione, org_nome: orgNome, org_desc: orgDesc };
+    let body = {
+      tema, dominio, regione,
+      org_nome: orgNome, org_desc: orgDesc,
+      tester: currentAccess?.label || '',
+    };
 
     if (segMode === 'custom') {
-      // Step 1: build segment
       setStatus('◆  Costruzione segmento su dati ISTAT...', '');
       const segReq = {
-        eta: document.getElementById('c-eta').value,
-        area: document.getElementById('c-area').value,
+        eta:        document.getElementById('c-eta').value,
+        area:       document.getElementById('c-area').value,
         istruzione: document.getElementById('c-istruzione').value,
-        occupazione: document.getElementById('c-occupazione').value,
-        genere: document.getElementById('c-genere').value,
-        regione: document.getElementById('c-regione').value || regione,
+        occupazione:document.getElementById('c-occupazione').value,
+        genere:     document.getElementById('c-genere').value,
+        regione:    document.getElementById('c-regione').value || regione,
         dominio,
+        tester:     currentAccess?.label || '',
       };
       const segRes = await fetch(`${API}/api/build-segment`, {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
+        method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify(segReq)
       });
       if (!segRes.ok) throw new Error('Errore build segment');
@@ -375,8 +458,7 @@ async function esegui() {
 
     setStatus('◆  Generazione varianti con Claude...', '');
     const res = await fetch(`${API}/api/optimize`, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify(body)
     });
     if (!res.ok) {
@@ -400,25 +482,21 @@ function renderResults(data) {
   document.getElementById('res-meta').textContent =
     `${data.segmento} · ${data.regione} · ${data.dominio} · ${data.label_score}`;
 
-  // Segmento custom box
   const scb = document.getElementById('seg-built-box');
   if (segmentoCustom) {
     scb.innerHTML = `<div class="seg-built">
       <div class="seg-built-label">Segmento costruito su dati ISTAT</div>
-      <div class="seg-built-name">${segmentoCustom.label || ''}</div>
+      <div class="seg-built-name">${segmentoCustom.label||''}</div>
     </div>`;
-  } else {
-    scb.innerHTML = '';
-  }
+  } else { scb.innerHTML = ''; }
 
-  // Varianti
-  const grid = document.getElementById('varianti');
+  const grid   = document.getElementById('varianti');
   const medals = ['1°','2°','3°','4°'];
   grid.innerHTML = data.varianti.map((v, rank) => {
     const score = (v.score_complessivo||0).toFixed(2);
-    const fill = Math.min(100, (v.score_complessivo||0)*10);
-    const kw = (v.parole_chiave||[]).map(k=>`<span class="kw">${k}</span>`).join('');
-    const metriche = (data.metriche||[]).map(m =>
+    const fill  = Math.min(100, (v.score_complessivo||0)*10);
+    const kw    = (v.parole_chiave||[]).map(k=>`<span class="kw">${k}</span>`).join('');
+    const met   = (data.metriche||[]).map(m =>
       `<div class="metrica"><div class="m-val">${v[m]??'—'}</div><div class="m-label">${m.replace(/_/g,' ').substring(0,10)}</div></div>`
     ).join('');
     return `<div class="variante${rank===0?' best':''}">
@@ -432,13 +510,12 @@ function renderResults(data) {
         <div class="var-titolo">"${v.titolo||''}"</div>
         <div class="var-testo">${v.testo||''}</div>
         ${kw?`<div class="var-kw">${kw}</div>`:''}
-        <div class="var-metriche">${metriche}</div>
+        <div class="var-metriche">${met}</div>
         ${v.insight?`<div class="var-insight">${v.insight}</div>`:''}
       </div>
     </div>`;
   }).join('');
 
-  // Raccomandazione
   document.getElementById('raccomandazione').innerHTML = `
     <div class="rec-label">◆ Raccomandazione</div>
     <div class="rec-text">${data.raccomandazione||''}</div>
