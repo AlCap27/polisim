@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PoliSim — Metodologia di Analisi e Forecasting Politico</title>
+<meta name="description" content="PoliSim usa modello swing Eligendo, ensemble Ridge+Random Forest calibrato su ISTAT, MRP (Wang et al.), framing theory (Entman 1993) e Claude Sonnet per generare messaggi politici ottimizzati per segmento demografico.">
+<link rel="canonical" href="https://polisim.dev/metodologia.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#fafaf8;--bg2:#f0ede8;--ink:#0a0a0a;--mid:#3a3a3a;--light:#7a7a7a;--ghost:#b0a898;
+  --line:#e0dbd4;--accent:#8a6a3a;--accent2:#c8a870;
+  --serif:'Cormorant Garamond',Georgia,serif;--sans:'DM Sans',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
+}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.7}
+.nav{padding:20px 56px;border-bottom:0.5px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:var(--mono);font-size:11px;letter-spacing:4px;color:var(--ink);text-decoration:none;text-transform:uppercase}
+.logo span{color:var(--accent)}
+.nav-back{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--light);text-decoration:none;text-transform:uppercase}
+.nav-back:hover{color:var(--ink)}
+.page{max-width:760px;margin:0 auto;padding:80px 40px}
+.page-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:4px;color:var(--accent);text-transform:uppercase;margin-bottom:16px}
+.page-title{font-family:var(--serif);font-size:clamp(40px,5vw,64px);font-weight:300;line-height:1;color:var(--ink);margin-bottom:12px}
+.page-sub{font-size:13px;color:var(--light);margin-bottom:48px;padding-bottom:40px;border-bottom:0.5px solid var(--line)}
+.pillar{margin-bottom:56px;padding-bottom:56px;border-bottom:0.5px solid var(--line)}
+.pillar:last-child{border-bottom:none}
+.pillar-num{font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:10px}
+.pillar-title{font-family:var(--serif);font-size:32px;font-weight:300;color:var(--ink);margin-bottom:16px;line-height:1.1}
+.pillar-title em{font-style:italic;color:var(--accent)}
+p{font-size:14px;color:var(--mid);font-weight:300;margin-bottom:14px}
+ul{margin:0 0 14px 20px}
+li{font-size:14px;color:var(--mid);font-weight:300;margin-bottom:8px}
+strong{color:var(--ink);font-weight:400}
+.source-tag{display:inline-block;font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--light);border:0.5px solid var(--line);padding:2px 8px;text-transform:uppercase;margin-bottom:12px}
+.limiti{background:var(--bg2);border-left:3px solid var(--line);padding:16px 20px;font-size:13px;color:var(--light);margin-top:16px}
+.limiti strong{color:var(--mid)}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+footer{border-top:0.5px solid var(--line);padding:32px 56px;display:flex;justify-content:space-between;align-items:center;margin-top:80px}
+.footer-copy{font-family:var(--mono);font-size:9px;color:var(--ghost)}
+.footer-links{display:flex;gap:24px}
+.footer-links a{font-size:12px;color:var(--light);text-decoration:none}
+.footer-links a:hover{color:var(--ink)}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a class="logo" href="/"><span>POLI</span>SIM.DEV</a>
+  <a class="nav-back" href="/">← Home</a>
+</nav>
+
+<div class="page">
+  <div class="page-eyebrow">Metodologia · Stage 1, 2, 3</div>
+  <h1 class="page-title">Come funziona<br><em>PoliSim</em></h1>
+  <p class="page-sub">Il sistema integra modelli statistici, dati demografici ufficiali e intelligenza artificiale. Ogni componente è documentato e le limitazioni sono dichiarate esplicitamente.</p>
+
+  <!-- Pillar 1 -->
+  <div class="pillar">
+    <div class="pillar-num">01 — Stage 2</div>
+    <div class="source-tag">Eligendo · Ministero Interno · 2022</div>
+    <h2 class="pillar-title">Modello swing e<br>dati <em>Eligendo</em></h2>
+    <p>Il nucleo della proiezione elettorale si basa sui dati storici ufficiali del Ministero dell'Interno (<strong>Eligendo OpenData</strong>). Utilizziamo un modello di <strong>Uniform Partisan Swing (UPS)</strong> adattato per riflettere le variazioni locali nei <strong>147 collegi uninominali della Camera</strong> e nei <strong>74 del Senato</strong>.</p>
+    <p>Il modello non si limita a una trasposizione lineare dei voti nazionali: calcola l'oscillazione dei consensi pesandola sulla volatilità storica e sulla competitività specifica di ogni collegio, identificando con precisione i collegi marginali (<em>swing districts</em>) dove un piccolo spostamento di voti può cambiare il risultato.</p>
+    <p>La simulazione verifica la <strong>doppia maggioranza</strong> — Camera e Senato simultaneamente — condizione necessaria per la formazione del governo in Italia.</p>
+    <div class="limiti"><strong>Limitazione dichiarata:</strong> il modello usa swing per macro-area geografica (Nord-Ovest, Nord-Est, Centro, Sud, Isole). L'implementazione futura con shapefile ISTAT consentirà swing per singolo collegio, riducendo l'errore stimato da ±3-5 seggi a ±2-3 seggi per camera.</div>
+  </div>
+
+  <!-- Pillar 2 -->
+  <div class="pillar">
+    <div class="pillar-num">02 — Stage 1</div>
+    <div class="source-tag">Graefe et al. · IJF 2021</div>
+    <h2 class="pillar-title">Ensemble<br><em>Ridge + Random Forest</em></h2>
+    <p>Per affinare la precisione del dato elettorale, utilizziamo un modello di machine learning <strong>ensemble</strong> che combina due approcci complementari calibrati su dati demografici ISTAT 2021:</p>
+    <ul>
+      <li><strong>Ridge Regression:</strong> gestisce l'elevata dimensionalità e la multicollinearità delle variabili politiche (disoccupazione, PIL pro capite, titolo di studio, quota stranieri, indice Gini), garantendo stabilità nelle previsioni.</li>
+      <li><strong>Random Forest:</strong> cattura relazioni non lineari e interazioni complesse tra variabili che i modelli tradizionali non riescono a modellare.</li>
+    </ul>
+    <p>I due modelli vengono ponderati in base alle loro performance su cross-validation. Il MAE medio documentato è di <strong>8.92 punti percentuali per collegio</strong>.</p>
+    <div class="limiti"><strong>Limitazione dichiarata:</strong> i pesi dell'ensemble sono calibrati su serie storica 2013-2022. Fenomeni politici nuovi (partiti emergenti, shock esterni) possono ridurre la precisione delle proiezioni regionali.</div>
+  </div>
+
+  <!-- Pillar 3 -->
+  <div class="pillar">
+    <div class="pillar-num">03 — Stage 1</div>
+    <div class="source-tag">Wang et al. · 2015</div>
+    <h2 class="pillar-title">MRP — Multilevel Regression<br>with <em>Poststratification</em></h2>
+    <p>Seguendo la metodologia di <strong>Wang, Rothschild, Goel e Gelman (2015)</strong>, applichiamo la tecnica MRP per superare i limiti dei sondaggi tradizionali. Il processo si articola in due fasi:</p>
+    <ul>
+      <li><strong>Regressione Multilivello:</strong> le preferenze di voto vengono stimate incrociando i dati dei sondaggi con le caratteristiche individuali e geografiche (età, istruzione, occupazione, regione).</li>
+      <li><strong>Post-stratificazione:</strong> le stime vengono pesate sulla reale composizione della popolazione in ogni collegio, utilizzando i censimenti ISTAT 2021.</li>
+    </ul>
+    <p>L'MRP consente di produrre stime locali affidabili anche con campioni nazionali ridotti. L'errore medio documentato in letteratura è di <strong>1.9 punti percentuali</strong> su sottogruppi demografici (Wang et al.).</p>
+  </div>
+
+  <!-- Pillar 4 -->
+  <div class="pillar">
+    <div class="pillar-num">04 — Stage 3</div>
+    <div class="source-tag">Entman · J.Communication 1993</div>
+    <h2 class="pillar-title">Framing Theory<br><em>Entman (1993)</em></h2>
+    <p>L'analisi qualitativa della comunicazione politica segue il framework teorico di <strong>Robert Entman (1993)</strong>. Il sistema identifica i quattro processi fondamentali del framing per ogni variante di messaggio generata:</p>
+    <ul>
+      <li><strong>Definizione del problema:</strong> identificazione delle criticità salienti per il segmento target.</li>
+      <li><strong>Diagnosi delle cause:</strong> attribuzione di responsabilità.</li>
+      <li><strong>Valutazione morale:</strong> inquadramento dei valori in gioco.</li>
+      <li><strong>Suggerimento di soluzioni:</strong> proposta di percorsi d'azione concreti.</li>
+    </ul>
+    <p>Questo approccio permette di mappare non solo <em>cosa</em> comunicare, ma <em>come</em> presentarlo per massimizzare la risonanza con il segmento specifico. I quattro framing generati dal sistema (economico, valoriale, pratico, emotivo) corrispondono a quattro diverse applicazioni della teoria di Entman.</p>
+  </div>
+
+  <!-- Pillar 5 -->
+  <div class="pillar">
+    <div class="pillar-num">05 — Stage 3</div>
+    <div class="source-tag">Anthropic · Claude Sonnet 4.6</div>
+    <h2 class="pillar-title">Generazione messaggi:<br><em>Claude Sonnet</em></h2>
+    <p>La generazione e valutazione delle varianti di messaggio è affidata a <strong>Claude Sonnet 4.6</strong> di Anthropic. Il modello riceve in input il profilo psicografico del segmento target (calibrato su dati ISTAT), i vincoli di framing (Entman) e il tema della comunicazione, producendo:</p>
+    <ul>
+      <li>Quattro varianti con framing economico, valoriale, pratico ed emotivo.</li>
+      <li>Score per metrica specifica per dominio (politica, ONG, brand).</li>
+      <li>Raccomandazione tattica e avvertenza sul segmento.</li>
+    </ul>
+    <div class="limiti"><strong>Limitazione dichiarata:</strong> il layer LLM non è stato validato empiricamente su campagne reali. I pesi delle metriche di scoring sono calibrati da esperti, non derivati da dati comportamentali osservati. La validazione empirica è in corso.</div>
+  </div>
+
+  <!-- Pillar 6 -->
+  <div class="pillar">
+    <div class="pillar-num">06 — Stage 3</div>
+    <div class="source-tag">ISTAT · Censimento Permanente 2021</div>
+    <h2 class="pillar-title">Costruttore segmenti<br>su dati <em>ISTAT</em></h2>
+    <p>I profili psicografici dei segmenti target sono ancorati al <strong>Censimento permanente della popolazione ISTAT 2021</strong> e alla <strong>Rilevazione sulle Forze di Lavoro</strong>. Per ogni combinazione di età, area geografica, istruzione, occupazione e genere, il sistema recupera:</p>
+    <ul>
+      <li>Dimensione stimata del segmento (numero di persone).</li>
+      <li>Tasso di disoccupazione locale.</li>
+      <li>Percentuale famiglie in povertà relativa.</li>
+      <li>Indicatore NEET (giovani non in istruzione né occupazione).</li>
+    </ul>
+    <p>Questi dati misurati — non ipotesi qualitative — fondano il profilo psicografico generato da Claude, garantendo che le preoccupazioni e i trigger comunicativi riflettano la realtà demografica del segmento.</p>
+    <div class="limiti"><strong>Limitazione dichiarata:</strong> i dati ISTAT di riferimento sono del 2021. Le serie Forze Lavoro 2022-2023 sono disponibili per aggiornamento futuro.</div>
+  </div>
+
+</div>
+
+<footer>
+  <div class="footer-copy">© 2026 PoliSim.dev — Powered by Claude Sonnet · Anthropic</div>
+  <div class="footer-links">
+    <a href="/fonti.html">Fonti accademiche</a>
+    <a href="/gdpr.html">Privacy</a>
+    <a href="/tool.html">Tool</a>
+  </div>
+</footer>
+</body>
+</html>

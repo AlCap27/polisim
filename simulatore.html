@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PoliSim — Simulatore Elettorale 2027</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#fafaf8;--bg2:#f0ede8;--bg3:#e8e4de;
+  --ink:#0a0a0a;--mid:#3a3a3a;--light:#7a7a7a;--ghost:#b0a898;
+  --line:#e0dbd4;--accent:#8a6a3a;--accent2:#c8a870;
+  --cdx:#b04040;--csx:#4060a0;--m5s:#e8a020;--centro:#508050;--altri:#888;
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --sans:'DM Sans',system-ui,sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:100vh}
+
+/* GATE */
+.gate{position:fixed;inset:0;background:var(--bg);z-index:1000;display:flex;align-items:center;justify-content:center}
+.gate-box{width:360px;text-align:center;padding:48px 40px;border:0.5px solid var(--line)}
+.gate-logo{font-family:var(--mono);font-size:11px;letter-spacing:4px;color:var(--ink);text-transform:uppercase;margin-bottom:32px}
+.gate-logo span{color:var(--accent)}
+.gate-title{font-family:var(--serif);font-size:26px;font-weight:300;margin-bottom:8px}
+.gate-sub{font-size:12px;color:var(--light);margin-bottom:28px}
+.gate-input{width:100%;background:var(--bg2);border:0.5px solid var(--line);color:var(--ink);padding:12px 14px;font-family:var(--mono);font-size:13px;text-align:center;letter-spacing:2px;outline:none;margin-bottom:12px}
+.gate-input:focus{border-color:var(--accent)}
+.gate-btn{width:100%;padding:13px;background:var(--ink);color:var(--bg);border:none;cursor:pointer;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase}
+.gate-err{font-family:var(--mono);font-size:10px;color:#b05040;margin-top:8px;min-height:16px}
+
+/* NAV */
+.nav{padding:20px 40px;border-bottom:0.5px solid var(--line);display:flex;align-items:center;justify-content:space-between;background:var(--bg)}
+.logo{font-family:var(--mono);font-size:11px;letter-spacing:4px;color:var(--ink);text-decoration:none;text-transform:uppercase}
+.logo span{color:var(--accent)}
+.nav-right{display:flex;align-items:center;gap:20px}
+.nav-tester{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--accent);text-transform:uppercase;background:var(--bg2);padding:4px 10px;border:0.5px solid var(--line)}
+.nav-back{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--light);text-decoration:none;text-transform:uppercase}
+.nav-tool{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--light);text-decoration:none;text-transform:uppercase}
+.nav-tool:hover,.nav-back:hover{color:var(--ink)}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:320px 1fr;min-height:calc(100vh - 61px)}
+
+/* SIDEBAR */
+.sidebar{border-right:0.5px solid var(--line);padding:28px 24px;background:var(--bg);overflow-y:auto;max-height:calc(100vh - 61px);position:sticky;top:0}
+.sidebar-title{font-family:var(--serif);font-size:22px;font-weight:300;margin-bottom:4px}
+.sidebar-sub{font-size:11px;color:var(--light);margin-bottom:24px;font-family:var(--mono);letter-spacing:1px;text-transform:uppercase}
+.field{margin-bottom:16px}
+.field label{display:block;font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--light);text-transform:uppercase;margin-bottom:6px}
+.field select,.field input{width:100%;background:var(--bg2);border:0.5px solid var(--line);color:var(--ink);padding:10px 12px;font-family:var(--sans);font-size:13px;font-weight:300;outline:none}
+.field select:focus,.field input:focus{border-color:var(--accent)}
+.divider{border:none;border-top:0.5px solid var(--line);margin:20px 0}
+
+/* Modo tabs */
+.mode-tabs{display:flex;gap:0;margin-bottom:20px;border:0.5px solid var(--line)}
+.mode-tab{flex:1;padding:10px;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;text-align:center;cursor:pointer;background:var(--bg);color:var(--light);border:none}
+.mode-tab.active{background:var(--ink);color:var(--bg)}
+
+/* Sondaggi custom */
+.sondaggio-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sond-item label{font-family:var(--mono);font-size:8px;letter-spacing:1px;color:var(--light);text-transform:uppercase;display:block;margin-bottom:3px}
+.sond-item input{width:100%;background:var(--bg2);border:0.5px solid var(--line);color:var(--ink);padding:6px 8px;font-family:var(--mono);font-size:12px;outline:none}
+.sond-tot{font-family:var(--mono);font-size:10px;color:var(--accent);margin-top:8px;text-align:right}
+.sond-tot.err{color:#b05040}
+
+/* Run btn */
+.run-btn{width:100%;padding:14px;background:var(--ink);color:var(--bg);border:none;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:10px}
+.run-btn:disabled{opacity:.4;cursor:not-allowed}
+.dots{display:flex;gap:4px}
+.dot{width:4px;height:4px;border-radius:50%;background:var(--bg);animation:pulse .8s ease-in-out infinite}
+.dot:nth-child(2){animation-delay:.15s}
+.dot:nth-child(3){animation-delay:.3s}
+@keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+.status-msg{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-align:center;padding:8px 0;min-height:24px;color:var(--light)}
+.status-msg.ok{color:#4a7c4e}
+.status-msg.err{color:#b05040}
+
+/* CONTENT */
+.content{padding:32px 40px;overflow-y:auto;max-height:calc(100vh - 61px)}
+.empty{text-align:center;padding:80px 20px}
+.empty-icon{font-size:36px;margin-bottom:16px;opacity:.15}
+.empty-title{font-family:var(--serif);font-size:28px;font-weight:300;color:rgba(10,10,10,.2);margin-bottom:8px}
+.empty-sub{font-size:12px;color:var(--ghost)}
+.results{display:none}
+.results.show{display:block}
+
+/* Header risultati */
+.res-header{margin-bottom:28px;padding-bottom:16px;border-bottom:0.5px solid var(--line)}
+.res-title{font-family:var(--serif);font-size:28px;font-weight:300;color:var(--ink);margin-bottom:4px}
+.res-meta{font-size:11px;color:var(--light);font-family:var(--mono)}
+.res-nota{font-size:11px;color:var(--ghost);font-style:italic;margin-top:6px}
+
+/* Quote partiti */
+.quote-section{margin-bottom:28px}
+.section-label{font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--light);text-transform:uppercase;margin-bottom:14px}
+.partiti-bars{display:flex;flex-direction:column;gap:8px}
+.partito-bar{display:flex;align-items:center;gap:12px}
+.p-nome{font-family:var(--mono);font-size:11px;color:var(--mid);width:60px;flex-shrink:0}
+.p-bar-wrap{flex:1;height:6px;background:var(--bg3);position:relative}
+.p-bar-fill{height:100%;transition:width 1s ease}
+.p-pct{font-family:var(--mono);font-size:11px;color:var(--ink);width:40px;text-align:right}
+
+/* Colori coalizioni */
+.c-cdx{background:var(--cdx)}
+.c-csx{background:var(--csx)}
+.c-m5s{background:var(--m5s)}
+.c-centro{background:var(--centro)}
+.c-altri{background:var(--altri)}
+
+/* Seggi */
+.seggi-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px}
+.camera-box{border:0.5px solid var(--line);padding:20px}
+.cam-title{font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--light);text-transform:uppercase;margin-bottom:4px}
+.cam-sub{font-size:11px;color:var(--ghost);margin-bottom:16px}
+
+/* Seggi histogram */
+.seggi-bars{display:flex;flex-direction:column;gap:10px}
+.seg-row{display:flex;align-items:center;gap:10px}
+.seg-label{font-family:var(--mono);font-size:10px;color:var(--mid);width:110px;flex-shrink:0}
+.seg-bar-wrap{flex:1;height:18px;background:var(--bg3);position:relative;overflow:hidden}
+.seg-bar-fill{height:100%;transition:width 1s ease;display:flex;align-items:center;padding-left:6px}
+.seg-bar-n{font-family:var(--mono);font-size:10px;color:white;font-weight:500}
+.seg-n-ext{font-family:var(--mono);font-size:10px;color:var(--ink);margin-left:6px}
+.seg-mag{font-family:var(--mono);font-size:9px;color:#4a7c4e;margin-left:4px}
+
+/* Linea maggioranza */
+.cam-threshold{font-family:var(--mono);font-size:9px;color:var(--light);margin-top:8px}
+
+/* Doppia maggioranza */
+.doppia-mag{margin-bottom:28px}
+.mag-card{border:0.5px solid var(--line);padding:16px 18px;margin-bottom:10px;display:flex;align-items:center;gap:16px}
+.mag-card.ok{border-color:#4a7c4e;background:rgba(74,124,78,.04)}
+.mag-card.parziale{border-color:#c8a020;background:rgba(200,160,32,.04)}
+.mag-icon{font-size:18px}
+.mag-coal{font-family:var(--serif);font-size:18px;font-weight:300;color:var(--ink)}
+.mag-detail{font-family:var(--mono);font-size:10px;color:var(--light);margin-top:2px}
+.mag-status{font-family:var(--mono);font-size:9px;letter-spacing:1px;margin-left:auto;padding:3px 8px;text-transform:uppercase}
+.mag-status.ok{color:#4a7c4e;background:rgba(74,124,78,.1)}
+.mag-status.parziale{color:#c8a020;background:rgba(200,160,32,.1)}
+
+/* Modalità A */
+.stima-header{margin-bottom:20px}
+.stima-partito{font-family:var(--serif);font-size:28px;font-weight:300;margin-bottom:4px}
+.stima-desc{font-size:13px;color:var(--mid);font-weight:300}
+.quota-box{border:0.5px solid var(--accent);padding:20px;margin-bottom:20px;background:rgba(138,106,58,.03)}
+.quota-pct{font-family:var(--serif);font-size:56px;font-weight:300;color:var(--ink);line-height:1}
+.quota-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-top:4px}
+.quota-range{font-family:var(--mono);font-size:12px;color:var(--light);margin-top:8px}
+.quota-soglia{font-family:var(--mono);font-size:11px;margin-top:6px}
+.quota-soglia.ok{color:#4a7c4e}
+.quota-soglia.warn{color:#c8a020}
+.quota-soglia.err{color:#b05040}
+
+.erosione-grid{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.er-row{display:flex;align-items:center;gap:10px}
+.er-nome{font-family:var(--mono);font-size:10px;color:var(--mid);width:100px}
+.er-bar{flex:1;height:4px;background:var(--bg3)}
+.er-fill{height:100%;background:var(--accent)}
+.er-val{font-family:var(--mono);font-size:10px;color:var(--accent);width:40px;text-align:right}
+
+.note-strat{border-left:2px solid var(--accent2);padding:10px 14px;font-size:13px;color:var(--mid);font-style:italic;line-height:1.7;margin-bottom:20px}
+
+.regioni-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:20px}
+.reg-item{background:var(--bg2);padding:8px;text-align:center}
+.reg-nome{font-family:var(--mono);font-size:8px;letter-spacing:1px;color:var(--light);text-transform:uppercase;margin-bottom:2px}
+.reg-pct{font-family:var(--serif);font-size:18px;font-weight:300;color:var(--ink)}
+
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .sidebar{max-height:none;position:static;border-right:none;border-bottom:0.5px solid var(--line)}
+  .content{max-height:none}
+  .seggi-grid{grid-template-columns:1fr}
+  .regioni-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<!-- GATE -->
+<div class="gate" id="gate">
+  <div class="gate-box">
+    <div class="gate-logo">POLI<span>SIM</span>.DEV</div>
+    <div class="gate-title">Simulatore Elettorale</div>
+    <div class="gate-sub">Inserisci la password ricevuta via email</div>
+    <input class="gate-input" type="password" id="gate-pwd" placeholder="••••••••••••" onkeydown="if(event.key==='Enter')checkGate()">
+    <button class="gate-btn" onclick="checkGate()">Entra →</button>
+    <div class="gate-err" id="gate-err"></div>
+  </div>
+</div>
+
+<nav class="nav" style="display:none" id="main-nav">
+  <a class="logo" href="/">POLI<span>SIM</span>.DEV</a>
+  <div class="nav-right">
+    <span class="nav-tester" id="nav-tester"></span>
+    <a class="nav-tool" href="/tool.html">Message Optimizer</a>
+    <a class="nav-back" href="/">← Home</a>
+  </div>
+</nav>
+
+<div class="layout" style="display:none" id="main-layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-title">Simulatore 2027</div>
+    <div class="sidebar-sub">Stage 2 · Eligendo 2022</div>
+
+    <!-- Modo -->
+    <div class="mode-tabs">
+      <button class="mode-tab active" id="tab-B" onclick="setModo('B')">Sondaggio 2027</button>
+      <button class="mode-tab" id="tab-A" onclick="setModo('A')">Partito nuovo</button>
+    </div>
+
+    <!-- Pannello B -->
+    <div id="panel-B">
+      <div class="field">
+        <label>Scenario</label>
+        <select id="scenario">
+          <option value="centrale">Centrale — sondaggi attuali</option>
+          <option value="ottimistico_cdx">CDX recupera (+2 FdI, +1 Lega)</option>
+          <option value="ottimistico_csx">Campo largo consolida (+3 PD, +2 M5S)</option>
+          <option value="frammentazione">Frammentazione — partiti medi crescono</option>
+          <option value="custom">Custom — inserisci sondaggi</option>
+        </select>
+      </div>
+
+      <!-- Sondaggi custom -->
+      <div id="custom-sondaggi" style="display:none">
+        <div class="section-label" style="margin-bottom:10px">Inserisci quote % (devono sommare ~100)</div>
+        <div class="sondaggio-grid">
+          <div class="sond-item"><label>FdI</label><input type="number" id="s-FDI" value="28.2" min="0" max="60" step="0.1" oninput="aggiornaTot()"></div>
+          <div class="sond-item"><label>PD</label><input type="number" id="s-PD" value="21.9" min="0" max="60" step="0.1" oninput="aggiornaTot()"></div>
+          <div class="sond-item"><label>M5S</label><input type="number" id="s-M5S" value="13.1" min="0" max="60" step="0.1" oninput="aggiornaTot()"></div>
+          <div class="sond-item"><label>Lega</label><input type="number" id="s-LEGA" value="6.5" min="0" max="60" step="0.1" oninput="aggiornaTot()"></div>
+          <div class="sond-item"><label>FI</label><input type="number" id="s-FI" value="8.4" min="0" max="60" step="0.1" oninput="aggiornaTot()"></div>
+          <div class="sond-item"><label>AVS</label><input type="number" id="s-AVS" value="6.8" min="0" max="60" step="0.1" oninput="aggiornaTot()"></div>
+          <div class="sond-item"><label>Az/IV</label><input type="number" id="s-AZIV" value="5.5" min="0" max="60" step="0.1" oninput="aggiornaTot()"></div>
+          <div class="sond-item"><label>FN</label><input type="number" id="s-FN" value="3.6" min="0" max="60" step="0.1" oninput="aggiornaTot()"></div>
+          <div class="sond-item"><label>Altri</label><input type="number" id="s-ALTRI" value="5.0" min="0" max="60" step="0.1" oninput="aggiornaTot()"></div>
+        </div>
+        <div class="sond-tot" id="sond-tot">Totale: 0%</div>
+      </div>
+    </div>
+
+    <!-- Pannello A -->
+    <div id="panel-A" style="display:none">
+      <div class="field">
+        <label>Profilo partito</label>
+        <select id="profilo">
+          <option value="q_italia">Q-Italia — pro-AI, pacifista, reddito di base</option>
+          <option value="italia_verde">Italia Verde — ambientalista radicale</option>
+          <option value="italia_sovrana">Italia Sovrana — sovranista</option>
+        </select>
+      </div>
+      <div style="font-size:11px;color:var(--light);line-height:1.6;margin-top:8px">
+        Claude stima la quota elettorale del partito basandosi su posizionamento, temi e bacino target. Stima probabilistica — non una previsione definitiva.
+      </div>
+    </div>
+
+    <hr class="divider">
+    <button class="run-btn" id="run-btn" onclick="esegui()">
+      <span id="btn-label">◆ &nbsp;Simula</span>
+      <span id="btn-loading" style="display:none"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></span>
+    </button>
+    <div class="status-msg" id="status"></div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+    <div class="empty" id="empty">
+      <div class="empty-icon">◈</div>
+      <div class="empty-title">Scegli scenario e simula</div>
+      <div class="empty-sub">Distribuzione seggi Camera e Senato · Verifica doppia maggioranza</div>
+    </div>
+
+    <div class="results" id="results"></div>
+  </div>
+</div>
+
+<script>
+const API = "https://api.polisim.dev";
+const ACCESSI = {
+  "pol2026test":        {label:"Consulente politico"},
+  "admin-polisim-2026": {label:"Admin"},
+};
+let modo = "B";
+let currentAccess = null;
+
+function checkGate() {
+  const pwd = document.getElementById('gate-pwd').value.trim();
+  if (ACCESSI[pwd]) {
+    currentAccess = {...ACCESSI[pwd], pwd};
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('main-nav').style.display = 'flex';
+    document.getElementById('main-layout').style.display = 'grid';
+    document.getElementById('nav-tester').textContent = currentAccess.label;
+  } else {
+    document.getElementById('gate-err').textContent = 'Password non valida';
+    setTimeout(()=>document.getElementById('gate-err').textContent='',2000);
+  }
+}
+
+function setModo(m) {
+  modo = m;
+  document.getElementById('tab-B').classList.toggle('active', m==='B');
+  document.getElementById('tab-A').classList.toggle('active', m==='A');
+  document.getElementById('panel-B').style.display = m==='B'?'block':'none';
+  document.getElementById('panel-A').style.display = m==='A'?'block':'none';
+}
+
+document.getElementById('scenario').addEventListener('change', function() {
+  document.getElementById('custom-sondaggi').style.display =
+    this.value === 'custom' ? 'block' : 'none';
+  if (this.value === 'custom') aggiornaTot();
+});
+
+function aggiornaTot() {
+  const ids = ['FDI','PD','M5S','LEGA','FI','AVS','AZIV','FN','ALTRI'];
+  const tot = ids.reduce((s,id) => s + parseFloat(document.getElementById('s-'+id)?.value||0), 0);
+  const el = document.getElementById('sond-tot');
+  el.textContent = `Totale: ${tot.toFixed(1)}%`;
+  el.className = 'sond-tot' + (Math.abs(tot-100)>2 ? ' err' : '');
+}
+
+function setBusy(busy) {
+  document.getElementById('run-btn').disabled = busy;
+  document.getElementById('btn-label').style.display = busy?'none':'flex';
+  document.getElementById('btn-loading').style.display = busy?'flex':'none';
+}
+function setStatus(msg, type) {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = 'status-msg'+(type?' '+type:'');
+}
+
+async function esegui() {
+  setBusy(true);
+  document.getElementById('empty').style.display = 'none';
+  document.getElementById('results').classList.remove('show');
+
+  try {
+    let body = {modalita: modo, tester: currentAccess?.label||''};
+
+    if (modo === 'B') {
+      const sc = document.getElementById('scenario').value;
+      body.scenario = sc === 'custom' ? 'centrale' : sc;
+      if (sc === 'custom') {
+        body.sondaggi_custom = {
+          FDI_pct:  parseFloat(document.getElementById('s-FDI').value)||0,
+          PD_pct:   parseFloat(document.getElementById('s-PD').value)||0,
+          M5S_pct:  parseFloat(document.getElementById('s-M5S').value)||0,
+          LEGA_pct: parseFloat(document.getElementById('s-LEGA').value)||0,
+          FI_pct:   parseFloat(document.getElementById('s-FI').value)||0,
+          AVS_pct:  parseFloat(document.getElementById('s-AVS').value)||0,
+          AZ_IV_pct:parseFloat(document.getElementById('s-AZIV').value)||0,
+          FN_pct:   parseFloat(document.getElementById('s-FN').value)||0,
+          ALTRI_pct:parseFloat(document.getElementById('s-ALTRI').value)||0,
+        };
+        body.scenario = 'centrale';
+      }
+      setStatus('◆  Simulazione seggi...','');
+    } else {
+      body.profilo = document.getElementById('profilo').value;
+      setStatus('◆  Stima con Claude...','');
+    }
+
+    const res = await fetch(`${API}/api/simulate`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.detail||'Errore API'); }
+    const data = await res.json();
+    setStatus('✓  Simulazione completata','ok');
+    renderResults(data);
+  } catch(e) {
+    setStatus('✗  '+e.message,'err');
+    document.getElementById('empty').style.display='block';
+  } finally {
+    setBusy(false);
+  }
+}
+
+const COAL_COLOR = {
+  'Centrodestra':'cdx','Centrosinistra':'csx','M5S':'m5s','Centro':'centro','Altri':'altri'
+};
+
+function renderResults(data) {
+  const el = document.getElementById('results');
+  el.classList.add('show');
+  document.getElementById('empty').style.display = 'none';
+
+  if (data.modalita === 'B') {
+    renderB(el, data);
+  } else {
+    renderA(el, data);
+  }
+}
+
+function renderB(el, data) {
+  const cam = data.camera;
+  const sen = data.senato;
+  const maxCam = Math.max(...Object.values(cam.seggi));
+  const maxSen = Math.max(...Object.values(sen.seggi));
+  const maxPct = Math.max(...data.partiti.map(p=>p[1]));
+
+  // Barre partiti
+  const partitiHtml = data.partiti.map(([nome,pct]) => {
+    const w = (pct/maxPct*100).toFixed(0);
+    const coal = Object.entries({
+      cdx:['FDI','LEGA','FI','FN'],
+      csx:['PD','AVS'],
+      m5s:['M5S'],
+      centro:['AZ','IV']
+    }).find(([c,ps]) => ps.some(p=>nome.toUpperCase().includes(p)));
+    const cls = coal ? coal[0] : 'altri';
+    return `<div class="partito-bar">
+      <div class="p-nome">${nome}</div>
+      <div class="p-bar-wrap"><div class="p-bar-fill c-${cls}" style="width:${w}%"></div></div>
+      <div class="p-pct">${pct}%</div>
+    </div>`;
+  }).join('');
+
+  // Barre seggi camera
+  const camHtml = Object.entries(cam.seggi).map(([coal,n]) => {
+    const w = (n/cam.totale_seggi*100).toFixed(0);
+    const cls = COAL_COLOR[coal]||'altri';
+    const mag = n > cam.maggioranza ? '✓ magg.' : '';
+    return `<div class="seg-row">
+      <div class="seg-label">${coal}</div>
+      <div class="seg-bar-wrap">
+        <div class="seg-bar-fill c-${cls}" style="width:${w}%">
+          ${n>20?`<span class="seg-bar-n">${n}</span>`:''}
+        </div>
+        ${n<=20?`<span class="seg-n-ext">${n}</span>`:''}
+        ${mag?`<span class="seg-mag">${mag}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+
+  const senHtml = Object.entries(sen.seggi).map(([coal,n]) => {
+    const w = (n/sen.totale_seggi*100).toFixed(0);
+    const cls = COAL_COLOR[coal]||'altri';
+    const mag = n > sen.maggioranza ? '✓ magg.' : '';
+    return `<div class="seg-row">
+      <div class="seg-label">${coal}</div>
+      <div class="seg-bar-wrap">
+        <div class="seg-bar-fill c-${cls}" style="width:${w}%">
+          ${n>10?`<span class="seg-bar-n">${n}</span>`:''}
+        </div>
+        ${n<=10?`<span class="seg-n-ext">${n}</span>`:''}
+        ${mag?`<span class="seg-mag">${mag}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Maggioranze
+  const magHtml = data.maggioranze.length > 0
+    ? data.maggioranze.map(m => `
+      <div class="mag-card ${m.status==='doppia_maggioranza'?'ok':'parziale'}">
+        <div class="mag-icon">${m.status==='doppia_maggioranza'?'✅':'⚠️'}</div>
+        <div>
+          <div class="mag-coal">${m.coalizione}</div>
+          <div class="mag-detail">Camera: ${m.camera} seggi · Senato: ${m.senato} seggi</div>
+        </div>
+        <div class="mag-status ${m.status==='doppia_maggioranza'?'ok':'parziale'}">
+          ${m.status==='doppia_maggioranza'?'Doppia maggioranza':'Maggioranza parziale'}
+        </div>
+      </div>`).join('')
+    : `<div class="mag-card"><div class="mag-icon">⚠️</div><div class="mag-coal" style="font-size:15px">Nessuna coalizione ha la doppia maggioranza</div></div>`;
+
+  el.innerHTML = `
+    <div class="res-header">
+      <div class="res-title">Politiche 2027 — ${data.scenario_desc}</div>
+      <div class="res-meta">Scenario: ${data.scenario} · Rosatellum · Dati Eligendo 2022</div>
+      <div class="res-nota">${data.nota}</div>
+    </div>
+
+    <div class="quote-section">
+      <div class="section-label">Quote partiti</div>
+      <div class="partiti-bars">${partitiHtml}</div>
+    </div>
+
+    <div class="section-label" style="margin-bottom:14px">Distribuzione seggi</div>
+    <div class="seggi-grid">
+      <div class="camera-box">
+        <div class="cam-title">Camera dei Deputati</div>
+        <div class="cam-sub">${cam.totale_seggi} seggi · maggioranza ${cam.maggioranza}</div>
+        <div class="seggi-bars">${camHtml}</div>
+        <div class="cam-threshold">${cam.uninominali} uninominali + ${cam.proporzionali} proporzionali</div>
+      </div>
+      <div class="camera-box">
+        <div class="cam-title">Senato della Repubblica</div>
+        <div class="cam-sub">${sen.totale_seggi} seggi · maggioranza ${sen.maggioranza}</div>
+        <div class="seggi-bars">${senHtml}</div>
+        <div class="cam-threshold">${sen.uninominali} uninominali + ${sen.proporzionali} proporzionali</div>
+      </div>
+    </div>
+
+    <div class="doppia-mag">
+      <div class="section-label" style="margin-bottom:14px">Verifica doppia maggioranza</div>
+      ${magHtml}
+    </div>`;
+}
+
+function renderA(el, data) {
+  const pct = data.quota_nazionale_pct;
+  const sogliaClass = data.supera_soglia_3pct ? 'ok' : (pct>=2?'warn':'err');
+  const sogliaIcon = data.supera_soglia_3pct ? '✅' : (pct>=2?'⚠️':'✗');
+  const sogliaMsg = data.supera_soglia_3pct
+    ? `Supera la soglia del 3% · ${data.voti_stimati.toLocaleString('it-IT')} voti stimati`
+    : pct>=2
+    ? `Sotto la soglia del 3% nello scenario centrale`
+    : `Sotto soglia — necessario piano di crescita`;
+
+  const erosHtml = Object.entries(data.erosione)
+    .filter(([,v])=>v>0.05)
+    .sort((a,b)=>b[1]-a[1])
+    .map(([nome,val]) => `<div class="er-row">
+      <div class="er-nome">${nome.replace('_pct','').replace('ASTENSIONE','Astensione')}</div>
+      <div class="er-bar"><div class="er-fill" style="width:${Math.min(100,val/pct*100)}%"></div></div>
+      <div class="er-val">-${val.toFixed(2)}pp</div>
+    </div>`).join('');
+
+  const regHtml = data.regioni.map(r => `
+    <div class="reg-item">
+      <div class="reg-nome">${r.regione.substring(0,10)}</div>
+      <div class="reg-pct">${r.quota.toFixed(1)}%</div>
+    </div>`).join('');
+
+  el.innerHTML = `
+    <div class="stima-header">
+      <div class="stima-partito">${data.profilo}</div>
+      <div class="stima-desc">${data.descrizione}</div>
+    </div>
+
+    <div class="quota-box">
+      <div class="quota-pct">${pct.toFixed(1)}%</div>
+      <div class="quota-label">Quota nazionale stimata</div>
+      <div class="quota-range">Intervallo: ${data.range_pessimistico_pct.toFixed(1)}% — ${data.range_ottimistico_pct.toFixed(1)}%</div>
+      <div class="quota-soglia ${sogliaClass}">${sogliaIcon} ${sogliaMsg}</div>
+    </div>
+
+    ${data.note_strategiche?`<div class="note-strat">${data.note_strategiche}</div>`:''}
+
+    <div class="section-label" style="margin-bottom:12px">Da dove vengono i voti</div>
+    <div class="erosione-grid">${erosHtml}</div>
+
+    <div class="section-label" style="margin-bottom:12px">Distribuzione geografica</div>
+    <div class="regioni-grid">${regHtml}</div>
+
+    <div style="font-family:var(--mono);font-size:9px;color:var(--ghost);margin-top:16px">
+      Seggi stimati: Camera ${data.seggi_stimati_camera} · Senato ${data.seggi_stimati_senato} ·
+      Soglia 3%: ${data.soglia_3pct_voti.toLocaleString('it-IT')} voti ·
+      Elettori totali: ${data.elettori_totali.toLocaleString('it-IT')}
+    </div>`;
+}
+</script>
+</body>
+</html>

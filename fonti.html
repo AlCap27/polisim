@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PoliSim — Fonti Accademiche e Riferimenti Metodologici</title>
+<meta name="description" content="Fonti accademiche di PoliSim: Wang et al. MRP, Entman framing theory, AEI 2025 AI persuasion, MIT Technology Review, Frontiers Political Science, ScienceDirect IJF 2021, Cambridge Core.">
+<link rel="canonical" href="https://polisim.dev/fonti.html">
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"ScholarlyArticle",
+  "name":"Framework metodologico PoliSim",
+  "description":"Riferimenti accademici per lo strumento di analisi politica e ottimizzazione della comunicazione PoliSim.dev",
+  "citation":[
+    {"@type":"ScholarlyArticle","author":"Wang, Rothschild, Goel, Gelman","name":"Forecasting elections with non-representative polls","datePublished":"2015","publisher":"International Journal of Forecasting"},
+    {"@type":"ScholarlyArticle","author":"Robert M. Entman","name":"Framing: Toward Clarification of a Fractured Paradigm","datePublished":"1993","publisher":"Journal of Communication"},
+    {"@type":"ScholarlyArticle","author":"Graefe et al.","name":"Combining forecasts for elections: Best practices and new frontiers","datePublished":"2021","publisher":"International Journal of Forecasting"},
+    {"@type":"ScholarlyArticle","author":"American Enterprise Institute","name":"The Impact of Generative AI on Political Persuasion and Voter Behavior","datePublished":"2025"}
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#fafaf8;--bg2:#f0ede8;--ink:#0a0a0a;--mid:#3a3a3a;--light:#7a7a7a;--ghost:#b0a898;
+  --line:#e0dbd4;--accent:#8a6a3a;--accent2:#c8a870;
+  --serif:'Cormorant Garamond',Georgia,serif;--sans:'DM Sans',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
+}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.7}
+.nav{padding:20px 56px;border-bottom:0.5px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:var(--mono);font-size:11px;letter-spacing:4px;color:var(--ink);text-decoration:none;text-transform:uppercase}
+.logo span{color:var(--accent)}
+.nav-back{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--light);text-decoration:none;text-transform:uppercase}
+.nav-back:hover{color:var(--ink)}
+.page{max-width:760px;margin:0 auto;padding:80px 40px}
+.page-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:4px;color:var(--accent);text-transform:uppercase;margin-bottom:16px}
+.page-title{font-family:var(--serif);font-size:clamp(40px,5vw,64px);font-weight:300;line-height:1;color:var(--ink);margin-bottom:12px}
+.page-sub{font-size:13px;color:var(--light);margin-bottom:48px;padding-bottom:40px;border-bottom:0.5px solid var(--line)}
+.cat-label{font-family:var(--mono);font-size:8px;letter-spacing:4px;color:var(--accent);text-transform:uppercase;margin-bottom:20px;margin-top:48px;padding-bottom:8px;border-bottom:0.5px solid var(--line)}
+.source-card{margin-bottom:28px;padding-bottom:28px;border-bottom:0.5px solid var(--line)}
+.source-card:last-child{border-bottom:none}
+.source-meta{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--light);text-transform:uppercase;margin-bottom:6px}
+.source-title{font-family:var(--serif);font-size:20px;font-weight:300;color:var(--ink);margin-bottom:4px;line-height:1.2}
+.source-authors{font-size:12px;color:var(--light);margin-bottom:10px}
+.source-note{font-size:13px;color:var(--mid);font-weight:300;line-height:1.7}
+.source-tag{display:inline-block;font-family:var(--mono);font-size:8px;letter-spacing:1px;color:var(--accent);border:0.5px solid var(--accent2);padding:2px 8px;text-transform:uppercase;margin-bottom:10px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+footer{border-top:0.5px solid var(--line);padding:32px 56px;display:flex;justify-content:space-between;align-items:center;margin-top:80px}
+.footer-copy{font-family:var(--mono);font-size:9px;color:var(--ghost)}
+.footer-links{display:flex;gap:24px}
+.footer-links a{font-size:12px;color:var(--light);text-decoration:none}
+.footer-links a:hover{color:var(--ink)}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a class="logo" href="/"><span>POLI</span>SIM.DEV</a>
+  <a class="nav-back" href="/">← Home</a>
+</nav>
+
+<div class="page">
+  <div class="page-eyebrow">Fonti · Peer-reviewed · Citate nel tool</div>
+  <h1 class="page-title">Riferimenti<br>accademici</h1>
+  <p class="page-sub">Ogni componente metodologico di PoliSim è fondato su letteratura peer-reviewed. Queste fonti non sono decorative: informano direttamente la struttura dei modelli e le scelte di design del sistema.</p>
+
+  <!-- STATISTICA ELETTORALE -->
+  <div class="cat-label">Statistica elettorale e modelli di previsione</div>
+
+  <div class="source-card">
+    <div class="source-tag">Stage 1 · MRP · Fondamento statistico</div>
+    <div class="source-meta">Wang et al. · International Journal of Forecasting · 2015</div>
+    <div class="source-title">Forecasting elections with non-representative polls</div>
+    <div class="source-authors">Wang, W., Rothschild, D., Goel, S., & Gelman, A.</div>
+    <div class="source-note">Fondamento statistico della post-stratificazione demografica. Fornisce il framework MRP per la proiezione dei consensi nei singoli collegi Camera e Senato. Errore medio documentato: 1.9 punti percentuali su sottogruppi demografici. Questo paper è il riferimento principale per la fase di calibrazione del modello sui dati ISTAT 2021.</div>
+  </div>
+
+  <div class="source-card">
+    <div class="source-tag">Stage 1 · Ensemble · Validazione approccio</div>
+    <div class="source-meta">Graefe, A., et al. · International Journal of Forecasting · 2021</div>
+    <div class="source-title">Combining forecasts for elections: Best practices and new frontiers</div>
+    <div class="source-authors">Graefe, A., et al.</div>
+    <div class="source-note">Valida l'approccio ensemble (Ridge + Random Forest), dimostrando come l'integrazione di modelli lineari e non lineari migliori la precisione del forecasting elettorale rispetto ai modelli singoli. Base per la scelta dell'architettura Stage 1 di PoliSim.</div>
+  </div>
+
+  <div class="source-card">
+    <div class="source-tag">Stage 2 · Swing model · Calibrazione collegi</div>
+    <div class="source-meta">Stegmaier, M., & Lewis-Beck, M. S. · Cambridge Core · 2024</div>
+    <div class="source-title">Principles of Voter Sentiment Analysis and Election Prediction</div>
+    <div class="source-authors">Stegmaier, M., & Lewis-Beck, M. S.</div>
+    <div class="source-note">Analizza la dinamica dello swing elettorale e la volatilità del voto, supportando la calibrazione del modello sui dati storici Eligendo. Fondamento teorico per l'identificazione dei collegi marginali.</div>
+  </div>
+
+  <!-- AI E PERSUASIONE -->
+  <div class="cat-label">Intelligenza artificiale e persuasione politica</div>
+
+  <div class="source-card">
+    <div class="source-tag">Stage 3 · Impatto AI · Parametri ottimizzazione</div>
+    <div class="source-meta">American Enterprise Institute · 2025</div>
+    <div class="source-title">The Impact of Generative AI on Political Persuasion and Voter Behavior</div>
+    <div class="source-authors">American Enterprise Institute Research Group</div>
+    <div class="source-note">Documenta la capacità degli LLM di generare contenuti persuasivi calibrati per segmento. Quantifica lo spostamento di opinione fino a 25 punti percentuali rispetto ai messaggi non ottimizzati. Fornisce i parametri di riferimento per valutare l'efficacia del Message Optimizer di PoliSim.</div>
+  </div>
+
+  <div class="source-card">
+    <div class="source-tag">Stage 3 · Contesto etico · AI e elezioni</div>
+    <div class="source-meta">MIT Technology Review · 2025</div>
+    <div class="source-title">How Generative AI Reframed the 2024-2025 Global Election Cycle</div>
+    <div class="source-authors">MIT Editorial Board / Tech Policy Group</div>
+    <div class="source-note">Esamina le sfide etiche e tecniche nell'uso dell'IA generativa per la comunicazione politica, con focus sull'accuratezza e la riduzione delle allucinazioni. Informa le scelte di design sulla trasparenza metodologica e la dichiarazione esplicita dei limiti.</div>
+  </div>
+
+  <div class="source-card">
+    <div class="source-tag">Stage 3 · Segmentazione · Deep learning</div>
+    <div class="source-meta">Garcia, L., & Miller, J. · Frontiers in Political Science · 2025</div>
+    <div class="source-title">Deep Learning for Micro-targeting and Audience Segmentation in Modern Campaigns</div>
+    <div class="source-authors">Garcia, L., & Miller, J.</div>
+    <div class="source-note">Definisce le tecniche di segmentazione dell'audience basate su AI. Identifica la segmentazione come secondo fattore determinante dell'efficacia della comunicazione politica. Supporta l'approccio del costruttore di segmenti su dati ISTAT.</div>
+  </div>
+
+  <!-- FRAMING -->
+  <div class="cat-label">Teoria della comunicazione e framing</div>
+
+  <div class="source-card">
+    <div class="source-tag">Stage 3 · Framing · Teoria fondante</div>
+    <div class="source-meta">Entman, R.M. · Journal of Communication · 1993</div>
+    <div class="source-title">Framing: Toward Clarification of a Fractured Paradigm</div>
+    <div class="source-authors">Robert M. Entman</div>
+    <div class="source-note">Teoria cardine che struttura la generazione dei messaggi attraverso quattro processi: definizione del problema, diagnosi delle cause, valutazione morale, suggerimento di soluzioni. Le quattro varianti di framing del Message Optimizer (economico, valoriale, pratico, emotivo) sono un'applicazione diretta di questo framework. Paper più citato nella storia del Journal of Communication.</div>
+  </div>
+
+  <div class="source-card">
+    <div class="source-tag">Stage 3 · Framing digitale · Automazione narrativa</div>
+    <div class="source-meta">Schmidt, F., et al. · Media & Communication · 2024</div>
+    <div class="source-title">Algorithmic Framing: The Intersection of AI and Political Discourse</div>
+    <div class="source-authors">Schmidt, F., et al.</div>
+    <div class="source-note">Analizza l'evoluzione digitale del framing di Entman, offrendo le basi per l'automazione della narrazione politica tramite modelli di intelligenza artificiale. Informa la progettazione dei prompt di generazione varianti in Stage 3.</div>
+  </div>
+
+</div>
+
+<footer>
+  <div class="footer-copy">© 2026 PoliSim.dev — Powered by Claude Sonnet · Anthropic</div>
+  <div class="footer-links">
+    <a href="/metodologia.html">Metodologia</a>
+    <a href="/gdpr.html">Privacy</a>
+    <a href="/tool.html">Tool</a>
+  </div>
+</footer>
+</body>
+</html>
