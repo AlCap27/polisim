@@ -139,6 +139,23 @@ footer{border-top:0.5px solid var(--line);padding:32px 56px;display:flex;justify
     <p>Questi dati misurati — non ipotesi qualitative — fondano il profilo psicografico generato da Claude, garantendo che le preoccupazioni e i trigger comunicativi riflettano la realtà demografica del segmento.</p>
     <div class="limiti"><strong>Limitazione dichiarata:</strong> i dati ISTAT di riferimento sono del 2021. Le serie Forze Lavoro 2022-2023 sono disponibili per aggiornamento futuro.</div>
   </div>
+  <!-- ROADMAP -->
+  <div class="pillar" style="background:var(--bg2);padding:40px;margin-top:40px;border:none">
+    <div class="pillar-num">IN SVILUPPO</div>
+    <h2 class="pillar-title" style="font-size:28px">Prossimi miglioramenti<br><em>metodologici</em></h2>
+
+    <div style="margin-top:24px;margin-bottom:24px">
+      <div class="source-tag">Stage 2 · Precisione geografica</div>
+      <p style="font-size:14px;color:var(--mid);font-weight:300;margin-top:8px"><strong>Shapefile ISTAT per swing per singolo collegio.</strong> Il modello attuale calcola lo swing per macro-area geografica (5 zone). L'implementazione degli shapefile ufficiali del Ministero dell'Interno consentirà swing calibrato collegio per collegio, riducendo l'errore da ±3-5 seggi a ±2-3 seggi per camera. Dati già disponibili su OpenData Eligendo — implementazione in corso.</p>
+    </div>
+
+    <div>
+      <div class="source-tag">Stage 3 · Memoria persistente</div>
+      <p style="font-size:14px;color:var(--mid);font-weight:300;margin-top:8px"><strong>LightRAG / LLM-Wiki (Karpathy) per memoria a lungo termine.</strong> Il layer di generazione messaggi verrà arricchito con un sistema RAG (Retrieval-Augmented Generation) che mantiene memoria persistente di posizioni politiche storiche, dichiarazioni pubbliche e contesti territoriali. Questo consente messaggi non solo ottimizzati per il segmento, ma coerenti con la storia comunicativa del soggetto politico. Ispirato al pattern LLM-Wiki di Andrej Karpathy — in fase di valutazione comparativa con LightRAG.</p>
+    </div>
+  </div>
+
+
 
 </div>
 
@@ -148,6 +165,7 @@ footer{border-top:0.5px solid var(--line);padding:32px 56px;display:flex;justify
     <a href="/fonti.html">Fonti accademiche</a>
     <a href="/gdpr.html">Privacy</a>
     <a href="/tool.html">Tool</a>
+    <a href="https://qitalia.org" target="_blank">Q-Italia →</a>
   </div>
 </footer>
 </body>
