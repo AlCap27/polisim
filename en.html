@@ -3,249 +3,369 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PoliSim — English Summary | Political Analysis & Message Optimisation Platform</title>
-<meta name="description" content="PoliSim combines electoral forecasting (MRP, Eligendo data), demographic segmentation (ISTAT 2021), and AI-assisted message optimisation (Claude Sonnet) for political parties, NGOs, and brands. Open methodology, declared limitations.">
+<title>PoliSim — Italian Electoral Intelligence Platform</title>
+<meta name="description" content="PoliSim analyses the Italian electorate using ITANES 2022 (N=4,696), ISTAT 2021 and Eligendo open data. Simulates Camera+Senate 2027, optimises messages across 5 empirical psychographic segments. MRP and LightRAG in development.">
 <link rel="canonical" href="https://polisim.dev/en.html">
-<script type="application/ld+json">
-{"@context":"https://schema.org","@type":"SoftwareApplication","name":"PoliSim","url":"https://polisim.dev","description":"Political analysis SaaS combining electoral forecasting, demographic segmentation, and AI message optimisation","applicationCategory":"Political Analysis, Civic Technology","operatingSystem":"Web","offers":{"@type":"Offer","availability":"https://schema.org/PreOrder"},"featureList":["Electoral seat simulation (147 Camera + 74 Senato constituencies)","MRP demographic post-stratification (ISTAT 2021)","AI message optimisation (Claude Sonnet 4.6)","GDPR-compliant data anonymisation"]}
-</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#fafaf8;--bg2:#f0ede8;--ink:#0a0a0a;--mid:#3a3a3a;--light:#7a7a7a;--ghost:#b0a898;
-  --line:#e0dbd4;--accent:#8a6a3a;--accent2:#c8a870;
-  --serif:'Cormorant Garamond',Georgia,serif;
-  --sans:'DM Sans',system-ui,sans-serif;
-  --mono:'JetBrains Mono',monospace;
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What data does PoliSim use?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "PoliSim uses three open datasets: ITANES 2022 (N=4,696 respondents, DOI 10.13130/RD_UNIMI/JV77WR) for psychographic segment profiles; ISTAT Permanent Census 2021 for demographic data by constituency; and Eligendo OpenData from the Italian Ministry of Interior for historical electoral results."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What are PoliSim's psychographic segments?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "PoliSim uses 5 segments derived empirically from ITANES 2022: progressisti_attivisti (30.7%, left-right scale 2.86), centrodestra (34.7%, scale 8.72), qualunquisti (19.6%, scale 5.16), delusi_m5s (11.5%, scale 4.96), giovani_astensionisti (3.4%, scale 5.84)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the next development milestone for PoliSim?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Two major developments are in progress: MRP (Multilevel Regression and Poststratification) for constituency-level estimates reducing error from ±8-12pp to ±2-3pp; and LightRAG/Karpathy wiki-memory for persistent territorial profile memory."
+      }
+    }
+  ]
 }
-body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.7}
-.nav{padding:20px 56px;border-bottom:0.5px solid var(--line);display:flex;align-items:center;justify-content:space-between}
-.logo{font-family:var(--mono);font-size:11px;letter-spacing:4px;color:var(--ink);text-decoration:none;text-transform:uppercase}
-.logo span{color:var(--accent)}
-.nav-links{display:flex;gap:24px;align-items:center}
-.nav-links a{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--light);text-decoration:none;text-transform:uppercase}
-.nav-links a:hover{color:var(--ink)}
-.nav-it{border:0.5px solid var(--line);padding:5px 12px}
-.nav-qi{color:var(--accent)!important}
+</script>
 
-.hero{padding:100px 56px 80px;max-width:900px;border-bottom:0.5px solid var(--line)}
-.hero-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:4px;color:var(--accent);text-transform:uppercase;margin-bottom:16px}
-.hero-title{font-family:var(--serif);font-size:clamp(48px,7vw,96px);font-weight:300;line-height:1;color:var(--ink);margin-bottom:24px}
-.hero-title em{font-style:italic;color:var(--accent)}
-.hero-lead{font-size:16px;color:var(--mid);font-weight:300;line-height:1.85;max-width:700px;margin-bottom:16px}
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #faf9f7;
+  --black: #0d0d0d;
+  --gray: #3a3a3a;
+  --gray-mid: #666;
+  --gray-light: #999;
+  --border: #e0ddd8;
+  --blue: #1e3a5f;
+  --blue-light: #4a7eb5;
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--black); font-family: var(--font-sans); overflow-x: hidden; line-height: 1.6; }
 
-.tag-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:28px}
-.tag{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--light);border:0.5px solid var(--line);padding:3px 10px;text-transform:uppercase}
+.nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(250,249,247,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+.nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 40px; height: 60px; display: flex; align-items: center; justify-content: space-between; }
+.nav-logo { font-family: var(--font-mono); font-size: 13px; letter-spacing: 3px; font-weight: 500; color: var(--black); text-decoration: none; }
+.nav-links { display: flex; gap: 28px; align-items: center; }
+.nav-links a { font-size: 12px; letter-spacing: 1px; color: var(--gray-mid); text-decoration: none; text-transform: uppercase; }
+.nav-btn { font-family: var(--font-mono); font-size: 11px; letter-spacing: 2px; color: var(--bg); background: var(--black); padding: 8px 20px; text-decoration: none; text-transform: uppercase; }
 
-.page{max-width:820px;margin:0 auto;padding:80px 56px}
-.section{margin-bottom:72px;padding-bottom:72px;border-bottom:0.5px solid var(--line)}
-.section:last-child{border-bottom:none}
-.section-label{font-family:var(--mono);font-size:9px;letter-spacing:4px;color:var(--accent);text-transform:uppercase;margin-bottom:10px}
-.section-title{font-family:var(--serif);font-size:clamp(32px,4vw,54px);font-weight:300;color:var(--ink);margin-bottom:20px;line-height:1.05}
-h3{font-family:var(--serif);font-size:22px;font-weight:400;color:var(--ink);margin:24px 0 8px}
-p{font-size:14px;color:var(--mid);font-weight:300;line-height:1.85;margin-bottom:12px}
-strong{color:var(--ink);font-weight:400}
-ul{margin:0 0 14px 18px}
-li{font-size:14px;color:var(--mid);font-weight:300;line-height:1.8;margin-bottom:6px}
+.ticker-wrap { background: var(--black); overflow: hidden; height: 36px; display: flex; align-items: center; margin-top: 60px; }
+.ticker-track { display: flex; animation: tmove 60s linear infinite; white-space: nowrap; }
+.ticker-wrap:hover .ticker-track { animation-play-state: paused; }
+.ticker-item { display: inline-flex; align-items: center; gap: 10px; padding: 0 32px; font-family: var(--font-mono); font-size: 10px; color: #888; text-decoration: none; border-right: 1px solid #333; }
+.ticker-item:hover { color: #fff; }
+.t-source { color: #60a5fa; }
+@keyframes tmove { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
-.metric-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);margin:28px 0}
-.metric{background:var(--bg);padding:24px 20px}
-.metric-num{font-family:var(--serif);font-size:40px;font-weight:300;color:var(--accent);line-height:1}
-.metric-label{font-family:var(--mono);font-size:9px;color:var(--light);letter-spacing:1px;text-transform:uppercase;margin-top:4px}
+.hero { max-width: 1200px; margin: 0 auto; padding: 80px 40px 60px; display: grid; grid-template-columns: 1fr 400px; gap: 80px; align-items: start; }
+.hero-kicker { font-family: var(--font-mono); font-size: 10px; letter-spacing: 4px; color: var(--blue-light); text-transform: uppercase; margin-bottom: 24px; }
+.hero-title { font-family: var(--font-serif); font-size: clamp(48px, 5.5vw, 80px); font-weight: 300; line-height: 1.05; margin-bottom: 24px; }
+.hero-title em { font-style: italic; color: var(--blue); }
+.hero-sub { font-size: 16px; color: var(--gray); line-height: 1.7; max-width: 520px; margin-bottom: 36px; }
+.hero-ctas { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 48px; }
+.btn-primary { font-family: var(--font-mono); font-size: 11px; letter-spacing: 2px; color: var(--bg); background: var(--black); padding: 14px 28px; text-decoration: none; text-transform: uppercase; }
+.btn-secondary { font-family: var(--font-mono); font-size: 11px; letter-spacing: 2px; color: var(--black); background: transparent; border: 1px solid var(--black); padding: 14px 28px; text-decoration: none; text-transform: uppercase; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); }
+.stat { background: var(--bg); padding: 18px; text-align: center; }
+.stat-n { font-family: var(--font-serif); font-size: 34px; font-weight: 300; color: var(--blue); display: block; }
+.stat-l { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.5px; color: var(--gray-light); text-transform: uppercase; display: block; margin-top: 4px; }
+.quote { background: var(--black); color: #f5f3ef; padding: 32px; position: relative; }
+.quote::before { content: '"'; font-family: var(--font-serif); font-size: 80px; line-height: 0.6; color: #333; position: absolute; top: 24px; left: 24px; }
+.quote-text { font-family: var(--font-serif); font-size: 20px; font-weight: 300; line-height: 1.4; padding-left: 40px; margin-bottom: 14px; }
+.quote-text strong { color: #60a5fa; font-weight: 400; }
+.quote-source { font-family: var(--font-mono); font-size: 10px; letter-spacing: 2px; color: #666; padding-left: 40px; text-transform: uppercase; }
 
-.limit-box{background:var(--bg2);border-left:3px solid var(--accent);padding:20px 24px;margin:24px 0}
-.limit-box p{font-size:13px;color:var(--mid);margin:0}
+.section { max-width: 1200px; margin: 0 auto; padding: 56px 40px; }
+hr.div { border: none; border-top: 1px solid var(--border); margin: 0 40px; }
+.sec-kicker { font-family: var(--font-mono); font-size: 10px; letter-spacing: 4px; color: var(--blue-light); text-transform: uppercase; margin-bottom: 10px; }
+.sec-title { font-family: var(--font-serif); font-size: clamp(28px, 3.5vw, 48px); font-weight: 300; margin-bottom: 14px; }
+.sec-sub { font-size: 14px; color: var(--gray); max-width: 620px; line-height: 1.7; }
 
-.ref-row{padding:10px 0;border-bottom:0.5px solid var(--line);display:grid;grid-template-columns:1fr auto;gap:16px;align-items:baseline}
-.ref-row:last-child{border-bottom:none}
-.ref-cite{font-size:13px;color:var(--mid)}
-.ref-year{font-family:var(--mono);font-size:9px;color:var(--light)}
+.seg-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-top: 36px; }
+.seg { background: var(--bg); padding: 24px 16px; }
+.seg-pct { font-family: var(--font-serif); font-size: 40px; font-weight: 300; color: var(--blue); display: block; }
+.seg-id { font-family: var(--font-mono); font-size: 8px; letter-spacing: 1.5px; color: var(--blue-light); text-transform: uppercase; margin: 6px 0; display: block; }
+.seg-en { font-size: 12px; font-weight: 500; margin-bottom: 10px; }
+.seg-data { list-style: none; }
+.seg-data li { font-family: var(--font-mono); font-size: 9px; color: var(--gray-mid); padding: 3px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
+.seg-data li:last-child { border-bottom: none; }
+.seg-data span { color: var(--blue-light); }
 
-a{color:var(--accent);text-decoration:none}
-a:hover{text-decoration:underline}
+.roadmap { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); margin-top: 36px; }
+.rm { background: var(--bg); padding: 28px; }
+.rm.next { background: #f5f0f7; }
+.rm-badge { font-family: var(--font-mono); font-size: 9px; letter-spacing: 2px; padding: 3px 10px; display: inline-block; margin-bottom: 12px; }
+.b-live { background: #1a4a1a; color: #7ef57e; }
+.b-dev { background: #2a1a4a; color: #c0a0f0; }
+.b-plan { background: #3a2a00; color: #f0c040; }
+.rm-title { font-family: var(--font-serif); font-size: 20px; font-weight: 400; margin-bottom: 8px; }
+.rm-desc { font-size: 12px; color: var(--gray); line-height: 1.6; }
+.rm-tech { font-family: var(--font-mono); font-size: 9px; color: var(--gray-light); margin-top: 10px; }
 
-footer{border-top:0.5px solid var(--line);padding:32px 56px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
-.footer-copy{font-family:var(--mono);font-size:9px;color:var(--ghost)}
-.footer-links{display:flex;gap:24px}
-.footer-links a{font-size:12px;color:var(--light);text-decoration:none}
-.footer-links a:hover{color:var(--ink)}
+.lim-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-top: 36px; }
+.lim { background: #fdf8f0; padding: 24px; }
+.lim-badge { font-family: var(--font-mono); font-size: 9px; letter-spacing: 2px; color: #b06000; display: block; margin-bottom: 8px; text-transform: uppercase; }
+.lim-text { font-size: 12px; color: var(--gray); line-height: 1.6; }
 
-@media(max-width:768px){
-  .nav,.hero,.page,footer{padding-left:24px;padding-right:24px}
-  .metric-row{grid-template-columns:1fr 1fr}
+.caso { background: var(--black); color: #f5f3ef; padding: 56px 60px; display: grid; grid-template-columns: 1fr 300px; gap: 60px; align-items: center; }
+.caso-kicker { font-family: var(--font-mono); font-size: 9px; letter-spacing: 3px; color: #60a5fa; text-transform: uppercase; margin-bottom: 14px; }
+.caso-title { font-family: var(--font-serif); font-size: 32px; font-weight: 300; color: #f5f3ef; margin-bottom: 14px; }
+.caso-desc { font-size: 13px; color: #aaa; line-height: 1.7; margin-bottom: 22px; }
+.caso-btn { font-family: var(--font-mono); font-size: 11px; letter-spacing: 2px; color: var(--black); background: #f5f3ef; padding: 12px 22px; text-decoration: none; text-transform: uppercase; display: inline-block; }
+.caso-m-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: #333; border: 1px solid #333; }
+.caso-m { background: #111; padding: 18px; text-align: center; }
+.caso-m-n { font-family: var(--font-serif); font-size: 28px; font-weight: 300; color: #60a5fa; display: block; }
+.caso-m-l { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.5px; color: #555; text-transform: uppercase; display: block; margin-top: 4px; }
+
+footer { border-top: 1px solid var(--border); padding: 32px 40px; max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+.foot-logo { font-family: var(--font-mono); font-size: 11px; letter-spacing: 3px; color: var(--gray-light); }
+.foot-links { display: flex; gap: 20px; }
+.foot-links a { font-size: 11px; color: var(--gray-light); text-decoration: none; }
+
+@media (max-width: 900px) {
+  .hero, .caso { grid-template-columns: 1fr; gap: 40px; }
+  .seg-grid, .roadmap, .lim-grid { grid-template-columns: repeat(2, 1fr); }
 }
 </style>
 </head>
 <body>
 
 <nav class="nav">
-  <a class="logo" href="/"><span>POLI</span>SIM.DEV</a>
-  <div class="nav-links">
-    <a href="/" class="nav-it">← Italiano</a>
-    <a href="/metodologia.html">Methodology</a>
-    <a href="/fonti.html">References</a>
-    <a href="https://qitalia.org/en.html" target="_blank" class="nav-qi">Q-Italia ↗</a>
+  <div class="nav-inner">
+    <a class="nav-logo" href="/en.html">POLISIM</a>
+    <div class="nav-links">
+      <a href="/en.html#methodology">Methodology</a>
+      <a href="/en.html#roadmap">Roadmap</a>
+      <a href="/fonti.html">Sources</a>
+      <a href="/">IT</a>
+      <a class="nav-btn" href="/tool">Launch tool →</a>
+    </div>
   </div>
 </nav>
 
-<div class="hero">
-  <div class="hero-eyebrow">English Summary · Political Analysis Platform · Italy</div>
-  <h1 class="hero-title">Evidence-based<br>political <em>analysis</em><br>for the Italian market.</h1>
-  <p class="hero-lead"><strong>PoliSim</strong> is a SaaS platform combining electoral forecasting, demographic segmentation, and AI-assisted message optimisation — for political parties, NGOs, and brands operating in Italy.</p>
-  <p class="hero-lead">It is the analytical engine behind <a href="https://qitalia.org/en.html" target="_blank">Q-Italia</a>, the Italian political movement using data and declared methodology to bridge the complexity gap in democratic communication.</p>
-  <div class="tag-row">
-    <span class="tag">Electoral Forecasting</span>
-    <span class="tag">MRP · ISTAT 2021</span>
-    <span class="tag">AI Message Optimisation</span>
-    <span class="tag">GDPR Compliant</span>
-    <span class="tag">Open Methodology</span>
-    <span class="tag">Claude Sonnet 4.6</span>
-  </div>
+<div class="ticker-wrap">
+  <div class="ticker-track" id="tk"></div>
 </div>
 
-<div class="page">
-
-  <!-- WHAT IT DOES -->
-  <div class="section">
-    <div class="section-label">Platform Overview</div>
-    <h2 class="section-title">Three analytical stages,<br>one integrated pipeline.</h2>
-
-    <div class="metric-row">
-      <div class="metric">
-        <div class="metric-num">147</div>
-        <div class="metric-label">Camera constituencies</div>
-      </div>
-      <div class="metric">
-        <div class="metric-num">74</div>
-        <div class="metric-label">Senato constituencies</div>
-      </div>
-      <div class="metric">
-        <div class="metric-num">7</div>
-        <div class="metric-label">Target segments</div>
-      </div>
-      <div class="metric">
-        <div class="metric-num">4</div>
-        <div class="metric-label">Framing variants per message</div>
-      </div>
+<section class="hero">
+  <div>
+    <p class="hero-kicker">Electoral Intelligence · Message Optimisation · Italy 2027</p>
+    <h1 class="hero-title">Data-driven <em>political</em><br>intelligence for Italy</h1>
+    <p class="hero-sub">PoliSim simulates the Italian Camera and Senate simultaneously, profiles 5 empirically-derived psychographic segments of the Italian electorate, and optimises every message for the right segment. Open data. Transparent methodology.</p>
+    <div class="hero-ctas">
+      <a class="btn-primary" href="/tool">Electoral Simulator →</a>
+      <a class="btn-secondary" href="/tool#messaggi">Message Optimizer →</a>
     </div>
-
-    <h3>Stage 1 — Electoral Simulation</h3>
-    <p>Seat distribution modelling for Italy's 2027 elections across all uninominal constituencies (Camera and Senato). The model uses a <strong>Uniform Partisan Swing (UPS)</strong> approach calibrated on official Eligendo OpenData from the Ministry of Interior, weighted by historical volatility and constituency competitiveness.</p>
-    <p>Critically, the simulation verifies <strong>both-chamber majority simultaneously</strong> — the real constitutional condition for Italian government formation, which requires a majority in both Camera and Senato independently.</p>
-
-    <h3>Stage 2 — Demographic Profiling (MRP)</h3>
-    <p>Following the methodology of <strong>Wang, Rothschild, Goel & Gelman (2015)</strong>, PoliSim applies Multilevel Regression with Poststratification to generate reliable local estimates from national survey data. Demographic profiles are anchored to <strong>ISTAT 2021 Permanent Census</strong> and Labour Force Survey data — not qualitative assumptions.</p>
-    <p>An ensemble <strong>Ridge + Random Forest</strong> model (validated by Graefe et al., 2021) captures both linear relationships and non-linear demographic interactions, calibrated across unemployment rates, poverty indices, NEET indicators, and educational attainment per constituency.</p>
-
-    <h3>Stage 3 — Message Optimisation</h3>
-    <p>Message generation follows <strong>Entman's Framing Theory (1993)</strong> across four dimensions: problem definition, causal diagnosis, moral evaluation, and solution recommendation. Each topic generates four message variants with distinct framing.</p>
-    <p>Generation and scoring are performed by <strong>Claude Sonnet 4.6 (Anthropic)</strong>. Scoring metrics are domain-specific: political engagement uses different indicators than NGO donor activation or brand consumer propensity.</p>
-
-    <div class="limit-box">
-      <p><strong>Declared methodological limitations (published at launch):</strong> (1) The LLM layer has not been empirically validated on real campaign outcomes. (2) Scoring weights are expert-calibrated, not derived from observed behavioural data. (3) The swing model operates at macro-area level — per-constituency shapefile integration is in development. Transparency on limitations is a design principle.</p>
+    <div class="stats">
+      <div class="stat"><span class="stat-n">4,696</span><span class="stat-l">ITANES 2022 respondents</span></div>
+      <div class="stat"><span class="stat-n">147</span><span class="stat-l">Camera constituencies</span></div>
+      <div class="stat"><span class="stat-n">±3.9pp</span><span class="stat-l">RMSE — Lazio PoC</span></div>
     </div>
   </div>
-
-  <!-- DOMAINS -->
-  <div class="section">
-    <div class="section-label">Target Domains</div>
-    <h2 class="section-title">Political parties,<br>NGOs, and brands.</h2>
-
-    <h3>Political Parties & Consultants</h3>
-    <p>Electoral scenario modelling, swing district identification, message optimisation per constituency segment. Metrics: electoral engagement, coalition buildability, undecided voter resonance, abstentionist activation.</p>
-
-    <h3>NGOs — Fundraising & Legacy Giving</h3>
-    <p>Donor segment profiling, legacy giving communication optimisation, institutional trust calibration. Specific metrics for end-of-life giving sensitivity and institutional credibility indicators.</p>
-
-    <h3>NGOs — Corporate Partnerships</h3>
-    <p>ESG communication positioning, reputational return optimisation, impact measurability framing for corporate audiences and sustainability reporting contexts.</p>
-
-    <h3>Brands</h3>
-    <p>Consumer segment profiling anchored to real demographic data, purchase propensity analysis, premium vs. accessible positioning, rational vs. emotional framing optimisation.</p>
-  </div>
-
-  <!-- DATA & GDPR -->
-  <div class="section">
-    <div class="section-label">Data & Compliance</div>
-    <h2 class="section-title">Privacy by design.<br>Zero data collection.</h2>
-    <p>PoliSim's demographic profiling uses exclusively <strong>official public datasets</strong> (ISTAT, Ministry of Interior). No private citizen data is collected, stored, or processed.</p>
-    <p>The <strong>Data Shield</strong> tool (polisim.dev/anonimizza.html) allows institutions to anonymise proprietary datasets before upload. Processing occurs entirely client-side — zero server contact. Compliant with <strong>GDPR Art. 4.5, 89, and 25</strong> (data minimisation, archiving for research, privacy by design).</p>
-    <p>PoliSim does not use data for advertising, does not build citizen profiles, and does not enable micro-targeting of individuals.</p>
-  </div>
-
-  <!-- ACADEMIC REFERENCES -->
-  <div class="section">
-    <div class="section-label">Academic Foundation</div>
-    <h2 class="section-title">Peer-reviewed<br>methodology.</h2>
-    <p>Every analytical component is grounded in published, peer-reviewed research. Sources are not decorative — they directly inform model architecture and design choices.</p>
-
-    <div style="margin-top:24px">
-      <div class="ref-row">
-        <div class="ref-cite"><strong>Wang, Rothschild, Goel & Gelman</strong> — Forecasting elections with non-representative polls. International Journal of Forecasting.</div>
-        <div class="ref-year">2015</div>
-      </div>
-      <div class="ref-row">
-        <div class="ref-cite"><strong>Graefe et al.</strong> — Combining forecasts for elections: Best practices and new frontiers. International Journal of Forecasting.</div>
-        <div class="ref-year">2021</div>
-      </div>
-      <div class="ref-row">
-        <div class="ref-cite"><strong>Stegmaier & Lewis-Beck</strong> — Principles of Voter Sentiment Analysis and Election Prediction. Cambridge Core.</div>
-        <div class="ref-year">2024</div>
-      </div>
-      <div class="ref-row">
-        <div class="ref-cite"><strong>Entman, R.M.</strong> — Framing: Toward Clarification of a Fractured Paradigm. Journal of Communication.</div>
-        <div class="ref-year">1993</div>
-      </div>
-      <div class="ref-row">
-        <div class="ref-cite"><strong>Schmidt et al.</strong> — Algorithmic Framing: The Intersection of AI and Political Discourse. Media & Communication.</div>
-        <div class="ref-year">2024</div>
-      </div>
-      <div class="ref-row">
-        <div class="ref-cite"><strong>American Enterprise Institute</strong> — The Impact of Generative AI on Political Persuasion and Voter Behavior.</div>
-        <div class="ref-year">2025</div>
-      </div>
-      <div class="ref-row">
-        <div class="ref-cite"><strong>MIT Technology Review</strong> — How Generative AI Reframed the 2024-2025 Global Election Cycle.</div>
-        <div class="ref-year">2025</div>
-      </div>
+  <div>
+    <div class="quote">
+      <p class="quote-text">AI chatbots optimised for political persuasion shift opinions by <strong>25 percentage points</strong>.</p>
+      <p class="quote-source">American Enterprise Institute · 2025 · 77,000 participants</p>
     </div>
+  </div>
+</section>
 
-    <p style="margin-top:20px"><a href="/fonti.html">Full references with methodological notes →</a></p>
+<hr class="div">
+
+<!-- SEGMENTS -->
+<section class="section" id="methodology">
+  <p class="sec-kicker">Empirical segmentation · ITANES 2022</p>
+  <h2 class="sec-title">Five real segments of the Italian electorate</h2>
+  <p class="sec-sub">The profiles are not theoretical constructs. They are derived from the ITANES 2022 dataset (N=4,696 weighted panel respondents) using left-right scale, age, and historical abstention as assignment variables.</p>
+
+  <div class="seg-grid">
+    <div class="seg">
+      <span class="seg-pct">30.7%</span>
+      <span class="seg-id">progressisti_attivisti</span>
+      <div class="seg-en">Progressive activists</div>
+      <ul class="seg-data">
+        <li>Left-right avg <span>2.86/10</span></li>
+        <li>University graduates <span>19.8%</span></li>
+        <li>Trust — scientists <span>93.5%</span></li>
+        <li>Trust — judiciary <span>67.4%</span></li>
+        <li>Social media <span>4.6 d/wk</span></li>
+      </ul>
+      <p style="font-family:var(--font-mono);font-size:9px;color:var(--gray-light);margin-top:10px;">ITANES 2022 · N=1,444</p>
+    </div>
+    <div class="seg">
+      <span class="seg-pct">34.7%</span>
+      <span class="seg-id">centrodestra</span>
+      <div class="seg-en">Centre-right electorate</div>
+      <ul class="seg-data">
+        <li>Left-right avg <span>8.72/10</span></li>
+        <li>Strong leader <span>high priority</span></li>
+        <li>Security/order <span>key trigger</span></li>
+        <li>TV & radio <span>primary channel</span></li>
+        <li>Immigration <span>max resistance</span></li>
+      </ul>
+      <p style="font-family:var(--font-mono);font-size:9px;color:var(--gray-light);margin-top:10px;">ITANES 2022 · N=1,628</p>
+    </div>
+    <div class="seg">
+      <span class="seg-pct">19.6%</span>
+      <span class="seg-id">qualunquisti</span>
+      <div class="seg-en">Disaffected non-partisans</div>
+      <ul class="seg-data">
+        <li>Left-right avg <span>5.16/10</span></li>
+        <li>Trust — parties <span>very low</span></li>
+        <li>Anti-establishment <span>key trigger</span></li>
+        <li>Latent abstention <span>high</span></li>
+        <li>Accountability msg <span>key lever</span></li>
+      </ul>
+      <p style="font-family:var(--font-mono);font-size:9px;color:var(--gray-light);margin-top:10px;">ITANES 2022 · N=922</p>
+    </div>
+    <div class="seg">
+      <span class="seg-pct">11.5%</span>
+      <span class="seg-id">delusi_m5s</span>
+      <div class="seg-en">Disillusioned ex-M5S</div>
+      <ul class="seg-data">
+        <li>Left-right avg <span>4.96/10</span></li>
+        <li>Value scale <span>fluid</span></li>
+        <li>Transparency <span>top priority</span></li>
+        <li>Most mobile seg. <span>↔</span></li>
+        <li>Digital native <span>yes</span></li>
+      </ul>
+      <p style="font-family:var(--font-mono);font-size:9px;color:var(--gray-light);margin-top:10px;">ITANES 2022 · N=541</p>
+    </div>
+    <div class="seg">
+      <span class="seg-pct">3.4%</span>
+      <span class="seg-id">giovani_astensionisti</span>
+      <div class="seg-en">Young abstentionists</div>
+      <ul class="seg-data">
+        <li>Left-right avg <span>5.84/10</span></li>
+        <li>Age <span>&lt; 30</span></li>
+        <li>Trust — institutions <span>low</span></li>
+        <li>Peace/climate <span>top trigger</span></li>
+        <li>Instagram/TikTok <span>primary</span></li>
+      </ul>
+      <p style="font-family:var(--font-mono);font-size:9px;color:var(--gray-light);margin-top:10px;">ITANES 2022 · N=161</p>
+    </div>
   </div>
 
-  <!-- Q-ITALIA -->
-  <div class="section">
-    <div class="section-label">Live Case Study</div>
-    <h2 class="section-title">Q-Italia — the<br>experiment in action.</h2>
-    <p>PoliSim was developed by the founding team of <strong>Q-Italia</strong>, an Italian political movement built on 14 constitutional principles. Q-Italia uses PoliSim as its live communication optimisation tool — making it the platform's primary case study.</p>
-    <p>This dual structure — a normative framework (Q-Italia) and an analytical engine (PoliSim) — is designed to demonstrate that principled, data-grounded political communication is technically feasible and operationally deployable.</p>
-    <p><a href="https://qitalia.org/en.html" target="_blank">Read the Q-Italia English summary →</a></p>
-  </div>
+  <p style="font-family:var(--font-mono);font-size:10px;color:var(--gray-light);margin-top:12px;">Source: Vezzoni et al. (2023), ITANES Panel 2022, DOI: 10.13130/RD_UNIMI/JV77WR · Weighted distribution (N=4,696).</p>
+</section>
 
-  <!-- CONTACT -->
-  <div class="section">
-    <div class="section-label">Access & Contact</div>
-    <h2 class="section-title">Beta access<br>and partnerships.</h2>
-    <p>PoliSim is currently in <strong>closed beta</strong> with political consultants, NGO communication directors, and brand strategists. Beta access is by request.</p>
-    <p>We welcome collaboration with research institutions, civic technology organisations, and public sector innovation bodies interested in electoral analysis methodology, AI-assisted communication, or GDPR-compliant demographic profiling.</p>
-    <p>Platform access and commercial enquiries: <a href="mailto:info@polisim.dev">info@polisim.dev</a></p>
-    <p>Research and methodology review: <a href="mailto:info@polisim.dev">info@polisim.dev</a></p>
-  </div>
+<hr class="div">
 
+<!-- ROADMAP -->
+<section class="section" id="roadmap">
+  <p class="sec-kicker">Development · Public roadmap</p>
+  <h2 class="sec-title">What's live. What's coming.</h2>
+  <p class="sec-sub">PoliSim publicly declares the development status of every feature. Methodological transparency is a design principle.</p>
+
+  <div class="roadmap">
+    <div class="rm" style="background:#f0f4f0;">
+      <span class="rm-badge b-live">✓ Live</span>
+      <div class="rm-title">Swing model + ITANES 2022 segments</div>
+      <p class="rm-desc">Camera + Senate simulation with real constituency margins. 5 psychographic segments derived empirically from ITANES 2022 (N=4,696). Message optimizer across parties, NGOs, and brands.</p>
+      <p class="rm-tech">Ridge regression · Random Forest · ITANES 2022 · Eligendo · ISTAT 2021</p>
+    </div>
+    <div class="rm next">
+      <span class="rm-badge b-dev">⚙ In development</span>
+      <div class="rm-title">MRP — Multilevel Regression and Poststratification</div>
+      <p class="rm-desc">Estimates electoral preferences at the level of individual uninominal constituencies by combining national surveys with local demographic variables. Reduces error from ±8-12pp to ±2-3pp per constituency. Academically validated on US and UK elections.</p>
+      <p class="rm-tech">Gelman & Little 1997 · Wang et al. IJF 2021 (MAD 1.9pp) · ISTAT 2021</p>
+    </div>
+    <div class="rm">
+      <span class="rm-badge b-plan">◌ Planned</span>
+      <div class="rm-title">LightRAG · Persistent territorial profile memory</div>
+      <p class="rm-desc">LightRAG integration (inspired by Karpathy's wiki-memory model) to build long-term memory of territorial profiles — historical trends election by election, local coalitions, structural outliers. The model learns from each electoral cycle.</p>
+      <p class="rm-tech">LightRAG · Karpathy wiki-memory architecture · Eligendo historical 2006-2022</p>
+    </div>
+    <div class="rm">
+      <span class="rm-badge b-plan">◌ Planned</span>
+      <div class="rm-title">Shapefiles and proprietary dataset upload</div>
+      <p class="rm-desc">Constituency-level shapefiles for the swing model. Upload of proprietary datasets (internal polls, exit polls, social listening) with built-in GDPR anonymisation tool.</p>
+      <p class="rm-tech">CAMERA_CollegiUNINOMINALI_2020.shp · GDPR Art. 4.5, 89, 25</p>
+    </div>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- LIMITATIONS -->
+<section class="section">
+  <p class="sec-kicker">Methodological transparency · Declared limitations</p>
+  <h2 class="sec-title">What PoliSim does not yet do</h2>
+  <p class="sec-sub">Three active limitations at launch. Declaring them is a design choice, not a weakness.</p>
+  <div class="lim-grid">
+    <div class="lim">
+      <span class="lim-badge">⚠ Limitation 1 · LLM layer</span>
+      <p class="lim-text">The message optimisation layer (Stage 3) uses Claude Sonnet. Scores for resonance, credibility, and differentiation are calibrated on expert judgement and ITANES data — not validated on real campaign outcomes. Treat results as hypotheses to test.</p>
+    </div>
+    <div class="lim">
+      <span class="lim-badge">⚠ Limitation 2 · Macro-area swing model</span>
+      <p class="lim-text">The current swing model operates at macro-area level (regions/provinces), not individual constituencies. Error per constituency is ±8-12pp. MRP implementation will reduce this to ±2-3pp — in development.</p>
+    </div>
+    <div class="lim">
+      <span class="lim-badge">⚠ Limitation 3 · Uncalibrated weights</span>
+      <p class="lim-text">Psychographic profile weights are calibrated on ITANES 2022 (2022 general election) but not verified on 2024-2026 campaigns. Social listening integration for continuous recalibration is planned for v2.0.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CASE STUDY -->
+<div class="caso">
+  <div>
+    <p class="caso-kicker">Live case study · Q-Italia</p>
+    <h2 class="caso-title">PoliSim powers Q-Italia — a live civic tech laboratory</h2>
+    <p class="caso-desc">Q-Italia (qitalia.org) is an Italian political movement built on 14 constitutional principles. Every post published on X is optimised with PoliSim's message optimizer and approved by a human operator. A verifiable case study, not a simulation.</p>
+    <a class="caso-btn" href="/caso-studio/q-italia.html">View the case study →</a>
+  </div>
+  <div class="caso-m-grid">
+    <div class="caso-m"><span class="caso-m-n">14</span><span class="caso-m-l">Constitutional principles</span></div>
+    <div class="caso-m"><span class="caso-m-n">100%</span><span class="caso-m-l">Human-in-the-loop</span></div>
+    <div class="caso-m"><span class="caso-m-n">Live</span><span class="caso-m-l">Distillatore active</span></div>
+    <div class="caso-m"><span class="caso-m-n">Open</span><span class="caso-m-l">Public data only</span></div>
+  </div>
 </div>
 
 <footer>
-  <div class="footer-copy">© 2026 PoliSim.dev — Powered by Claude Sonnet · Anthropic</div>
-  <div class="footer-links">
+  <div class="foot-logo">POLISIM.DEV</div>
+  <div class="foot-links">
     <a href="/">Italiano</a>
-    <a href="/metodologia.html">Methodology</a>
-    <a href="/fonti.html">References</a>
-    <a href="https://qitalia.org/en.html" target="_blank">Q-Italia</a>
-    <a href="/gdpr.html">Privacy</a>
+    <a href="/metodologia.html">Methodology (IT)</a>
+    <a href="/fonti.html">Sources</a>
+    <a href="/tools/anonimizza.html">Data Shield</a>
   </div>
 </footer>
+
+<script>
+const cits = [
+  { s: 'ITANES 2022 · Vezzoni et al.', t: 'Italian electoral panel — N=4,696 respondents, 326 variables. DOI: 10.13130/RD_UNIMI/JV77WR', url: 'https://doi.org/10.13130/RD_UNIMI/JV77WR' },
+  { s: 'Wang et al. · IJF 2014', t: 'MRP for US elections with non-representative polls — median absolute difference 1.9pp on demographic subgroups', url: 'https://sites.stat.columbia.edu/gelman/research/published/forecasting-with-nonrepresentative-polls.pdf' },
+  { s: 'Entman · J. Communication 1993', t: 'Framing: toward clarification of a fractured paradigm — theoretical foundation of the message optimizer', url: '#' },
+  { s: 'AEI · 2025 · 77,000 participants', t: 'AI chatbots optimised for political persuasion shift opinions by 25 percentage points', url: '#' },
+  { s: 'MIT Technology Review · 2025', t: 'AI lowers the cost of voter segmentation, message testing, and optimised delivery', url: 'https://www.technologyreview.com' },
+  { s: 'ScienceDirect · IJF 2021', t: 'Penalized regression on socioeconomic indicators for sub-national electoral forecasting', url: 'https://www.sciencedirect.com/science/article/abs/pii/S0169207021001072' },
+  { s: 'Media & Communication · 2024', t: 'Audience segmentation: second key determinant of political communication effectiveness', url: 'https://www.frontiersin.org/journals/political-science' },
+];
+const tk = document.getElementById('tk');
+const all = [...cits, ...cits];
+tk.innerHTML = all.map(c => `<a class="ticker-item" href="${c.url}" target="_blank" rel="noopener"><span class="t-source">${c.s}</span><span>·</span><span>${c.t}</span></a>`).join('');
+</script>
 
 </body>
 </html>
