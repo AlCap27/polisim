@@ -6,7 +6,7 @@
 <title>PoliSim — Italian Electoral Intelligence Platform</title>
 <meta property="og:title" content="PoliSim — Italian Electoral Intelligence Platform">
 <meta property="og:description" content="Electoral simulator and message optimizer for Italy. ITANES 2022 (N=4,696), ISTAT 2021, Eligendo OpenData. MRP in development.">
-<meta name="description" content="PoliSim analyses the Italian electorate using ITANES 2022 (N=4,696), ISTAT 2021 and Eligendo open data. Simulates Camera+Senate 2027, optimises messages across 5 empirical psychographic segments. MRP and LightRAG in development.">
+<meta name="description" content="PoliSim analyses the Italian electorate using ITANES 2022 (N=4,696), ISTAT 2021 and Eligendo open data. Simulates Camera+Senate 2027, optimises messages across 5 empirical psychographic segments. MRP live: RMSE 4.44pp, R²=0.782 on 142 constituencies.">
 <link rel="canonical" href="https://polisim.dev/en.html">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -179,7 +179,7 @@ footer { border-top: 1px solid var(--border); padding: 32px 40px; max-width: 120
     <div class="stats">
       <div class="stat"><span class="stat-n">4,696</span><span class="stat-l">ITANES 2022 respondents</span></div>
       <div class="stat"><span class="stat-n">147</span><span class="stat-l">Camera constituencies</span></div>
-      <div class="stat"><span class="stat-n">±3.9pp</span><span class="stat-l">RMSE — Lazio PoC</span></div>
+      <div class="stat"><span class="stat-n">±4.4pp</span><span class="stat-l">RMSE — MRP national</span></div>
     </div>
   </div>
   <div>
@@ -285,10 +285,10 @@ footer { border-top: 1px solid var(--border); padding: 32px 40px; max-width: 120
       <p class="rm-tech">Ridge regression · Random Forest · ITANES 2022 · Eligendo · ISTAT 2021</p>
     </div>
     <div class="rm next">
-      <span class="rm-badge b-dev">⚙ In development</span>
-      <div class="rm-title">MRP — Multilevel Regression and Poststratification</div>
-      <p class="rm-desc">Estimates electoral preferences at the level of individual uninominal constituencies by combining national surveys with local demographic variables. Reduces error from ±8-12pp to ±2-3pp per constituency. Academically validated on US and UK elections.</p>
-      <p class="rm-tech">Gelman & Little 1997 · Wang et al. IJF 2021 (MAD 1.9pp) · ISTAT 2021</p>
+      <span class="rm-badge b-live">✓ Live</span>
+      <div class="rm-title">MRP — Mixed Linear Model with regional random effects</div>
+      <p class="rm-desc">Active model: RMSE=4.44pp, R²=0.782 on 142 Camera constituencies. Random intercepts for 18 Italian regions — Veneto +8pp, Tuscany −7pp, Emilia −6pp. Historical series 2018–2024 integrated.</p>
+      <p class="rm-tech">statsmodels MixedLM · Gelman & Little 1997 · Wang et al. IJF 2021</p>
     </div>
     <div class="rm">
       <span class="rm-badge b-plan">◌ Planned</span>

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PoliSim — Simulatore Elettorale e Message Optimizer per l'Italia</title>
-<meta name="description" content="PoliSim analizza l'elettorato italiano con dati reali ITANES 2022, ISTAT 2021 e Eligendo. Simula scenari Camera+Senato 2027 e ottimizza i messaggi per 5 segmenti demografici empirici.">
+<meta name="description" content="PoliSim analizza l'elettorato italiano con dati reali ITANES 2022, ISTAT 2021 e Eligendo. MRP con effetti regione (RMSE 4.44pp, R²=0.782). Simula Camera+Senato 2027 e ottimizza i messaggi per 5 segmenti empirici.">
 <meta property="og:title" content="PoliSim — Intelligenza politica basata su dati">
 <meta property="og:description" content="Infrastruttura civic tech open-source per partiti, ONG e istituzioni pilota. Dati reali ITANES 2022 · N=4.696 rispondenti · 147 collegi Camera.">
 <link rel="canonical" href="https://polisim.dev/">
@@ -287,7 +287,7 @@ footer { border-top: 1px solid var(--border); padding: 40px; max-width: 1200px; 
     <div class="hero-stats">
       <div class="hero-stat"><span class="hero-stat-n">4.696</span><span class="hero-stat-l">Rispondenti ITANES 2022</span></div>
       <div class="hero-stat"><span class="hero-stat-n">147</span><span class="hero-stat-l">Collegi Camera</span></div>
-      <div class="hero-stat"><span class="hero-stat-n">±3.9pp</span><span class="hero-stat-l">RMSE Lazio PoC</span></div>
+      <div class="hero-stat"><span class="hero-stat-n">±4.4pp</span><span class="hero-stat-l">RMSE MRP nazionale</span></div>
     </div>
   </div>
   <div>
@@ -444,10 +444,10 @@ footer { border-top: 1px solid var(--border); padding: 40px; max-width: 1200px; 
       <p class="roadmap-tech">Ridge regression · Random Forest · ITANES 2022 (N=4.696)</p>
     </div>
     <div class="roadmap-item dev">
-      <span class="roadmap-badge badge-dev">⚙ In sviluppo</span>
-      <div class="roadmap-title">MRP — Multilevel Regression and Poststratification</div>
-      <p class="roadmap-desc">Stima le preferenze per ogni singolo collegio uninominale incrociando sondaggi nazionali con variabili demografiche locali (ISTAT). Riduce l'errore da ±8-12pp a ±2-3pp per collegio.</p>
-      <p class="roadmap-tech">Gelman & Little (1997) · Wang et al. IJF 2021 · ISTAT 2021</p>
+      <span class="roadmap-badge badge-live">✓ Live</span>
+      <div class="roadmap-title">MRP — Mixed Linear Model con effetti casuali per regione</div>
+      <p class="roadmap-desc">Modello attivo: RMSE=4.44pp, R²=0.782 su 142 collegi Camera. Effetti casuali per 18 regioni — Veneto +8pp, Toscana −7pp, Emilia −6pp. Serie storiche 2018–2024 integrate.</p>
+      <p class="roadmap-tech">statsmodels MixedLM · Gelman & Little 1997 · Wang et al. IJF 2021</p>
     </div>
     <div class="roadmap-item">
       <span class="roadmap-badge badge-planned">◌ Pianificato</span>
