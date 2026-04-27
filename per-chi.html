@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PoliSim — Per partiti, ONG e brand</title>
+<meta name="description" content="PoliSim per partiti politici: simulazione elettorale e message optimizer. Per ONG: framing campagne su profili demografici reali. Per brand: risonanza per segmento con dati ISTAT e ITANES 2022.">
+<link rel="canonical" href="https://polisim.dev/per-chi.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "PoliSim è utile per i partiti politici italiani?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Sì. PoliSim simula simultaneamente Camera (147 collegi) e Senato (74 collegi) verificando la doppia maggioranza, identifica i collegi contendibili e ottimizza il messaggio per 5 segmenti psicografici derivati da ITANES 2022."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Come usa PoliSim una ONG per le campagne di advocacy?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "PoliSim genera 4 framings alternativi per ogni tema, calibrati sul profilo demografico del segmento target. Produce un risk score di probabilità di rigetto per segmento, utile per testare messaggi di lasciti, campagne ESG e advocacy prima di investire in comunicazione."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Cosa sono i dati ISTAT e ITANES usati da PoliSim?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "ISTAT Censimento Permanente 2021 fornisce i dati demografici per collegio (istruzione, occupazione, stranieri, struttura familiare). ITANES 2022 è il panel elettorale italiano (N=4.696 rispondenti, DOI 10.13130/RD_UNIMI/JV77WR) che fornisce i profili psicografici dei segmenti: scala valoriale, fiducia istituzionale, trigger comunicativi."
+      }
+    }
+  ]
+}
+</script>
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #faf9f7;
+  --black: #0d0d0d;
+  --gray: #3a3a3a;
+  --gray-mid: #666;
+  --gray-light: #999;
+  --border: #e0ddd8;
+  --blue: #1e3a5f;
+  --blue-light: #4a7eb5;
+  --green: #1a4a2a;
+  --green-light: #2a7a3a;
+  --red: #7b1a1a;
+  --red-light: #c0392b;
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--black); font-family: var(--font-sans); overflow-x: hidden; line-height: 1.6; }
+
+.nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(250,249,247,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+.nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 40px; height: 60px; display: flex; align-items: center; justify-content: space-between; }
+.nav-logo { font-family: var(--font-mono); font-size: 13px; letter-spacing: 3px; font-weight: 500; color: var(--black); text-decoration: none; }
+.nav-links { display: flex; gap: 28px; align-items: center; }
+.nav-links a { font-size: 12px; letter-spacing: 1px; color: var(--gray-mid); text-decoration: none; text-transform: uppercase; transition: color .2s; }
+.nav-links a:hover { color: var(--black); }
+.nav-btn { font-family: var(--font-mono); font-size: 11px; letter-spacing: 2px; color: var(--bg); background: var(--black); padding: 8px 20px; text-decoration: none; text-transform: uppercase; }
+
+/* HERO PAGINA */
+.page-hero { max-width: 1200px; margin: 0 auto; padding: 100px 40px 56px; }
+.page-kicker { font-family: var(--font-mono); font-size: 10px; letter-spacing: 4px; color: var(--blue-light); text-transform: uppercase; margin-bottom: 16px; }
+.page-title { font-family: var(--font-serif); font-size: clamp(44px, 5vw, 72px); font-weight: 300; line-height: 1.05; margin-bottom: 20px; }
+.page-title em { font-style: italic; color: var(--blue); }
+.page-sub { font-size: 16px; color: var(--gray); max-width: 600px; line-height: 1.7; margin-bottom: 32px; }
+
+/* ANCHOR NAV */
+.anchor-nav { display: flex; gap: 0; border: 1px solid var(--border); max-width: 1200px; margin: 0 auto 0; }
+.anchor-nav a { font-family: var(--font-mono); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; text-decoration: none; padding: 14px 28px; color: var(--gray-mid); border-right: 1px solid var(--border); flex: 1; text-align: center; transition: all .2s; }
+.anchor-nav a:last-child { border-right: none; }
+.anchor-nav a:hover { color: var(--black); background: #f0ede8; }
+.anchor-nav a.active-p { color: var(--blue); background: #f0f4f8; }
+.anchor-nav a.active-o { color: var(--green-light); background: #f0f4f0; }
+.anchor-nav a.active-b { color: var(--red-light); background: #f8f0f0; }
+
+hr.div { border: none; border-top: 1px solid var(--border); }
+
+/* VERTICALE COMUNE */
+.verticale { max-width: 1200px; margin: 0 auto; padding: 72px 40px; scroll-margin-top: 80px; }
+.vert-header { display: grid; grid-template-columns: 1fr 380px; gap: 80px; align-items: start; margin-bottom: 48px; }
+.vert-kicker { font-family: var(--font-mono); font-size: 10px; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 14px; display: block; }
+.kp { color: var(--blue-light); }
+.ko { color: var(--green-light); }
+.kb { color: var(--red-light); }
+.vert-title { font-family: var(--font-serif); font-size: clamp(36px, 4vw, 56px); font-weight: 300; line-height: 1.05; margin-bottom: 16px; }
+.vert-desc { font-size: 15px; color: var(--gray); line-height: 1.75; margin-bottom: 28px; }
+.vert-cta { font-family: var(--font-mono); font-size: 11px; letter-spacing: 2px; text-decoration: none; text-transform: uppercase; display: inline-block; padding: 13px 26px; transition: all .2s; }
+.cta-p { color: var(--bg); background: var(--blue); }
+.cta-p:hover { opacity: 0.8; }
+.cta-o { color: var(--bg); background: var(--green); }
+.cta-o:hover { opacity: 0.8; }
+.cta-b { color: var(--bg); background: var(--red); }
+.cta-b:hover { opacity: 0.8; }
+
+/* QUOTE BOX */
+.vert-quote { padding: 28px 32px; position: relative; }
+.qp { background: var(--blue); }
+.qo { background: var(--green); }
+.qb { background: var(--red); }
+.vert-quote::before { content: '"'; font-family: var(--font-serif); font-size: 72px; line-height: 0.6; position: absolute; top: 20px; left: 20px; opacity: 0.25; color: #fff; }
+.vert-quote-text { font-family: var(--font-serif); font-size: 20px; font-weight: 300; line-height: 1.4; color: #f5f3ef; padding-left: 36px; margin-bottom: 12px; }
+.vert-quote-source { font-family: var(--font-mono); font-size: 9px; letter-spacing: 2px; color: rgba(255,255,255,0.5); padding-left: 36px; text-transform: uppercase; }
+
+/* FEATURE GRID */
+.feat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); }
+.feat-item { background: var(--bg); padding: 24px 28px; }
+.feat-item:hover { background: #f5f2ec; }
+.feat-n { font-family: var(--font-serif); font-size: 40px; font-weight: 300; line-height: 1; margin-bottom: 8px; }
+.np { color: var(--blue-light); }
+.no { color: var(--green-light); }
+.nb { color: var(--red-light); }
+.feat-title { font-size: 14px; font-weight: 500; color: var(--black); margin-bottom: 6px; }
+.feat-desc { font-size: 12px; color: var(--gray); line-height: 1.6; }
+
+/* METRICHE */
+.metriche { margin-top: 48px; }
+.metr-title { font-family: var(--font-mono); font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--gray-light); margin-bottom: 16px; }
+.metr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); }
+.metr-item { background: var(--bg); padding: 20px 20px; }
+.metr-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; display: block; }
+.ml-p { color: var(--blue-light); }
+.ml-o { color: var(--green-light); }
+.ml-b { color: var(--red-light); }
+.metr-name { font-size: 14px; font-weight: 500; color: var(--black); margin-bottom: 4px; }
+.metr-desc { font-size: 11px; color: var(--gray-mid); line-height: 1.5; }
+
+/* DATI COMUNI */
+.dati-comuni { max-width: 1200px; margin: 0 auto; padding: 0 40px 64px; }
+.dati-box { background: #f0ede8; border: 1px solid var(--border); padding: 28px 32px; }
+.dati-title { font-family: var(--font-mono); font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--gray-mid); margin-bottom: 16px; }
+.dati-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 16px; }
+.dati-source { }
+.ds-name { font-size: 13px; font-weight: 500; color: var(--black); margin-bottom: 4px; }
+.ds-desc { font-size: 11px; color: var(--gray-mid); line-height: 1.6; }
+.dati-note { font-size: 11px; color: var(--gray-light); line-height: 1.6; padding-top: 14px; border-top: 1px solid var(--border); }
+
+footer { border-top: 1px solid var(--border); padding: 32px 40px; max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+.foot-logo { font-family: var(--font-mono); font-size: 11px; letter-spacing: 3px; color: var(--gray-light); }
+.foot-links { display: flex; gap: 20px; }
+.foot-links a { font-size: 11px; color: var(--gray-light); text-decoration: none; }
+.foot-links a:hover { color: var(--black); }
+
+@media (max-width: 900px) {
+  .vert-header { grid-template-columns: 1fr; gap: 32px; }
+  .feat-grid { grid-template-columns: 1fr; }
+  .metr-grid { grid-template-columns: 1fr; }
+  .dati-grid { grid-template-columns: 1fr; }
+  .anchor-nav { flex-direction: column; }
+  .anchor-nav a { border-right: none; border-bottom: 1px solid var(--border); }
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="/">POLISIM</a>
+    <div class="nav-links">
+      <a href="/come-funziona.html">Come funziona</a>
+      <a href="/metodologia.html">Metodologia</a>
+      <a href="/fonti.html">Fonti</a>
+      <a href="/en.html">EN</a>
+      <a class="nav-btn" href="/tool">Usa il tool →</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <p class="page-kicker">Tre verticali · Una piattaforma</p>
+  <h1 class="page-title">Il messaggio giusto.<br><em>Per il segmento giusto.</em></h1>
+  <p class="page-sub">Stessi dati, stessa metodologia. I profili ISTAT e ITANES sono il motore comune — il contesto d'uso cambia in base a chi sei e cosa vuoi misurare.</p>
+</div>
+
+<div class="anchor-nav">
+  <a href="#partiti" class="active-p">🗳 Partiti &amp; consulenti</a>
+  <a href="#ong" class="active-o">🌍 ONG &amp; advocacy</a>
+  <a href="#brand" class="active-b">📦 Brand &amp; comunicazione</a>
+</div>
+
+<hr class="div">
+
+<!-- ── PARTITI ─────────────────────────────────────────────── -->
+<section class="verticale" id="partiti">
+  <div class="vert-header">
+    <div>
+      <span class="vert-kicker kp">Partiti &amp; consulenti politici</span>
+      <h2 class="vert-title">Intelligenza<br>elettorale</h2>
+      <p class="vert-desc">PoliSim simula Camera e Senato simultaneamente, verifica la doppia maggioranza e ottimizza il messaggio per i 5 segmenti psicografici dell'elettorato italiano. Dalla mappa dei collegi contendibili all'A/B test del framing, in un unico strumento.</p>
+      <a class="vert-cta cta-p" href="/tool">Prova il simulatore →</a>
+    </div>
+    <div class="vert-quote qp">
+      <p class="vert-quote-text">Ogni partito segmenta già l'elettorato. L'AI abbassa il costo di farlo con rigore.</p>
+      <p class="vert-quote-source">MIT Technology Review · 2025</p>
+    </div>
+  </div>
+
+  <div class="feat-grid">
+    <div class="feat-item">
+      <div class="feat-n np">147</div>
+      <div class="feat-title">Collegi Camera uninominali</div>
+      <p class="feat-desc">Swing model su ogni collegio con margini reali Eligendo 2022. Identifica dove sei sopra o sotto la soglia di vittoria.</p>
+    </div>
+    <div class="feat-item">
+      <div class="feat-n np">74</div>
+      <div class="feat-title">Collegi Senato — doppia maggioranza</div>
+      <p class="feat-desc">Simulazione simultanea Camera + Senato. L'analisi monocamerale è insufficiente per prevedere la formazione del governo.</p>
+    </div>
+    <div class="feat-item">
+      <div class="feat-n np">5</div>
+      <div class="feat-title">Segmenti psicografici empirici</div>
+      <p class="feat-desc">Progressisti, CDX, qualunquisti, ex-M5S delusi, giovani astensionisti. Derivati da ITANES 2022, non da ipotesi teoriche.</p>
+    </div>
+    <div class="feat-item">
+      <div class="feat-n np">4</div>
+      <div class="feat-title">Framings alternativi per tema</div>
+      <p class="feat-desc">Il message optimizer genera 4 versioni di ogni messaggio calibrate sul segmento target. Con punteggi di risonanza, credibilità e rischio rigetto.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- ── ONG ────────────────────────────────────────────────── -->
+<section class="verticale" id="ong">
+  <div class="vert-header">
+    <div>
+      <span class="vert-kicker ko">ONG &amp; advocacy</span>
+      <h2 class="vert-title">Comunicazione<br>d'impatto</h2>
+      <p class="vert-desc">Testa il framing della tua campagna su donatori, volontari e pubblico generale prima di investire in comunicazione. PoliSim produce profili distinti per lasciti, corporate e advocacy — con metriche calibrate sul tuo obiettivo specifico, non su quelli di un partito politico.</p>
+      <a class="vert-cta cta-o" href="/tool#messaggi">Testa un messaggio →</a>
+    </div>
+    <div class="vert-quote qo">
+      <p class="vert-quote-text">Il framing sbagliato su un segmento sensibile non è un errore di comunicazione — è un costo misurabile.</p>
+      <p class="vert-quote-source">Entman · Journal of Communication · 1993</p>
+    </div>
+  </div>
+
+  <div class="feat-grid">
+    <div class="feat-item">
+      <div class="feat-n no">3</div>
+      <div class="feat-title">Profili ONG distinti</div>
+      <p class="feat-desc">Lasciti testamentari, partnership corporate, campagne di advocacy. Metriche diverse per obiettivi diversi — non un'unica taglia per tutti.</p>
+    </div>
+    <div class="feat-item">
+      <div class="feat-n no">4</div>
+      <div class="feat-title">Framings alternativi per campagna</div>
+      <p class="feat-desc">Ogni messaggio viene testato in 4 varianti con valutazione di risonanza emotiva, credibilità istituzionale e probabilità di rigetto.</p>
+    </div>
+    <div class="feat-item">
+      <div class="feat-n no">0</div>
+      <div class="feat-title">Dati personali raccolti</div>
+      <p class="feat-desc">GDPR by design. Nessun dato individuale viene raccolto o processato. I profili sono aggregati statistici da fonti pubbliche.</p>
+    </div>
+    <div class="feat-item">
+      <div class="feat-n no">5</div>
+      <div class="feat-title">Segmenti demografici reali</div>
+      <p class="feat-desc">Gli stessi profili ISTAT/ITANES usati per i partiti, reinterpretati per donatori, volontari e pubblico corporate.</p>
+    </div>
+  </div>
+
+  <div class="metriche">
+    <p class="metr-title">Metriche disponibili per le ONG</p>
+    <div class="metr-grid">
+      <div class="metr-item">
+        <span class="metr-label ml-o">Lasciti testamentari</span>
+        <div class="metr-name">Fiducia istituzionale</div>
+        <p class="metr-desc">Quanto il segmento si fida dell'organizzazione come custode del proprio lascito.</p>
+      </div>
+      <div class="metr-item">
+        <span class="metr-label ml-o">Lasciti testamentari</span>
+        <div class="metr-name">Eredità e continuità</div>
+        <p class="metr-desc">Risonanza del frame "lasciare qualcosa che dura" sul profilo demografico del donatore.</p>
+      </div>
+      <div class="metr-item">
+        <span class="metr-label ml-o">Lasciti testamentari</span>
+        <div class="metr-name">Delicatezza del tema</div>
+        <p class="metr-desc">Risk score: probabilità che il messaggio venga percepito come inappropriato o prematuro.</p>
+      </div>
+      <div class="metr-item">
+        <span class="metr-label ml-o">Corporate &amp; ESG</span>
+        <div class="metr-name">Ritorno reputazionale</div>
+        <p class="metr-desc">Percezione del valore reputazionale della partnership per l'azienda partner.</p>
+      </div>
+      <div class="metr-item">
+        <span class="metr-label ml-o">Corporate &amp; ESG</span>
+        <div class="metr-name">Allineamento ESG</div>
+        <p class="metr-desc">Coerenza del messaggio con i valori ESG dichiarati dall'azienda target.</p>
+      </div>
+      <div class="metr-item">
+        <span class="metr-label ml-o">Corporate &amp; ESG</span>
+        <div class="metr-name">Misurabilità dell'impatto</div>
+        <p class="metr-desc">Credibilità delle metriche di impatto proposte nella comunicazione corporate.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- ── BRAND ──────────────────────────────────────────────── -->
+<section class="verticale" id="brand">
+  <div class="vert-header">
+    <div>
+      <span class="vert-kicker kb">Brand &amp; comunicazione</span>
+      <h2 class="vert-title">Risonanza<br>per segmento</h2>
+      <p class="vert-desc">I profili psicografici ITANES mappano le dimensioni valoriali che orientano i comportamenti d'acquisto. PoliSim adatta ogni messaggio al profilo del tuo target — misurando propensione all'acquisto, posizionamento premium/accessibile e rischio rigetto prima che il messaggio esca.</p>
+      <a class="vert-cta cta-b" href="/tool#messaggi">Ottimizza un messaggio →</a>
+    </div>
+    <div class="vert-quote qb">
+      <p class="vert-quote-text">I chatbot ottimizzati per la persuasione riescono a spostare le opinioni di 25 punti percentuali.</p>
+      <p class="vert-quote-source">American Enterprise Institute · 2025 · 77.000 partecipanti</p>
+    </div>
+  </div>
+
+  <div class="feat-grid">
+    <div class="feat-item">
+      <div class="feat-n nb">5</div>
+      <div class="feat-title">Profili psicografici reali</div>
+      <p class="feat-desc">Non personas inventate. Profili derivati empiricamente da ITANES 2022 su 4.696 rispondenti — con scale valoriali, trigger emotivi e livelli di fiducia misurati.</p>
+    </div>
+    <div class="feat-item">
+      <div class="feat-n nb">4</div>
+      <div class="feat-title">Versioni per ogni messaggio</div>
+      <p class="feat-desc">Il message optimizer genera 4 framings dello stesso contenuto, ciascuno calibrato su un segmento diverso. Con punteggi comparabili.</p>
+    </div>
+    <div class="feat-item">
+      <div class="feat-n nb">3</div>
+      <div class="feat-title">Metriche brand specifiche</div>
+      <p class="feat-desc">Propensione all'acquisto, premium vs accessibile, razionale vs emotivo. Metriche distinte da quelle politiche — stesso motore, diverso output.</p>
+    </div>
+    <div class="feat-item">
+      <div class="feat-n nb">0</div>
+      <div class="feat-title">Dati personali raccolti</div>
+      <p class="feat-desc">Nessun profilo individuale, nessun cookie di targeting. I profili sono costruiti su microdati aggregati ISTAT — conformi GDPR by design.</p>
+    </div>
+  </div>
+
+  <div class="metriche">
+    <p class="metr-title">Metriche disponibili per i brand</p>
+    <div class="metr-grid">
+      <div class="metr-item">
+        <span class="metr-label ml-b">Acquisto</span>
+        <div class="metr-name">Propensione all'acquisto</div>
+        <p class="metr-desc">Probabilità che il segmento risponda positivamente al messaggio con intenzione d'acquisto.</p>
+      </div>
+      <div class="metr-item">
+        <span class="metr-label ml-b">Posizionamento</span>
+        <div class="metr-name">Premium vs accessibile</div>
+        <p class="metr-desc">Dove posizionare il prodotto sul segmento: aspirazionale o conveniente. Calibrato sul profilo valoriale.</p>
+      </div>
+      <div class="metr-item">
+        <span class="metr-label ml-b">Stile comunicativo</span>
+        <div class="metr-name">Razionale vs emotivo</div>
+        <p class="metr-desc">Quale registro comunicativo massimizza la risonanza su quel profilo specifico.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- DATI COMUNI -->
+<div class="dati-comuni">
+  <div class="dati-box">
+    <p class="dati-title">Base dati comune a tutte le verticali</p>
+    <div class="dati-grid">
+      <div class="dati-source">
+        <div class="ds-name">ISTAT Censimento Permanente 2021</div>
+        <p class="ds-desc">Dati demografici per sezione di censimento — 493.942 sezioni, 20 regioni. Istruzione, occupazione, struttura familiare, stranieri, classi d'età.</p>
+      </div>
+      <div class="dati-source">
+        <div class="ds-name">Eligendo OpenData — Min. Interno</div>
+        <p class="ds-desc">Risultati elettorali per comune, Camera e Senato 2022. Margini per i 147 collegi uninominali Camera e 74 Senato.</p>
+      </div>
+      <div class="dati-source">
+        <div class="ds-name">ITANES 2022<sup>*</sup></div>
+        <p class="ds-desc">Panel elettorale italiano post-elezioni 2022. N=4.696 rispondenti ponderati, 326 variabili. Profili psicografici, scale valoriali, fiducia istituzionale.</p>
+      </div>
+    </div>
+    <p class="dati-note"><sup>*</sup> ITANES (Italian National Election Studies) è il panel elettorale italiano condotto da un consorzio di università italiane. I dati sono pubblicamente disponibili per la ricerca. Vezzoni et al. (2023). DOI: 10.13130/RD_UNIMI/JV77WR</p>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-logo">POLISIM.DEV</div>
+  <div class="foot-links">
+    <a href="/">Home</a>
+    <a href="/metodologia.html">Metodologia</a>
+    <a href="/fonti.html">Fonti</a>
+    <a href="/tools/anonimizza.html">Data Shield</a>
+    <a href="/en.html">English</a>
+  </div>
+</footer>
+
+</body>
+</html>

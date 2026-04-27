@@ -207,11 +207,45 @@ footer { border-top: 1px solid var(--border); padding: 40px; max-width: 1200px; 
 .foot-links a:hover { color: var(--black); }
 .foot-note { font-family: var(--font-mono); font-size: 9px; color: var(--gray-light); letter-spacing: 1px; text-align: right; }
 
+/* TRIPARTITA */
+.tri-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0; background:var(--border); border:1px solid var(--border); margin-top:36px; }
+.tri-card { background:var(--bg); padding:36px 28px 32px; position:relative; overflow:hidden; transition:transform .25s ease, box-shadow .25s ease; z-index:1; cursor:default; }
+.tri-card::before { content:''; position:absolute; inset:0; opacity:0; transition:opacity .25s ease; pointer-events:none; }
+.tri-partiti::before { background:#1e3a5f; }
+.tri-ong::before    { background:#1a4a2a; }
+.tri-brand::before  { background:#6b1a1a; }
+.tri-card:hover { transform:scale(1.035); z-index:10; box-shadow:0 16px 48px rgba(0,0,0,0.13); }
+.tri-card:hover::before { opacity:0.08; }
+.tri-accent { position:absolute; top:0; left:0; right:0; height:3px; transform:scaleX(0.35); transform-origin:left; transition:transform .25s ease, opacity .25s ease; opacity:0.5; }
+.tri-card:hover .tri-accent { transform:scaleX(1); opacity:1; }
+.tri-accent-p { background:#1e3a5f; }
+.tri-accent-o { background:#1a4a2a; }
+.tri-accent-b { background:#7b1a1a; }
+.tri-kicker { font-family:var(--font-mono); font-size:9px; letter-spacing:3px; text-transform:uppercase; display:block; margin-bottom:14px; }
+.tri-k-p { color:var(--blue-light); }
+.tri-k-o { color:#2a7a3a; }
+.tri-k-b { color:#c0392b; }
+.tri-title { font-family:var(--font-serif); font-size:30px; font-weight:300; color:var(--black); line-height:1.1; margin-bottom:12px; }
+.tri-desc { font-size:13px; color:var(--gray); line-height:1.7; margin-bottom:18px; }
+.tri-feats { list-style:none; margin-bottom:24px; }
+.tri-feats li { font-size:12px; color:var(--gray-mid); padding:5px 0; border-bottom:1px solid var(--border); }
+.tri-feats li:last-child { border-bottom:none; }
+.tri-feats li::before { content:'—'; margin-right:8px; color:var(--gray-light); }
+.tri-cta { font-family:var(--font-mono); font-size:10px; letter-spacing:2px; text-transform:uppercase; text-decoration:none; display:inline-block; padding:10px 20px; border:1px solid var(--black); color:var(--black); transition:all .2s; }
+.tri-card:hover .tri-cta-p { background:#1e3a5f; color:var(--bg); border-color:#1e3a5f; }
+.tri-card:hover .tri-cta-o { background:#1a4a2a; color:var(--bg); border-color:#1a4a2a; }
+.tri-card:hover .tri-cta-b { background:#7b1a1a; color:var(--bg); border-color:#7b1a1a; }
+.tri-footer { margin-top:12px; padding:16px 20px; background:#f5f2ec; border:1px solid var(--border); }
+.tri-footer-main { font-family:var(--font-mono); font-size:10px; color:var(--gray-mid); letter-spacing:1px; margin-bottom:6px; }
+.tri-footer-note { font-size:11px; color:var(--gray-light); line-height:1.6; }
+.tri-footer-note sup { font-size:9px; }
+
 @media (max-width: 900px) {
   .hero { grid-template-columns: 1fr; gap: 40px; }
   .segmenti-grid { grid-template-columns: repeat(2, 1fr); }
   .come-funziona { grid-template-columns: 1fr; }
   .roadmap { grid-template-columns: 1fr; }
+  .tri-grid { grid-template-columns: 1fr; }
   .per-chi { grid-template-columns: 1fr; }
   .limit-grid { grid-template-columns: 1fr; }
   .caso { grid-template-columns: 1fr; padding: 40px; }
@@ -419,29 +453,61 @@ footer { border-top: 1px solid var(--border); padding: 40px; max-width: 1200px; 
 
 <hr class="section-divider">
 
-<!-- PER CHI -->
+<!-- PER CHI — tripartita con hover -->
 <section class="section">
-  <p class="section-kicker">Clienti · Tre verticali</p>
-  <h2 class="section-title">Per chi è PoliSim</h2>
-  <div class="per-chi">
-    <div class="pc-card">
-      <div class="pc-icon">🗳</div>
-      <div class="pc-title">Partiti e consulenti politici</div>
-      <p class="pc-desc">Simula scenari 2027, identifica collegi uninominali contendibili, ottimizza il messaggio per ogni segmento elettorale. Dalla strategia all'A/B test del framing in un unico strumento.</p>
-      <a class="pc-link" href="/per-partiti.html">Scopri per i partiti →</a>
+  <p class="section-kicker">Tre verticali · Una piattaforma</p>
+  <h2 class="section-title">Il messaggio giusto.<br><em style="font-style:italic;color:var(--blue-light);">Per il segmento giusto.</em></h2>
+  <p class="section-sub">Stessi dati, stessa metodologia. Profili calibrati sul tuo contesto.</p>
+
+  <div class="tri-grid">
+
+    <div class="tri-card tri-partiti" id="partiti">
+      <div class="tri-accent tri-accent-p"></div>
+      <span class="tri-kicker tri-k-p">Partiti &amp; consulenti</span>
+      <div class="tri-title">Intelligenza<br>elettorale</div>
+      <p class="tri-desc">Simula Camera e Senato, identifica i collegi contendibili, ottimizza il messaggio per il segmento target.</p>
+      <ul class="tri-feats">
+        <li>Swing model 147 collegi Camera + 74 Senato</li>
+        <li>Doppia maggioranza verificata</li>
+        <li>Framing per 5 segmenti psicografici</li>
+        <li>A/B test messaggi ante-campagna</li>
+      </ul>
+      <a class="tri-cta tri-cta-p" href="/per-chi.html#partiti">Scopri per i partiti →</a>
     </div>
-    <div class="pc-card">
-      <div class="pc-icon">🌍</div>
-      <div class="pc-title">ONG e advocacy</div>
-      <p class="pc-desc">Misura la resonanza del tuo messaggio su donatori, volontari e pubblico general. Testa il framing di campagna su profili demografici reali prima di investire in comunicazione.</p>
-      <a class="pc-link" href="/per-ong.html">Scopri per le ONG →</a>
+
+    <div class="tri-card tri-ong" id="ong">
+      <div class="tri-accent tri-accent-o"></div>
+      <span class="tri-kicker tri-k-o">ONG &amp; advocacy</span>
+      <div class="tri-title">Comunicazione<br>d'impatto</div>
+      <p class="tri-desc">Testa il framing della tua campagna su donatori, volontari e pubblico generale prima di investire in comunicazione.</p>
+      <ul class="tri-feats">
+        <li>Metriche calibrate sul tuo obiettivo</li>
+        <li>Lasciti, corporate, advocacy — profili distinti</li>
+        <li>4 framings alternativi per tema</li>
+        <li>Risk score: probabilità rigetto per segmento</li>
+      </ul>
+      <a class="tri-cta tri-cta-o" href="/per-chi.html#ong">Scopri per le ONG →</a>
     </div>
-    <div class="pc-card">
-      <div class="pc-icon">📦</div>
-      <div class="pc-title">Brand e comunicazione</div>
-      <p class="pc-desc">Adatta ogni messaggio al segmento target con metriche di rischio rigetto. I profili psicografici ITANES mappano le dimensioni valoriali che orientano i comportamenti d'acquisto.</p>
-      <a class="pc-link" href="/per-brand.html">Scopri per i brand →</a>
+
+    <div class="tri-card tri-brand" id="brand">
+      <div class="tri-accent tri-accent-b"></div>
+      <span class="tri-kicker tri-k-b">Brand &amp; comunicazione</span>
+      <div class="tri-title">Risonanza<br>per segmento</div>
+      <p class="tri-desc">Adatta ogni messaggio al profilo valoriale del tuo target. Misura propensione all'acquisto e rischio rigetto.</p>
+      <ul class="tri-feats">
+        <li>Propensione acquisto per segmento demografico</li>
+        <li>Premium vs accessibile: dove posizionarti</li>
+        <li>Razionale vs emotivo calibrato sul profilo</li>
+        <li>Nessun dato personale raccolto</li>
+      </ul>
+      <a class="tri-cta tri-cta-b" href="/per-chi.html#brand">Scopri per i brand →</a>
     </div>
+
+  </div>
+
+  <div class="tri-footer">
+    <p class="tri-footer-main">Base dati comune · ISTAT Censimento Permanente 2021 · Eligendo OpenData · ITANES 2022<sup>*</sup></p>
+    <p class="tri-footer-note"><sup>*</sup> ITANES (Italian National Election Studies) — panel elettorale italiano, consorzio universitario. N=4.696 rispondenti, 326 variabili. DOI: 10.13130/RD_UNIMI/JV77WR</p>
   </div>
 </section>
 
