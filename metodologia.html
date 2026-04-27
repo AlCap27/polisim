@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Metodologia PoliSim — Dati ITANES, ISTAT, Eligendo</title>
-<meta property="og:title" content="Metodologia PoliSim — ITANES, ISTAT, Eligendo">
-<meta property="og:description" content="Metodologia PoliSim: ITANES 2022 N=4.696, ISTAT Censimento 2021, Eligendo OpenData. Ridge regression, 5 segmenti empirici, MRP in sviluppo.">
-<meta name="description" content="PoliSim usa ITANES 2022 (N=4.696), ISTAT 2021 e Eligendo OpenData. Ridge regression, Random Forest, 5 segmenti empirici. RMSE 3.9pp su 11 collegi Lazio. MRP e LightRAG in sviluppo.">
+<meta property="og:title" content="Metodologia PoliSim — MRP, ITANES, ISTAT, Eligendo">
+<meta property="og:description" content="Metodologia PoliSim: MRP mixed effects RMSE 4.44pp R²=0.782. ITANES 2022 N=4.696, ISTAT 2021, Eligendo OpenData. Serie storiche 2018-2025.">
+<meta name="description" content="Metodologia PoliSim: MRP con effetti misti per regione, RMSE 4.44pp su 142 collegi Camera (R²=0.782). ITANES 2022 N=4.696, ISTAT 2021, Eligendo OpenData. Serie storiche 2018-2025.">
 <link rel="canonical" href="https://polisim.dev/metodologia.html">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -18,10 +18,10 @@
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "Cos'è MRP e perché PoliSim lo sta implementando?",
+      "name": "Qual è l'accuratezza del modello MRP di PoliSim?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "MRP (Multilevel Regression and Poststratification) è una tecnica statistica che permette di stimare le preferenze elettorali a livello di singolo collegio uninominale combinando sondaggi nazionali con dati demografici locali. Riduce l'errore da ±8-12pp a ±2-3pp per collegio, come validato da Wang et al. (IJF 2021)."
+        "text": "Il modello MRP con effetti misti per regione (statsmodels MixedLM) raggiunge RMSE=4.44pp e R²=0.782 su 142 collegi Camera (escluso Trentino/SVP). Variabile più predittiva: pct_laureati (p=0.000, coef=-7.62). Effetti casuali per 18 regioni italiane stimati empiricamente dai dati 2022."
       }
     },
     {
@@ -273,18 +273,28 @@ footer { border-top: 1px solid var(--border); padding: 32px 40px; max-width: 120
 
   <hr class="div">
 
-  <!-- REGRESSIONE -->
-  <h2 class="block-title">Modello di previsione — PoC Lazio Camera 2022</h2>
-  <p class="block-sub">Proof of Concept su 11 collegi uninominali Camera del Lazio. Regressione OLS con due predittori ISTAT. Risultati preliminari — validazione completa in corso su tutte le 20 regioni (147 collegi).</p>
+  <!-- PERCORSO MODELLI -->
+  <h2 class="block-title">Percorso di sviluppo del modello — dalla PoC al MRP</h2>
+  <p class="block-sub">PoliSim ha attraversato un percorso documentato di raffinamento metodologico. Ogni step è riproducibile dai dati aperti pubblicati.</p>
 
   <div style="margin-bottom: 8px;">
-    <div class="reg-row"><div class="reg-label">Formula</div><div class="reg-value"><strong>% CDX = 71.49 − 0.896 × pct_laureati + 0.082 × pct_bassa_istruz</strong></div></div>
-    <div class="reg-row"><div class="reg-label">R²</div><div class="reg-value"><strong>0.618</strong> — due variabili ISTAT spiegano il 62% della varianza del voto CDX</div></div>
-    <div class="reg-row"><div class="reg-label">RMSE</div><div class="reg-value"><strong>3.91 pp</strong> — nella norma di un sondaggio professionale</div></div>
-    <div class="reg-row"><div class="reg-label">Errore medio</div><div class="reg-value"><strong>3.2 pp</strong> — media degli errori di previsione per collegio</div></div>
-    <div class="reg-row"><div class="reg-label">Errore massimo</div><div class="reg-value"><strong>7.5 pp</strong> — Frosinone (outlier con dinamiche locali non catturate dal modello)</div></div>
-    <div class="reg-row"><div class="reg-label">Correlazione laureati/CDX</div><div class="reg-value"><strong>−0.81</strong> — la variabile singola più predittiva</div></div>
-    <div class="reg-row"><div class="reg-label">Collegi analizzati</div><div class="reg-value"><strong>11/14 collegi Camera Lazio</strong> — 3 collegi romani richiedono spatial join per municipio</div></div>
+    <div class="reg-row"><div class="reg-label">PoC 1 — Lazio</div><div class="reg-value"><strong>RMSE 3.9pp · R²=0.618</strong> — OLS 2 variabili ISTAT su 11 collegi Camera Lazio. Prova che i dati demografici correlano col voto.</div></div>
+    <div class="reg-row"><div class="reg-label">PoC 2 — Nazionale flat</div><div class="reg-value"><strong>RMSE 7.8pp</strong> — Ridge 6 variabili su 146 collegi. Baseline: i coefficienti demografici sono opposti tra Nord e Sud.</div></div>
+    <div class="reg-row"><div class="reg-label">PoC 2 — Macro-area</div><div class="reg-value"><strong>RMSE 5.2pp</strong> — Tre modelli separati (Nord/Centro/Sud). Centro: 3.6pp. Nord: 6.2pp (Emilia strutturalmente diversa).</div></div>
+    <div class="reg-row"><div class="reg-label">PoC 3 — MRP</div><div class="reg-value"><strong>RMSE 4.44pp · R²=0.782</strong> — Mixed Linear Model con random intercept per regione. 142 collegi, 18 regioni. Miglioramento +32.9% vs baseline.</div></div>
+  </div>
+
+  <h2 class="block-title" style="margin-top:32px;">MRP — Risultati dettagliati</h2>
+  <p class="block-sub">Modello attivo: statsmodels MixedLM · random intercept per regione · 6 variabili ISTAT standardizzate.</p>
+
+  <div style="margin-bottom: 8px;">
+    <div class="reg-row"><div class="reg-label">Performance</div><div class="reg-value"><strong>RMSE=4.44pp · R²=0.782 · MAE=3.50pp</strong></div></div>
+    <div class="reg-row"><div class="reg-label">Variabile chiave</div><div class="reg-value"><strong>pct_laureati</strong> — coef=-7.62, p=0.000 · unica variabile con alta significatività nel modello MRP</div></div>
+    <div class="reg-row"><div class="reg-label">Effetto Veneto</div><div class="reg-value"><strong>+8.0pp</strong> — vota 8pp più CDX di quanto la demografia preveda</div></div>
+    <div class="reg-row"><div class="reg-label">Effetto Toscana</div><div class="reg-value"><strong>−6.9pp</strong> — tradizione CSX strutturale catturata automaticamente dai dati</div></div>
+    <div class="reg-row"><div class="reg-label">Effetto Emilia-Romagna</div><div class="reg-value"><strong>−6.0pp</strong> — RMSE locale 6.5pp: dinamiche sub-regionali forti (prossimo step: shapefile)</div></div>
+    <div class="reg-row"><div class="reg-label">Escluso</div><div class="reg-value"><strong>Trentino-Alto Adige</strong> — outlier strutturale (SVP): CDX non equivalente a livello nazionale</div></div>
+    <div class="reg-row"><div class="reg-label">Serie storiche</div><div class="reg-value"><strong>10 elezioni 2018–2024</strong> · 8.056 comuni · Camera, Senato, Europee, Regionali</div></div>
   </div>
 
   <hr class="div">
@@ -300,11 +310,11 @@ footer { border-top: 1px solid var(--border); padding: 32px 40px; max-width: 120
       <p class="rm-desc">Simulazione Camera e Senato con margini reali per collegio. 5 segmenti psicografici derivati empiricamente da ITANES 2022 (N=4.696). Message optimizer su 3 verticali (partiti, ONG e istituzioni pilota).</p>
       <p class="rm-tech">Ridge regression · Random Forest · ITANES 2022 · Eligendo · ISTAT 2021</p>
     </div>
-    <div class="rm-item next">
-      <span class="rm-badge b-dev">⚙ In sviluppo</span>
-      <div class="rm-title">MRP — Multilevel Regression and Poststratification</div>
-      <p class="rm-desc">Tecnica statistica che stima le preferenze a livello di singolo collegio uninominale incrociando sondaggi nazionali con variabili demografiche locali. Riduce l'errore da ±8-12pp a ±2-3pp per collegio. Validato accademicamente su elezioni USA e UK.</p>
-      <p class="rm-tech">Gelman & Little 1997 · Wang et al. IJF 2021 (median absolute diff. 1.9pp) · ISTAT 2021</p>
+    <div class="rm-item" style="background:#f0f4f0;">
+      <span class="rm-badge b-live">✓ Live</span>
+      <div class="rm-title">MRP — Mixed Linear Model con effetti casuali per regione</div>
+      <p class="rm-desc">Modello attivo: statsmodels MixedLM con random intercept per regione. RMSE=4.44pp, R²=0.782 su 142 collegi Camera. Serie storiche 2018-2024 (10 elezioni, 8.056 comuni) integrate come prior.</p>
+      <p class="rm-tech">Gelman & Little 1997 · Wang et al. IJF 2021 · statsmodels MixedLM · Eligendo storico</p>
     </div>
     <div class="rm-item">
       <span class="rm-badge b-plan">◌ Pianificato</span>
@@ -332,8 +342,8 @@ footer { border-top: 1px solid var(--border); padding: 32px 40px; max-width: 120
       <p class="lim-text">Il layer di ottimizzazione messaggi (Stage 3) usa Claude Sonnet. I punteggi di risonanza, credibilità e differenziazione sono calibrati su esperti e dati ITANES, ma non validati empiricamente su outcome di campagne reali. Trattare i risultati come ipotesi da testare, non come previsioni.</p>
     </div>
     <div class="lim-item">
-      <span class="lim-badge">⚠ Limitazione 2 · Swing model macro-area</span>
-      <p class="lim-text">Il modello swing opera a livello di macro-area (regioni/province), non a livello di singolo collegio uninominale. L'errore per collegio è ±8-12pp. L'implementazione MRP porterà questo errore a ±2-3pp — in sviluppo.</p>
+      <span class="lim-badge">⚠ Limitazione 2 · MRP a livello di regione, non di collegio</span>
+      <p class="lim-text">Il modello MRP attuale stima effetti casuali a livello di regione (18 regioni). L'errore residuo su Emilia-Romagna (6.5pp) e Campania (6.7pp) riflette dinamiche sub-regionali non catturate. Il prossimo step è MRP con shapefile a livello di singolo collegio uninominale.</p>
     </div>
     <div class="lim-item">
       <span class="lim-badge">⚠ Limitazione 3 · Pesi non validati su campagne live</span>
