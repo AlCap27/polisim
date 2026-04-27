@@ -1,0 +1,24 @@
+﻿circoscrizione,num_uni,nome_collegio,regione,macro_area,vincitore_coal,vincitore_lista,vincitore_pct,secondo_coal,secondo_pct,margine_pp,pct_CDX,pct_CSX,pct_M5S,pct_CENTRO,fonte
+LOMBARDIA 1,1,LOMBARDIA 1 - U01,Lombardia,Nord-Ovest,CDX,,51.2,CSX,31.7,19.5,51.2,31.7,4.5,11.0,eligendo_opendata_regionali_20230212
+LOMBARDIA 1,2,LOMBARDIA 1 - U02,Lombardia,Nord-Ovest,CDX,,60.4,CSX,24.9,35.6,60.4,24.9,4.1,9.4,eligendo_opendata_regionali_20230212
+LOMBARDIA 1,3,LOMBARDIA 1 - U03,Lombardia,Nord-Ovest,CDX,,48.9,CSX,33.7,15.2,48.9,33.7,5.4,10.2,eligendo_opendata_regionali_20230212
+LOMBARDIA 1,4,LOMBARDIA 1 - U04,Lombardia,Nord-Ovest,CDX,,53.1,CSX,30.2,22.9,53.1,30.2,5.4,9.7,eligendo_opendata_regionali_20230212
+LOMBARDIA 1,5,LOMBARDIA 1 - U05,Lombardia,Nord-Ovest,CDX,,56.3,CSX,29.2,27.1,56.3,29.2,4.3,8.7,eligendo_opendata_regionali_20230212
+LOMBARDIA 1,6,LOMBARDIA 1 - U06,Lombardia,Nord-Ovest,CDX,,48.6,CSX,34.7,13.9,48.6,34.7,5.9,9.1,eligendo_opendata_regionali_20230212
+LOMBARDIA 1,7,LOMBARDIA 1 - U07,Lombardia,Nord-Ovest,CSX,,40.8,CDX,39.4,1.4,39.4,40.8,4.3,13.8,eligendo_opendata_regionali_20230212
+LOMBARDIA 1,8,LOMBARDIA 1 - U08,Lombardia,Nord-Ovest,CSX,,40.8,CDX,39.4,1.4,39.4,40.8,4.3,13.8,eligendo_opendata_regionali_20230212
+LOMBARDIA 1,9,LOMBARDIA 1 - U09,Lombardia,Nord-Ovest,CSX,,40.8,CDX,39.4,1.4,39.4,40.8,4.3,13.8,eligendo_opendata_regionali_20230212
+LOMBARDIA 2,1,LOMBARDIA 2 - U01,Lombardia,Nord-Ovest,CDX,,61.1,CSX,24.9,36.2,61.1,24.9,3.8,9.0,eligendo_opendata_regionali_20230212
+LOMBARDIA 2,2,LOMBARDIA 2 - U02,Lombardia,Nord-Ovest,CDX,,59.8,CSX,24.5,35.3,59.8,24.5,4.3,10.2,eligendo_opendata_regionali_20230212
+LOMBARDIA 2,3,LOMBARDIA 2 - U03,Lombardia,Nord-Ovest,CDX,,58.9,CSX,25.4,33.6,58.9,25.4,3.6,10.9,eligendo_opendata_regionali_20230212
+LOMBARDIA 2,4,LOMBARDIA 2 - U04,Lombardia,Nord-Ovest,CDX,,67.8,CSX,20.9,46.9,67.8,20.9,2.4,8.4,eligendo_opendata_regionali_20230212
+LOMBARDIA 2,5,LOMBARDIA 2 - U05,Lombardia,Nord-Ovest,CDX,,59.3,CSX,26.1,33.2,59.3,26.1,3.2,10.2,eligendo_opendata_regionali_20230212
+LOMBARDIA 3,1,LOMBARDIA 3 - U01,Lombardia,Nord-Ovest,CDX,,65.5,CSX,22.7,42.9,65.5,22.7,3.1,7.1,eligendo_opendata_regionali_20230212
+LOMBARDIA 3,2,LOMBARDIA 3 - U02,Lombardia,Nord-Ovest,CDX,,58.6,CSX,29.0,29.6,58.6,29.0,2.7,8.2,eligendo_opendata_regionali_20230212
+LOMBARDIA 3,3,LOMBARDIA 3 - U03,Lombardia,Nord-Ovest,CDX,,70.6,CSX,19.4,51.2,70.6,19.4,2.4,6.4,eligendo_opendata_regionali_20230212
+LOMBARDIA 3,4,LOMBARDIA 3 - U04,Lombardia,Nord-Ovest,CDX,,52.4,CSX,35.1,17.2,52.4,35.1,3.1,7.8,eligendo_opendata_regionali_20230212
+LOMBARDIA 3,5,LOMBARDIA 3 - U05,Lombardia,Nord-Ovest,CDX,,66.8,CSX,20.6,46.2,66.8,20.6,3.1,8.4,eligendo_opendata_regionali_20230212
+LOMBARDIA 4,1,LOMBARDIA 4 - U01,Lombardia,Nord-Ovest,CDX,,62.3,CSX,23.3,39.0,62.3,23.3,4.3,8.5,eligendo_opendata_regionali_20230212
+LOMBARDIA 4,2,LOMBARDIA 4 - U02,Lombardia,Nord-Ovest,CDX,,59.0,CSX,27.9,31.1,59.0,27.9,4.6,8.0,eligendo_opendata_regionali_20230212
+LOMBARDIA 4,3,LOMBARDIA 4 - U03,Lombardia,Nord-Ovest,CDX,,59.9,CSX,26.1,33.8,59.9,26.1,3.6,8.8,eligendo_opendata_regionali_20230212
+LOMBARDIA 4,4,LOMBARDIA 4 - U04,Lombardia,Nord-Ovest,CDX,,55.0,CSX,30.5,24.5,55.0,30.5,4.3,8.9,eligendo_opendata_regionali_20230212

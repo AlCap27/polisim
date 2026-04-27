@@ -1,0 +1,111 @@
+{
+  "versione": "strada_B_plus_regionali_2023_2024",
+  "data_generazione": "2026-04-27T18:43:21.260494",
+  "fonte_dati": "https://elezionistorico.interno.gov.it/daithome/documenti/opendata",
+  "regioni_target": [
+    "LOMBARDIA",
+    "SARDEGNA",
+    "BASILICATA",
+    "LIGURIA",
+    "UMBRIA",
+    "EMILIA-ROMAGNA"
+  ],
+  "soglia_rmse_pp": 4.0,
+  "poc_lazio_baseline": {
+    "rmse_pp": 3.91,
+    "r2": 0.618,
+    "n_collegi": 11
+  },
+  "risultati": {
+    "LOMBARDIA": {
+      "anno": 2023,
+      "data_voto": "20230212",
+      "n_collegi": 23,
+      "rmse": {
+        "n_match": 23,
+        "n_collegi_regionale": 23,
+        "rmse_global_pp": 3.71,
+        "rmse_per_coal": {
+          "CDX": 5.398,
+          "CSX": 2.787,
+          "M5S": 3.623,
+          "CENTRO": 2.242
+        },
+        "note": ""
+      }
+    },
+    "SARDEGNA": {
+      "anno": 2024,
+      "data_voto": "20240225",
+      "n_collegi": 0,
+      "rmse": {
+        "error": "http_404",
+        "url": "https://elezionistorico.interno.gov.it/daithome/documenti/opendata/regionali/regionali-20240225.zip"
+      }
+    },
+    "BASILICATA": {
+      "anno": 2024,
+      "data_voto": "20240421",
+      "n_collegi": 1,
+      "rmse": {
+        "n_match": 1,
+        "n_collegi_regionale": 1,
+        "rmse_global_pp": 10.817,
+        "rmse_per_coal": {},
+        "note": ""
+      }
+    },
+    "LIGURIA": {
+      "anno": 2024,
+      "data_voto": "20241027",
+      "n_collegi": 4,
+      "rmse": {
+        "n_match": 4,
+        "n_collegi_regionale": 4,
+        "rmse_global_pp": 9.05,
+        "rmse_per_coal": {
+          "CDX": 4.722,
+          "CSX": 13.542,
+          "M5S": 8.542,
+          "CENTRO": 6.996
+        },
+        "note": ""
+      }
+    },
+    "UMBRIA": {
+      "anno": 2024,
+      "data_voto": "20241117",
+      "n_collegi": 2,
+      "rmse": {
+        "n_match": 2,
+        "n_collegi_regionale": 2,
+        "rmse_global_pp": 11.086,
+        "rmse_per_coal": {
+          "CDX": 9.67,
+          "CSX": 17.814,
+          "M5S": 7.95,
+          "CENTRO": 4.186
+        },
+        "note": ""
+      }
+    },
+    "EMILIA-ROMAGNA": {
+      "anno": 2024,
+      "data_voto": "20241117",
+      "n_collegi": 11,
+      "rmse": {
+        "n_match": 11,
+        "n_collegi_regionale": 11,
+        "rmse_global_pp": 10.32,
+        "rmse_per_coal": {
+          "CDX": 1.99,
+          "CSX": 17.692,
+          "M5S": 6.186,
+          "CENTRO": 8.416
+        },
+        "note": ""
+      }
+    }
+  },
+  "nota_metodologica": "Aggregazione regionale -> collegio Camera 2022 via elenco-collegi-comuni-camera.csv (catalogo AGID Eligendo). Allocazione uniforme per comuni in piu' collegi. RMSE su quote pct_CDX/CSX/M5S/CENTRO confrontate con il voto Camera 2022 nello stesso collegio (collegi_uninominali_2022.csv)."
+}
