@@ -1,0 +1,2447 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PoliSim — Legenda Collegi Camera</title>
+<meta name="description" content="Legenda completa dei 147 collegi uninominali Camera: capoluogo, comuni, risultati 2022 CDX/CSX.">
+<link rel="canonical" href="https://polisim.dev/collegi.html">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#faf9f7;--black:#0d0d0d;--gray:#3a3a3a;--gray-mid:#666;
+  --gray-light:#999;--border:#e0ddd8;--blue:#1e3a5f;--blue-light:#4a7eb5;
+  --font-serif:'Cormorant Garamond',Georgia,serif;
+  --font-sans:'DM Sans',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+}
+body{background:var(--bg);color:var(--black);font-family:var(--font-sans);}
+.nav{position:sticky;top:0;z-index:100;background:rgba(250,249,247,.95);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--border);
+  padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;}
+.nav-logo{font-family:var(--font-mono);font-size:13px;letter-spacing:3px;color:var(--black);text-decoration:none;}
+.nav-links a{font-size:12px;color:var(--gray-mid);text-decoration:none;margin-left:24px;letter-spacing:1px;text-transform:uppercase;}
+.nav-links a:hover{color:var(--black);}
+
+.header{max-width:1200px;margin:0 auto;padding:48px 40px 32px;}
+.h-kicker{font-family:var(--font-mono);font-size:10px;letter-spacing:4px;color:var(--blue-light);text-transform:uppercase;margin-bottom:12px;}
+.h-title{font-family:var(--font-serif);font-size:clamp(36px,4vw,56px);font-weight:300;margin-bottom:12px;}
+.h-sub{font-size:14px;color:var(--gray);max-width:600px;line-height:1.7;}
+
+.search-wrap{max-width:1200px;margin:0 auto;padding:0 40px 24px;}
+.search{width:100%;padding:12px 16px;font-family:var(--font-mono);font-size:13px;
+  background:#f0ede8;border:1px solid var(--border);color:var(--black);outline:none;}
+.search:focus{border-color:var(--blue-light);}
+
+.table-wrap{max-width:1200px;margin:0 auto;padding:0 40px 80px;overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+th{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--gray-light);padding:10px 14px;text-align:left;border-bottom:2px solid var(--border);
+  background:var(--bg);position:sticky;top:60px;}
+.row td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top;}
+.row:hover td{background:#f5f2ec;}
+.td-nome{min-width:200px;}
+.nome-full{font-family:var(--font-mono);font-size:11px;color:var(--black);margin-bottom:2px;}
+.nome-cap{font-size:12px;color:var(--blue-light);font-weight:500;}
+.td-comuni{font-size:11px;color:var(--gray);max-width:280px;}
+.comuni-list{font-size:10px;color:var(--gray-light);margin-top:3px;line-height:1.5;}
+.td-voto{font-family:var(--font-mono);font-size:12px;min-width:80px;}
+.bar-mini{width:60px;margin-top:4px;background:var(--border);height:3px;}
+.badge-win{font-family:var(--font-mono);font-size:9px;letter-spacing:1px;color:white;
+  padding:2px 8px;display:inline-block;}
+.hidden{display:none;}
+.count{font-family:var(--font-mono);font-size:10px;color:var(--gray-light);
+  padding:0 40px;max-width:1200px;margin:0 auto 12px;}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a class="nav-logo" href="/">POLISIM</a>
+  <div class="nav-links">
+    <a href="/tool">Simulatore</a>
+    <a href="/previsioni">Previsioni MRP</a>
+    <a href="/metodologia.html">Metodologia</a>
+  </div>
+</nav>
+
+<div class="header">
+  <p class="h-kicker">Legenda · 147 Collegi Uninominali · Camera dei Deputati</p>
+  <h1 class="h-title">Collegi elettorali<br>Camera 2022</h1>
+  <p class="h-sub">Mappa completa dei collegi uninominali con capoluogo di riferimento, comuni inclusi e risultati elettorali 2022. Utile per contestualizzare le previsioni MRP.</p>
+</div>
+
+<div class="search-wrap">
+  <input class="search" type="text" id="search" placeholder="Cerca per collegio, capoluogo o comune..." oninput="filtra()">
+</div>
+<div class="count" id="count">146 collegi</div>
+
+<div class="table-wrap">
+<table>
+<thead>
+  <tr>
+    <th>Collegio · Capoluogo</th>
+    <th>Comuni inclusi</th>
+    <th>CDX 2022</th>
+    <th>CSX 2022</th>
+    <th>Vincitore</th>
+  </tr>
+</thead>
+<tbody id="tbody">
+
+    <tr class="row" data-collegio="abruzzo - u01 (chieti)">
+      <td class="td-nome">
+        <div class="nome-full">ABRUZZO - U01 (CHIETI)</div>
+        <div class="nome-cap">Chieti</div>
+      </td>
+      <td class="td-comuni">104 comuni<div class="comuni-list">Altino, Archi, Ari, Arielli, Atessa +99</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">46.2%</span>
+        <div class="bar-mini"><div style="width:46.2%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">21.5%</span>
+        <div class="bar-mini"><div style="width:21.5%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="abruzzo - u02 (pescara)">
+      <td class="td-nome">
+        <div class="nome-full">ABRUZZO - U02 (PESCARA)</div>
+        <div class="nome-cap">Pescara</div>
+      </td>
+      <td class="td-comuni">68 comuni<div class="comuni-list">Abbateggio, Alanno, Alba Adriatica, Arsita, Atri +63</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">46.2%</span>
+        <div class="bar-mini"><div style="width:46.2%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">21.7%</span>
+        <div class="bar-mini"><div style="width:21.7%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="abruzzo - u03 (l'aquila)">
+      <td class="td-nome">
+        <div class="nome-full">ABRUZZO - U03 (L'AQUILA)</div>
+        <div class="nome-cap">L'Aquila</div>
+      </td>
+      <td class="td-comuni">133 comuni<div class="comuni-list">Acciano, Aielli, Alfedena, Ancarano, Anversa Degli Abruzzi +128</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">51.1%</span>
+        <div class="bar-mini"><div style="width:51.1%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">20.4%</span>
+        <div class="bar-mini"><div style="width:20.4%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="basilicata - u01 (potenza)">
+      <td class="td-nome">
+        <div class="nome-full">BASILICATA - U01 (POTENZA)</div>
+        <div class="nome-cap">Potenza</div>
+      </td>
+      <td class="td-comuni">131 comuni<div class="comuni-list">Abriola, Accettura, Acerenza, Albano Di Lucania, Aliano +126</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">38.8%</span>
+        <div class="bar-mini"><div style="width:38.8%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">20.7%</span>
+        <div class="bar-mini"><div style="width:20.7%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="calabria - u01 (corigliano-rossano)">
+      <td class="td-nome">
+        <div class="nome-full">CALABRIA - U01 (CORIGLIANO-ROSSANO)</div>
+        <div class="nome-cap">Corigliano-Rossano</div>
+      </td>
+      <td class="td-comuni">79 comuni<div class="comuni-list">Acquaformosa, Acri, Albidona, Alessandria Del Carretto, Altomonte +74</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">38.6%</span>
+        <div class="bar-mini"><div style="width:38.6%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">16.8%</span>
+        <div class="bar-mini"><div style="width:16.8%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="calabria - u02 (cosenza)">
+      <td class="td-nome">
+        <div class="nome-full">CALABRIA - U02 (COSENZA)</div>
+        <div class="nome-cap">Cosenza</div>
+      </td>
+      <td class="td-comuni">98 comuni<div class="comuni-list">Acquappesa, Aiello Calabro, Aieta, Altilia, Amantea +93</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">36.6%</span>
+        <div class="bar-mini"><div style="width:36.6%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">14.9%</span>
+        <div class="bar-mini"><div style="width:14.9%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="calabria - u03 (catanzaro)">
+      <td class="td-nome">
+        <div class="nome-full">CALABRIA - U03 (CATANZARO)</div>
+        <div class="nome-cap">Catanzaro</div>
+      </td>
+      <td class="td-comuni">80 comuni<div class="comuni-list">Albi, Amaroni, Amato, Andali, Argusto +75</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">39.7%</span>
+        <div class="bar-mini"><div style="width:39.7%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">18.9%</span>
+        <div class="bar-mini"><div style="width:18.9%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="calabria - u04 (vibo valentia)">
+      <td class="td-nome">
+        <div class="nome-full">CALABRIA - U04 (VIBO VALENTIA)</div>
+        <div class="nome-cap">Vibo Valentia</div>
+      </td>
+      <td class="td-comuni">76 comuni<div class="comuni-list">Acquaro, Anoia, Arena, Bagnara Calabra, Briatico +71</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">49.1%</span>
+        <div class="bar-mini"><div style="width:49.1%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">14.0%</span>
+        <div class="bar-mini"><div style="width:14.0%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="calabria - u05 (reggio di calabria)">
+      <td class="td-nome">
+        <div class="nome-full">CALABRIA - U05 (REGGIO DI CALABRIA)</div>
+        <div class="nome-cap">Reggio Di Calabria</div>
+      </td>
+      <td class="td-comuni">71 comuni<div class="comuni-list">Africo, Agnana Calabra, Antonimina, Ardore, Bagaladi +66</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">48.0%</span>
+        <div class="bar-mini"><div style="width:48.0%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">19.9%</span>
+        <div class="bar-mini"><div style="width:19.9%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="campania 1 - u01 (giugliano in campania)">
+      <td class="td-nome">
+        <div class="nome-full">CAMPANIA 1 - U01 (GIUGLIANO IN CAMPANIA)</div>
+        <div class="nome-cap">Giugliano In Campania</div>
+      </td>
+      <td class="td-comuni">16 comuni<div class="comuni-list">Bacoli, Barano D'Ischia, Calvizzano, Casamicciola Terme, Forio +11</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">30.4%</span>
+        <div class="bar-mini"><div style="width:30.4%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">17.4%</span>
+        <div class="bar-mini"><div style="width:17.4%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="campania 1 - u02 (napoli: quartiere 19 - fuorigrotta)">
+      <td class="td-nome">
+        <div class="nome-full">CAMPANIA 1 - U02 (NAPOLI: QUARTIERE 19 - FUORIGROTTA)</div>
+        <div class="nome-cap">Napoli: Quartiere 19 - Fuorigrotta</div>
+      </td>
+      <td class="td-comuni">1 comuni<div class="comuni-list">Napoli</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">22.3%</span>
+        <div class="bar-mini"><div style="width:22.3%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">21.6%</span>
+        <div class="bar-mini"><div style="width:21.6%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="campania 1 - u03 (napoli: quartiere 7 - san carlo all'arena)">
+      <td class="td-nome">
+        <div class="nome-full">CAMPANIA 1 - U03 (NAPOLI: QUARTIERE 7 - SAN CARLO ALL'ARENA)</div>
+        <div class="nome-cap">Napoli: Quartiere 7 - San Carlo All'Arena</div>
+      </td>
+      <td class="td-comuni">1 comuni<div class="comuni-list">Napoli</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">20.0%</span>
+        <div class="bar-mini"><div style="width:20.0%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">21.6%</span>
+        <div class="bar-mini"><div style="width:21.6%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#2471a3">CSX</span></td>
+    </tr>
+    <tr class="row" data-collegio="campania 1 - u04 (casoria)">
+      <td class="td-nome">
+        <div class="nome-full">CAMPANIA 1 - U04 (CASORIA)</div>
+        <div class="nome-cap">Casoria</div>
+      </td>
+      <td class="td-comuni">14 comuni<div class="comuni-list">Afragola, Arzano, Caivano, Cardito, Casandrino +9</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">25.5%</span>
+        <div class="bar-mini"><div style="width:25.5%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">16.3%</span>
+        <div class="bar-mini"><div style="width:16.3%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="campania 1 - u05 (acerra)">
+      <td class="td-nome">
+        <div class="nome-full">CAMPANIA 1 - U05 (ACERRA)</div>
+        <div class="nome-cap">Acerra</div>
+      </td>
+      <td class="td-comuni">13 comuni<div class="comuni-list">Acerra, Casalnuovo Di Napoli, Castello Di Cisterna, Cercola, Ercolano +8</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">23.8%</span>
+        <div class="bar-mini"><div style="width:23.8%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">20.9%</span>
+        <div class="bar-mini"><div style="width:20.9%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="campania 1 - u06 (somma vesuviana)">
+      <td class="td-nome">
+        <div class="nome-full">CAMPANIA 1 - U06 (SOMMA VESUVIANA)</div>
+        <div class="nome-cap">Somma Vesuviana</div>
+      </td>
+      <td class="td-comuni">28 comuni<div class="comuni-list">Boscoreale, Brusciano, Camposano, Carbonara Di Nola, Casamarciano +23</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">34.1%</span>
+        <div class="bar-mini"><div style="width:34.1%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">17.4%</span>
+        <div class="bar-mini"><div style="width:17.4%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="campania 1 - u07 (torre del greco)">
+      <td class="td-nome">
+        <div class="nome-full">CAMPANIA 1 - U07 (TORRE DEL GRECO)</div>
+        <div class="nome-cap">Torre Del Greco</div>
+      </td>
+      <td class="td-comuni">20 comuni<div class="comuni-list">Agerola, Anacapri, Boscotrecase, Capri, Casola Di Napoli +15</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">34.1%</span>
+        <div class="bar-mini"><div style="width:34.1%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">19.7%</span>
+        <div class="bar-mini"><div style="width:19.7%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="campania 2 - u01 (aversa)">
+      <td class="td-nome">
+        <div class="nome-full">CAMPANIA 2 - U01 (AVERSA)</div>
+        <div class="nome-cap">Aversa</div>
+      </td>
+      <td class="td-comuni">52 comuni<div class="comuni-list">Aversa, Caianello, Calvi Risorta, Camigliano, Cancello Ed Arnone +47</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">39.3%</span>
+        <div class="bar-mini"><div style="width:39.3%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">14.7%</span>
+        <div class="bar-mini"><div style="width:14.7%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="campania 2 - u02 (caserta)">
+      <td class="td-nome">
+        <div class="nome-full">CAMPANIA 2 - U02 (CASERTA)</div>
+        <div class="nome-cap">Caserta</div>
+      </td>
+      <td class="td-comuni">24 comuni<div class="comuni-list">Arienzo, Bellona, Capodrise, Capua, Casagiove +19</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">35.7%</span>
+        <div class="bar-mini"><div style="width:35.7%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">18.1%</span>
+        <div class="bar-mini"><div style="width:18.1%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="campania 2 - u03 (benevento)">
+      <td class="td-nome">
+        <div class="nome-full">CAMPANIA 2 - U03 (BENEVENTO)</div>
+        <div class="nome-cap">Benevento</div>
+      </td>
+      <td class="td-comuni">106 comuni<div class="comuni-list">Ailano, Airola, Alife, Alvignano, Amorosi +101</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">37.1%</span>
+        <div class="bar-mini"><div style="width:37.1%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">16.2%</span>
+        <div class="bar-mini"><div style="width:16.2%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="campania 2 - u04 (avellino)">
+      <td class="td-nome">
+        <div class="nome-full">CAMPANIA 2 - U04 (AVELLINO)</div>
+        <div class="nome-cap">Avellino</div>
+      </td>
+      <td class="td-comuni">118 comuni<div class="comuni-list">Aiello Del Sabato, Altavilla Irpina, Andretta, Aquilonia, Ariano Irpino +113</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">32.7%</span>
+        <div class="bar-mini"><div style="width:32.7%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">28.8%</span>
+        <div class="bar-mini"><div style="width:28.8%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="campania 2 - u05 (scafati)">
+      <td class="td-nome">
+        <div class="nome-full">CAMPANIA 2 - U05 (SCAFATI)</div>
+        <div class="nome-cap">Scafati</div>
+      </td>
+      <td class="td-comuni">26 comuni<div class="comuni-list">Amalfi, Angri, Atrani, Castel San Giorgio, Cetara +21</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">40.1%</span>
+        <div class="bar-mini"><div style="width:40.1%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">21.1%</span>
+        <div class="bar-mini"><div style="width:21.1%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="campania 2 - u06 (salerno)">
+      <td class="td-nome">
+        <div class="nome-full">CAMPANIA 2 - U06 (SALERNO)</div>
+        <div class="nome-cap">Salerno</div>
+      </td>
+      <td class="td-comuni">20 comuni<div class="comuni-list">Acerno, Baronissi, Battipaglia, Bellizzi, Bracigliano +15</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">36.7%</span>
+        <div class="bar-mini"><div style="width:36.7%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">25.4%</span>
+        <div class="bar-mini"><div style="width:25.4%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="campania 2 - u07 (eboli)">
+      <td class="td-nome">
+        <div class="nome-full">CAMPANIA 2 - U07 (EBOLI)</div>
+        <div class="nome-cap">Eboli</div>
+      </td>
+      <td class="td-comuni">112 comuni<div class="comuni-list">Agropoli, Albanella, Alfano, Altavilla Silentina, Aquara +107</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">47.3%</span>
+        <div class="bar-mini"><div style="width:47.3%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">21.3%</span>
+        <div class="bar-mini"><div style="width:21.3%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="emilia-romagna - u01 (piacenza)">
+      <td class="td-nome">
+        <div class="nome-full">EMILIA-ROMAGNA - U01 (PIACENZA)</div>
+        <div class="nome-cap">Piacenza</div>
+      </td>
+      <td class="td-comuni">54 comuni<div class="comuni-list">Agazzano, Alseno, Alta Val Tidone, Besenzone, Bettola +49</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">53.0%</span>
+        <div class="bar-mini"><div style="width:53.0%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">25.3%</span>
+        <div class="bar-mini"><div style="width:25.3%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="emilia-romagna - u02 (parma)">
+      <td class="td-nome">
+        <div class="nome-full">EMILIA-ROMAGNA - U02 (PARMA)</div>
+        <div class="nome-cap">Parma</div>
+      </td>
+      <td class="td-comuni">38 comuni<div class="comuni-list">Albareto, Bardi, Bedonia, Berceto, Bore +33</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">43.4%</span>
+        <div class="bar-mini"><div style="width:43.4%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">31.2%</span>
+        <div class="bar-mini"><div style="width:31.2%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="emilia-romagna - u03 (reggio nell'emilia)">
+      <td class="td-nome">
+        <div class="nome-full">EMILIA-ROMAGNA - U03 (REGGIO NELL'EMILIA)</div>
+        <div class="nome-cap">Reggio Nell'Emilia</div>
+      </td>
+      <td class="td-comuni">37 comuni<div class="comuni-list">Albinea, Bagnolo In Piano, Bibbiano, Cadelbosco Di Sopra, Campagnola Emilia +32</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">34.0%</span>
+        <div class="bar-mini"><div style="width:34.0%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">39.2%</span>
+        <div class="bar-mini"><div style="width:39.2%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#2471a3">CSX</span></td>
+    </tr>
+    <tr class="row" data-collegio="emilia-romagna - u04 (modena)">
+      <td class="td-nome">
+        <div class="nome-full">EMILIA-ROMAGNA - U04 (MODENA)</div>
+        <div class="nome-cap">Modena</div>
+      </td>
+      <td class="td-comuni">31 comuni<div class="comuni-list">Baiso, Bastiglia, Bomporto, Campogalliano, Casalgrande +26</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">37.7%</span>
+        <div class="bar-mini"><div style="width:37.7%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">35.8%</span>
+        <div class="bar-mini"><div style="width:35.8%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="emilia-romagna - u05 (imola)">
+      <td class="td-nome">
+        <div class="nome-full">EMILIA-ROMAGNA - U05 (IMOLA)</div>
+        <div class="nome-cap">Imola</div>
+      </td>
+      <td class="td-comuni">39 comuni<div class="comuni-list">Alto Reno Terme, Borgo Tossignano, Camugnano, Casalecchio Di Reno, Casalfiumanese +34</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">36.0%</span>
+        <div class="bar-mini"><div style="width:36.0%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">38.2%</span>
+        <div class="bar-mini"><div style="width:38.2%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#2471a3">CSX</span></td>
+    </tr>
+    <tr class="row" data-collegio="emilia-romagna - u06 (bologna)">
+      <td class="td-nome">
+        <div class="nome-full">EMILIA-ROMAGNA - U06 (BOLOGNA)</div>
+        <div class="nome-cap">Bologna</div>
+      </td>
+      <td class="td-comuni">1 comuni<div class="comuni-list">Bologna</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">26.9%</span>
+        <div class="bar-mini"><div style="width:26.9%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">45.2%</span>
+        <div class="bar-mini"><div style="width:45.2%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#2471a3">CSX</span></td>
+    </tr>
+    <tr class="row" data-collegio="emilia-romagna - u07 (carpi)">
+      <td class="td-nome">
+        <div class="nome-full">EMILIA-ROMAGNA - U07 (CARPI)</div>
+        <div class="nome-cap">Carpi</div>
+      </td>
+      <td class="td-comuni">34 comuni<div class="comuni-list">Anzola Dell'Emilia, Argelato, Baricella, Bentivoglio, Budrio +29</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">37.3%</span>
+        <div class="bar-mini"><div style="width:37.3%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">37.7%</span>
+        <div class="bar-mini"><div style="width:37.7%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#2471a3">CSX</span></td>
+    </tr>
+    <tr class="row" data-collegio="emilia-romagna - u08 (ravenna)">
+      <td class="td-nome">
+        <div class="nome-full">EMILIA-ROMAGNA - U08 (RAVENNA)</div>
+        <div class="nome-cap">Ravenna</div>
+      </td>
+      <td class="td-comuni">18 comuni<div class="comuni-list">Alfonsine, Bagnacavallo, Bagnara Di Romagna, Brisighella, Casola Valsenio +13</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">37.6%</span>
+        <div class="bar-mini"><div style="width:37.6%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">37.0%</span>
+        <div class="bar-mini"><div style="width:37.0%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="emilia-romagna - u09 (ferrara)">
+      <td class="td-nome">
+        <div class="nome-full">EMILIA-ROMAGNA - U09 (FERRARA)</div>
+        <div class="nome-cap">Ferrara</div>
+      </td>
+      <td class="td-comuni">21 comuni<div class="comuni-list">Argenta, Bondeno, Cento, Codigoro, Comacchio +16</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">48.1%</span>
+        <div class="bar-mini"><div style="width:48.1%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">30.1%</span>
+        <div class="bar-mini"><div style="width:30.1%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="emilia-romagna - u10 (forli')">
+      <td class="td-nome">
+        <div class="nome-full">EMILIA-ROMAGNA - U10 (FORLI')</div>
+        <div class="nome-cap">Forli'</div>
+      </td>
+      <td class="td-comuni">30 comuni<div class="comuni-list">Bagno Di Romagna, Bertinoro, Borghi, Castrocaro Terme E Terra Del Sole, Cesena +25</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">40.8%</span>
+        <div class="bar-mini"><div style="width:40.8%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">34.0%</span>
+        <div class="bar-mini"><div style="width:34.0%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="emilia-romagna - u11 (rimini)">
+      <td class="td-nome">
+        <div class="nome-full">EMILIA-ROMAGNA - U11 (RIMINI)</div>
+        <div class="nome-cap">Rimini</div>
+      </td>
+      <td class="td-comuni">27 comuni<div class="comuni-list">Bellaria-Igea Marina, Casteldelci, Cattolica, Coriano, Gemmano +22</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">44.6%</span>
+        <div class="bar-mini"><div style="width:44.6%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">32.4%</span>
+        <div class="bar-mini"><div style="width:32.4%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="friuli-venezia giulia - u01 (pordenone)">
+      <td class="td-nome">
+        <div class="nome-full">FRIULI-VENEZIA GIULIA - U01 (PORDENONE)</div>
+        <div class="nome-cap">Pordenone</div>
+      </td>
+      <td class="td-comuni">87 comuni<div class="comuni-list">Amaro, Ampezzo, Andreis, Arba, Arta Terme +82</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">55.2%</span>
+        <div class="bar-mini"><div style="width:55.2%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">21.8%</span>
+        <div class="bar-mini"><div style="width:21.8%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="friuli-venezia giulia - u02 (udine)">
+      <td class="td-nome">
+        <div class="nome-full">FRIULI-VENEZIA GIULIA - U02 (UDINE)</div>
+        <div class="nome-cap">Udine</div>
+      </td>
+      <td class="td-comuni">97 comuni<div class="comuni-list">Aiello Del Friuli, Aquileia, Artegna, Attimis, Bagnaria Arsa +92</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">52.0%</span>
+        <div class="bar-mini"><div style="width:52.0%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">24.2%</span>
+        <div class="bar-mini"><div style="width:24.2%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="friuli-venezia giulia - u03 (trieste)">
+      <td class="td-nome">
+        <div class="nome-full">FRIULI-VENEZIA GIULIA - U03 (TRIESTE)</div>
+        <div class="nome-cap">Trieste</div>
+      </td>
+      <td class="td-comuni">31 comuni<div class="comuni-list">Capriva Del Friuli, Cormons, Doberdo' Del Lago, Dolegna Del Collio, Duino Aurisina +26</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">42.8%</span>
+        <div class="bar-mini"><div style="width:42.8%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">30.1%</span>
+        <div class="bar-mini"><div style="width:30.1%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lazio 1 - u01 (roma: municipio i)">
+      <td class="td-nome">
+        <div class="nome-full">LAZIO 1 - U01 (ROMA: MUNICIPIO I)</div>
+        <div class="nome-cap">Roma: Municipio I</div>
+      </td>
+      <td class="td-comuni">1 comuni<div class="comuni-list">Roma</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">31.3%</span>
+        <div class="bar-mini"><div style="width:31.3%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">38.2%</span>
+        <div class="bar-mini"><div style="width:38.2%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#2471a3">CSX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lazio 1 - u02 (roma: municipio iii)">
+      <td class="td-nome">
+        <div class="nome-full">LAZIO 1 - U02 (ROMA: MUNICIPIO III)</div>
+        <div class="nome-cap">Roma: Municipio Iii</div>
+      </td>
+      <td class="td-comuni">1 comuni<div class="comuni-list">Roma</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">36.2%</span>
+        <div class="bar-mini"><div style="width:36.2%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">33.3%</span>
+        <div class="bar-mini"><div style="width:33.3%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lazio 1 - u03 (roma: municipio v)">
+      <td class="td-nome">
+        <div class="nome-full">LAZIO 1 - U03 (ROMA: MUNICIPIO V)</div>
+        <div class="nome-cap">Roma: Municipio V</div>
+      </td>
+      <td class="td-comuni">1 comuni<div class="comuni-list">Roma</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">43.6%</span>
+        <div class="bar-mini"><div style="width:43.6%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">26.2%</span>
+        <div class="bar-mini"><div style="width:26.2%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lazio 1 - u04 (roma: municipio vii)">
+      <td class="td-nome">
+        <div class="nome-full">LAZIO 1 - U04 (ROMA: MUNICIPIO VII)</div>
+        <div class="nome-cap">Roma: Municipio Vii</div>
+      </td>
+      <td class="td-comuni">2 comuni<div class="comuni-list">Ciampino, Roma</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">35.3%</span>
+        <div class="bar-mini"><div style="width:35.3%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">34.5%</span>
+        <div class="bar-mini"><div style="width:34.5%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lazio 1 - u05 (roma: municipio x)">
+      <td class="td-nome">
+        <div class="nome-full">LAZIO 1 - U05 (ROMA: MUNICIPIO X)</div>
+        <div class="nome-cap">Roma: Municipio X</div>
+      </td>
+      <td class="td-comuni">2 comuni<div class="comuni-list">Pomezia, Roma</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">40.5%</span>
+        <div class="bar-mini"><div style="width:40.5%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">27.6%</span>
+        <div class="bar-mini"><div style="width:27.6%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lazio 1 - u06 (roma: municipio xi)">
+      <td class="td-nome">
+        <div class="nome-full">LAZIO 1 - U06 (ROMA: MUNICIPIO XI)</div>
+        <div class="nome-cap">Roma: Municipio Xi</div>
+      </td>
+      <td class="td-comuni">2 comuni<div class="comuni-list">Fiumicino, Roma</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">39.1%</span>
+        <div class="bar-mini"><div style="width:39.1%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">31.7%</span>
+        <div class="bar-mini"><div style="width:31.7%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lazio 1 - u07 (roma: municipio xiv)">
+      <td class="td-nome">
+        <div class="nome-full">LAZIO 1 - U07 (ROMA: MUNICIPIO XIV)</div>
+        <div class="nome-cap">Roma: Municipio Xiv</div>
+      </td>
+      <td class="td-comuni">1 comuni<div class="comuni-list">Roma</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">42.7%</span>
+        <div class="bar-mini"><div style="width:42.7%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">28.5%</span>
+        <div class="bar-mini"><div style="width:28.5%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lazio 1 - u08 (velletri)">
+      <td class="td-nome">
+        <div class="nome-full">LAZIO 1 - U08 (VELLETRI)</div>
+        <div class="nome-cap">Velletri</div>
+      </td>
+      <td class="td-comuni">18 comuni<div class="comuni-list">Albano Laziale, Anzio, Ardea, Ariccia, Castel Gandolfo +13</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">49.2%</span>
+        <div class="bar-mini"><div style="width:49.2%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">22.4%</span>
+        <div class="bar-mini"><div style="width:22.4%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lazio 1 - u09 (guidonia montecelio)">
+      <td class="td-nome">
+        <div class="nome-full">LAZIO 1 - U09 (GUIDONIA MONTECELIO)</div>
+        <div class="nome-cap">Guidonia Montecelio</div>
+      </td>
+      <td class="td-comuni">63 comuni<div class="comuni-list">Affile, Agosta, Anticoli Corrado, Arcinazzo Romano, Arsoli +58</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">51.2%</span>
+        <div class="bar-mini"><div style="width:51.2%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">22.7%</span>
+        <div class="bar-mini"><div style="width:22.7%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lazio 2 - u01 (viterbo)">
+      <td class="td-nome">
+        <div class="nome-full">LAZIO 2 - U01 (VITERBO)</div>
+        <div class="nome-cap">Viterbo</div>
+      </td>
+      <td class="td-comuni">54 comuni<div class="comuni-list">Acquapendente, Allumiere, Arlena Di Castro, Bagnoregio, Barbarano Romano +49</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">53.2%</span>
+        <div class="bar-mini"><div style="width:53.2%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">20.7%</span>
+        <div class="bar-mini"><div style="width:20.7%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lazio 2 - u02 (rieti)">
+      <td class="td-nome">
+        <div class="nome-full">LAZIO 2 - U02 (RIETI)</div>
+        <div class="nome-cap">Rieti</div>
+      </td>
+      <td class="td-comuni">115 comuni<div class="comuni-list">Accumoli, Amatrice, Anguillara Sabazia, Antrodoco, Ascrea +110</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">51.3%</span>
+        <div class="bar-mini"><div style="width:51.3%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">22.4%</span>
+        <div class="bar-mini"><div style="width:22.4%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lazio 2 - u03 (latina)">
+      <td class="td-nome">
+        <div class="nome-full">LAZIO 2 - U03 (LATINA)</div>
+        <div class="nome-cap">Latina</div>
+      </td>
+      <td class="td-comuni">17 comuni<div class="comuni-list">Aprilia, Bassiano, Cisterna Di Latina, Cori, Latina +12</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">55.3%</span>
+        <div class="bar-mini"><div style="width:55.3%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">18.9%</span>
+        <div class="bar-mini"><div style="width:18.9%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lazio 2 - u04 (frosinone)">
+      <td class="td-nome">
+        <div class="nome-full">LAZIO 2 - U04 (FROSINONE)</div>
+        <div class="nome-cap">Frosinone</div>
+      </td>
+      <td class="td-comuni">60 comuni<div class="comuni-list">Acuto, Alatri, Alvito, Amaseno, Anagni +55</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">54.8%</span>
+        <div class="bar-mini"><div style="width:54.8%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">17.8%</span>
+        <div class="bar-mini"><div style="width:17.8%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lazio 2 - u05 (terracina)">
+      <td class="td-nome">
+        <div class="nome-full">LAZIO 2 - U05 (TERRACINA)</div>
+        <div class="nome-cap">Terracina</div>
+      </td>
+      <td class="td-comuni">47 comuni<div class="comuni-list">Acquafondata, Aquino, Arce, Ausonia, Belmonte Castello +42</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">54.5%</span>
+        <div class="bar-mini"><div style="width:54.5%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">17.2%</span>
+        <div class="bar-mini"><div style="width:17.2%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="liguria - u01 (savona)">
+      <td class="td-nome">
+        <div class="nome-full">LIGURIA - U01 (SAVONA)</div>
+        <div class="nome-cap">Savona</div>
+      </td>
+      <td class="td-comuni">122 comuni<div class="comuni-list">Airole, Alassio, Albenga, Altare, Andora +117</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">50.3%</span>
+        <div class="bar-mini"><div style="width:50.3%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">24.5%</span>
+        <div class="bar-mini"><div style="width:24.5%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="liguria - u02 (genova: municipio vii - ponente)">
+      <td class="td-nome">
+        <div class="nome-full">LIGURIA - U02 (GENOVA: MUNICIPIO VII - PONENTE)</div>
+        <div class="nome-cap">Genova: Municipio Vii - Ponente</div>
+      </td>
+      <td class="td-comuni">35 comuni<div class="comuni-list">Albisola Superiore, Albissola Marina, Arenzano, Busalla, Cairo Montenotte +30</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">37.7%</span>
+        <div class="bar-mini"><div style="width:37.7%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">33.2%</span>
+        <div class="bar-mini"><div style="width:33.2%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="liguria - u03 (genova: municipio i - centro est)">
+      <td class="td-nome">
+        <div class="nome-full">LIGURIA - U03 (GENOVA: MUNICIPIO I - CENTRO EST)</div>
+        <div class="nome-cap">Genova: Municipio I - Centro Est</div>
+      </td>
+      <td class="td-comuni">15 comuni<div class="comuni-list">Bargagli, Bogliasco, Davagna, Fascia, Fontanigorda +10</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">35.9%</span>
+        <div class="bar-mini"><div style="width:35.9%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">34.9%</span>
+        <div class="bar-mini"><div style="width:34.9%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="liguria - u04 (la spezia)">
+      <td class="td-nome">
+        <div class="nome-full">LIGURIA - U04 (LA SPEZIA)</div>
+        <div class="nome-cap">La Spezia</div>
+      </td>
+      <td class="td-comuni">63 comuni<div class="comuni-list">Ameglia, Arcola, Avegno, Beverino, Bolano +58</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">44.6%</span>
+        <div class="bar-mini"><div style="width:44.6%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">28.3%</span>
+        <div class="bar-mini"><div style="width:28.3%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lombardia 1 - u01 (monza)">
+      <td class="td-nome">
+        <div class="nome-full">LOMBARDIA 1 - U01 (MONZA)</div>
+        <div class="nome-cap">Monza</div>
+      </td>
+      <td class="td-comuni">30 comuni<div class="comuni-list">Agrate Brianza, Aicurzio, Arcore, Bellusco, Bernareggio +25</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">46.8%</span>
+        <div class="bar-mini"><div style="width:46.8%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">28.9%</span>
+        <div class="bar-mini"><div style="width:28.9%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lombardia 1 - u02 (seregno)">
+      <td class="td-nome">
+        <div class="nome-full">LOMBARDIA 1 - U02 (SEREGNO)</div>
+        <div class="nome-cap">Seregno</div>
+      </td>
+      <td class="td-comuni">25 comuni<div class="comuni-list">Albiate, Barlassina, Besana In Brianza, Bovisio-Masciago, Briosco +20</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">54.3%</span>
+        <div class="bar-mini"><div style="width:54.3%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">23.3%</span>
+        <div class="bar-mini"><div style="width:23.3%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lombardia 1 - u03 (cologno monzese)">
+      <td class="td-nome">
+        <div class="nome-full">LOMBARDIA 1 - U03 (COLOGNO MONZESE)</div>
+        <div class="nome-cap">Cologno Monzese</div>
+      </td>
+      <td class="td-comuni">33 comuni<div class="comuni-list">Basiano, Bellinzago Lombardo, Bussero, Cambiago, Carugate +28</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">44.3%</span>
+        <div class="bar-mini"><div style="width:44.3%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">29.7%</span>
+        <div class="bar-mini"><div style="width:29.7%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lombardia 1 - u04 (rozzano)">
+      <td class="td-nome">
+        <div class="nome-full">LOMBARDIA 1 - U04 (ROZZANO)</div>
+        <div class="nome-cap">Rozzano</div>
+      </td>
+      <td class="td-comuni">40 comuni<div class="comuni-list">Abbiategrasso, Albairate, Assago, Bareggio, Basiglio +35</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">49.0%</span>
+        <div class="bar-mini"><div style="width:49.0%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">26.2%</span>
+        <div class="bar-mini"><div style="width:26.2%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lombardia 1 - u05 (legnano)">
+      <td class="td-nome">
+        <div class="nome-full">LOMBARDIA 1 - U05 (LEGNANO)</div>
+        <div class="nome-cap">Legnano</div>
+      </td>
+      <td class="td-comuni">31 comuni<div class="comuni-list">Arconate, Arluno, Bernate Ticino, Buscate, Busto Garolfo +26</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">51.9%</span>
+        <div class="bar-mini"><div style="width:51.9%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">25.4%</span>
+        <div class="bar-mini"><div style="width:25.4%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lombardia 1 - u06 (sesto san giovanni)">
+      <td class="td-nome">
+        <div class="nome-full">LOMBARDIA 1 - U06 (SESTO SAN GIOVANNI)</div>
+        <div class="nome-cap">Sesto San Giovanni</div>
+      </td>
+      <td class="td-comuni">17 comuni<div class="comuni-list">Arese, Baranzate, Bollate, Bresso, Cesate +12</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">43.8%</span>
+        <div class="bar-mini"><div style="width:43.8%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">30.4%</span>
+        <div class="bar-mini"><div style="width:30.4%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lombardia 1 - u07 (milano: nil 20 - loreto)">
+      <td class="td-nome">
+        <div class="nome-full">LOMBARDIA 1 - U07 (MILANO: NIL 20 - LORETO)</div>
+        <div class="nome-cap">Milano: Nil 20 - Loreto</div>
+      </td>
+      <td class="td-comuni">1 comuni<div class="comuni-list">Milano</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">35.5%</span>
+        <div class="bar-mini"><div style="width:35.5%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">38.1%</span>
+        <div class="bar-mini"><div style="width:38.1%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#2471a3">CSX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lombardia 1 - u08 (milano: nil 58 - bande nere)">
+      <td class="td-nome">
+        <div class="nome-full">LOMBARDIA 1 - U08 (MILANO: NIL 58 - BANDE NERE)</div>
+        <div class="nome-cap">Milano: Nil 58 - Bande Nere</div>
+      </td>
+      <td class="td-comuni">1 comuni<div class="comuni-list">Milano</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">37.2%</span>
+        <div class="bar-mini"><div style="width:37.2%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">35.9%</span>
+        <div class="bar-mini"><div style="width:35.9%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lombardia 1 - u09 (milano: nil 21 - buenos aires - venezia)">
+      <td class="td-nome">
+        <div class="nome-full">LOMBARDIA 1 - U09 (MILANO: NIL 21 - BUENOS AIRES - VENEZIA)</div>
+        <div class="nome-cap">Milano: Nil 21 - Buenos Aires - Venezia</div>
+      </td>
+      <td class="td-comuni">1 comuni<div class="comuni-list">Milano</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">30.2%</span>
+        <div class="bar-mini"><div style="width:30.2%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">37.9%</span>
+        <div class="bar-mini"><div style="width:37.9%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#2471a3">CSX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lombardia 2 - u01 (varese)">
+      <td class="td-nome">
+        <div class="nome-full">LOMBARDIA 2 - U01 (VARESE)</div>
+        <div class="nome-cap">Varese</div>
+      </td>
+      <td class="td-comuni">101 comuni<div class="comuni-list">Agra, Angera, Arcisate, Azzate, Azzio +96</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">54.4%</span>
+        <div class="bar-mini"><div style="width:54.4%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">23.2%</span>
+        <div class="bar-mini"><div style="width:23.2%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lombardia 2 - u02 (busto arsizio)">
+      <td class="td-nome">
+        <div class="nome-full">LOMBARDIA 2 - U02 (BUSTO ARSIZIO)</div>
+        <div class="nome-cap">Busto Arsizio</div>
+      </td>
+      <td class="td-comuni">37 comuni<div class="comuni-list">Albizzate, Arsago Seprio, Besnate, Busto Arsizio, Cairate +32</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">53.8%</span>
+        <div class="bar-mini"><div style="width:53.8%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">23.1%</span>
+        <div class="bar-mini"><div style="width:23.1%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lombardia 2 - u03 (como)">
+      <td class="td-nome">
+        <div class="nome-full">LOMBARDIA 2 - U03 (COMO)</div>
+        <div class="nome-cap">Como</div>
+      </td>
+      <td class="td-comuni">66 comuni<div class="comuni-list">Albese Con Cassano, Albiolo, Appiano Gentile, Beregazzo Con Figliaro, Binago +61</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">54.0%</span>
+        <div class="bar-mini"><div style="width:54.0%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">23.5%</span>
+        <div class="bar-mini"><div style="width:23.5%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lombardia 2 - u04 (sondrio)">
+      <td class="td-nome">
+        <div class="nome-full">LOMBARDIA 2 - U04 (SONDRIO)</div>
+        <div class="nome-cap">Sondrio</div>
+      </td>
+      <td class="td-comuni">159 comuni<div class="comuni-list">Albaredo Per San Marco, Albavilla, Albosaggia, Alserio, Alta Valle Intelvi +154</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">61.9%</span>
+        <div class="bar-mini"><div style="width:61.9%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">19.6%</span>
+        <div class="bar-mini"><div style="width:19.6%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lombardia 2 - u05 (lecco)">
+      <td class="td-nome">
+        <div class="nome-full">LOMBARDIA 2 - U05 (LECCO)</div>
+        <div class="nome-cap">Lecco</div>
+      </td>
+      <td class="td-comuni">120 comuni<div class="comuni-list">Abbadia Lariana, Airuno, Almenno San Bartolomeo, Almenno San Salvatore, Ambivere +115</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">55.3%</span>
+        <div class="bar-mini"><div style="width:55.3%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">23.9%</span>
+        <div class="bar-mini"><div style="width:23.9%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lombardia 3 - u01 (treviglio)">
+      <td class="td-nome">
+        <div class="nome-full">LOMBARDIA 3 - U01 (TREVIGLIO)</div>
+        <div class="nome-cap">Treviglio</div>
+      </td>
+      <td class="td-comuni">90 comuni<div class="comuni-list">Adrara San Martino, Adrara San Rocco, Albano Sant'Alessandro, Antegnate, Arcene +85</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">60.2%</span>
+        <div class="bar-mini"><div style="width:60.2%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">21.0%</span>
+        <div class="bar-mini"><div style="width:21.0%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lombardia 3 - u02 (bergamo)">
+      <td class="td-nome">
+        <div class="nome-full">LOMBARDIA 3 - U02 (BERGAMO)</div>
+        <div class="nome-cap">Bergamo</div>
+      </td>
+      <td class="td-comuni">117 comuni<div class="comuni-list">Albino, Algua, Alme', Alzano Lombardo, Ardesio +112</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">53.4%</span>
+        <div class="bar-mini"><div style="width:53.4%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">25.3%</span>
+        <div class="bar-mini"><div style="width:25.3%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lombardia 3 - u03 (lumezzane)">
+      <td class="td-nome">
+        <div class="nome-full">LOMBARDIA 3 - U03 (LUMEZZANE)</div>
+        <div class="nome-cap">Lumezzane</div>
+      </td>
+      <td class="td-comuni">112 comuni<div class="comuni-list">Adro, Agnosine, Anfo, Angolo Terme, Artogne +107</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">62.3%</span>
+        <div class="bar-mini"><div style="width:62.3%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">19.7%</span>
+        <div class="bar-mini"><div style="width:19.7%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lombardia 3 - u04 (brescia)">
+      <td class="td-nome">
+        <div class="nome-full">LOMBARDIA 3 - U04 (BRESCIA)</div>
+        <div class="nome-cap">Brescia</div>
+      </td>
+      <td class="td-comuni">37 comuni<div class="comuni-list">Azzano Mella, Berlingo, Borgosatollo, Botticino, Bovezzo +32</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">49.3%</span>
+        <div class="bar-mini"><div style="width:49.3%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">28.1%</span>
+        <div class="bar-mini"><div style="width:28.1%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lombardia 3 - u05 (desenzano del garda)">
+      <td class="td-nome">
+        <div class="nome-full">LOMBARDIA 3 - U05 (DESENZANO DEL GARDA)</div>
+        <div class="nome-cap">Desenzano Del Garda</div>
+      </td>
+      <td class="td-comuni">46 comuni<div class="comuni-list">Acquafredda, Bagnolo Mella, Barbariga, Bassano Bresciano, Bedizzole +41</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">61.1%</span>
+        <div class="bar-mini"><div style="width:61.1%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">19.6%</span>
+        <div class="bar-mini"><div style="width:19.6%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lombardia 4 - u01 (pavia)">
+      <td class="td-nome">
+        <div class="nome-full">LOMBARDIA 4 - U01 (PAVIA)</div>
+        <div class="nome-cap">Pavia</div>
+      </td>
+      <td class="td-comuni">157 comuni<div class="comuni-list">Alagna, Albaredo Arnaboldi, Albonese, Albuzzano, Arena Po +152</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">54.8%</span>
+        <div class="bar-mini"><div style="width:54.8%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">23.7%</span>
+        <div class="bar-mini"><div style="width:23.7%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lombardia 4 - u02 (lodi)">
+      <td class="td-nome">
+        <div class="nome-full">LOMBARDIA 4 - U02 (LODI)</div>
+        <div class="nome-cap">Lodi</div>
+      </td>
+      <td class="td-comuni">100 comuni<div class="comuni-list">Abbadia Cerreto, Badia Pavese, Bascape', Bertonico, Boffalora D'Adda +95</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">54.3%</span>
+        <div class="bar-mini"><div style="width:54.3%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">24.8%</span>
+        <div class="bar-mini"><div style="width:24.8%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lombardia 4 - u03 (cremona)">
+      <td class="td-nome">
+        <div class="nome-full">LOMBARDIA 4 - U03 (CREMONA)</div>
+        <div class="nome-cap">Cremona</div>
+      </td>
+      <td class="td-comuni">123 comuni<div class="comuni-list">Acquanegra Cremonese, Agnadello, Alfianello, Annicco, Azzanello +118</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">56.5%</span>
+        <div class="bar-mini"><div style="width:56.5%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">24.4%</span>
+        <div class="bar-mini"><div style="width:24.4%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="lombardia 4 - u04 (mantova)">
+      <td class="td-nome">
+        <div class="nome-full">LOMBARDIA 4 - U04 (MANTOVA)</div>
+        <div class="nome-cap">Mantova</div>
+      </td>
+      <td class="td-comuni">64 comuni<div class="comuni-list">Acquanegra Sul Chiese, Asola, Bagnolo San Vito, Borgo Mantovano, Borgo Virgilio +59</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">50.9%</span>
+        <div class="bar-mini"><div style="width:50.9%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">26.7%</span>
+        <div class="bar-mini"><div style="width:26.7%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="marche - u01 (ascoli piceno)">
+      <td class="td-nome">
+        <div class="nome-full">MARCHE - U01 (ASCOLI PICENO)</div>
+        <div class="nome-cap">Ascoli Piceno</div>
+      </td>
+      <td class="td-comuni">73 comuni<div class="comuni-list">Acquasanta Terme, Acquaviva Picena, Altidona, Amandola, Appignano Del Tronto +68</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">48.1%</span>
+        <div class="bar-mini"><div style="width:48.1%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">22.7%</span>
+        <div class="bar-mini"><div style="width:22.7%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="marche - u02 (macerata)">
+      <td class="td-nome">
+        <div class="nome-full">MARCHE - U02 (MACERATA)</div>
+        <div class="nome-cap">Macerata</div>
+      </td>
+      <td class="td-comuni">59 comuni<div class="comuni-list">Apiro, Appignano, Belforte Del Chienti, Bolognola, Caldarola +54</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">49.5%</span>
+        <div class="bar-mini"><div style="width:49.5%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">22.7%</span>
+        <div class="bar-mini"><div style="width:22.7%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="marche - u03 (ancona)">
+      <td class="td-nome">
+        <div class="nome-full">MARCHE - U03 (ANCONA)</div>
+        <div class="nome-cap">Ancona</div>
+      </td>
+      <td class="td-comuni">43 comuni<div class="comuni-list">Agugliano, Ancona, Arcevia, Barbara, Belvedere Ostrense +38</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">39.2%</span>
+        <div class="bar-mini"><div style="width:39.2%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">30.5%</span>
+        <div class="bar-mini"><div style="width:30.5%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="marche - u04 (pesaro)">
+      <td class="td-nome">
+        <div class="nome-full">MARCHE - U04 (PESARO)</div>
+        <div class="nome-cap">Pesaro</div>
+      </td>
+      <td class="td-comuni">50 comuni<div class="comuni-list">Acqualagna, Apecchio, Belforte All'Isauro, Borgo Pace, Cagli +45</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">44.4%</span>
+        <div class="bar-mini"><div style="width:44.4%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">27.8%</span>
+        <div class="bar-mini"><div style="width:27.8%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="molise - u01 (campobasso)">
+      <td class="td-nome">
+        <div class="nome-full">MOLISE - U01 (CAMPOBASSO)</div>
+        <div class="nome-cap">Campobasso</div>
+      </td>
+      <td class="td-comuni">136 comuni<div class="comuni-list">Acquaviva Collecroce, Acquaviva D'Isernia, Agnone, Bagnoli Del Trigno, Baranello +131</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">43.4%</span>
+        <div class="bar-mini"><div style="width:43.4%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">21.8%</span>
+        <div class="bar-mini"><div style="width:21.8%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="piemonte 1 - u01 (torino: circoscrizione 2 - santa rita - mirafiori nord - mirafiori sud)">
+      <td class="td-nome">
+        <div class="nome-full">PIEMONTE 1 - U01 (TORINO: CIRCOSCRIZIONE 2 - SANTA RITA - MIRAFIORI NORD - MIRAFIORI SUD)</div>
+        <div class="nome-cap">Torino: Circoscrizione 2 - Santa Rita - Mirafiori Nord - Mirafiori Sud</div>
+      </td>
+      <td class="td-comuni">1 comuni<div class="comuni-list">Torino</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">31.4%</span>
+        <div class="bar-mini"><div style="width:31.4%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">39.4%</span>
+        <div class="bar-mini"><div style="width:39.4%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#2471a3">CSX</span></td>
+    </tr>
+    <tr class="row" data-collegio="piemonte 1 - u02 (torino: circoscrizione 3 - san paolo - cenisia - pozzo strada - citturin - borgata">
+      <td class="td-nome">
+        <div class="nome-full">PIEMONTE 1 - U02 (TORINO: CIRCOSCRIZIONE 3 - SAN PAOLO - CENISIA - POZZO STRADA - CITTURIN - BORGATA</div>
+        <div class="nome-cap">nan</div>
+      </td>
+      <td class="td-comuni">1 comuni<div class="comuni-list">Torino</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">36.3%</span>
+        <div class="bar-mini"><div style="width:36.3%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">34.9%</span>
+        <div class="bar-mini"><div style="width:34.9%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="piemonte 1 - u03 (collegno)">
+      <td class="td-nome">
+        <div class="nome-full">PIEMONTE 1 - U03 (COLLEGNO)</div>
+        <div class="nome-cap">Collegno</div>
+      </td>
+      <td class="td-comuni">22 comuni<div class="comuni-list">Alpignano, Borgaro Torinese, Buttigliera Alta, Caselle Torinese, Collegno +17</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">40.3%</span>
+        <div class="bar-mini"><div style="width:40.3%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">30.6%</span>
+        <div class="bar-mini"><div style="width:30.6%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="piemonte 1 - u04 (chieri)">
+      <td class="td-nome">
+        <div class="nome-full">PIEMONTE 1 - U04 (CHIERI)</div>
+        <div class="nome-cap">Chieri</div>
+      </td>
+      <td class="td-comuni">186 comuni<div class="comuni-list">Aglie', Ala Di Stura, Albiano D'Ivrea, Alpette, Andezeno +181</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">47.4%</span>
+        <div class="bar-mini"><div style="width:47.4%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">27.1%</span>
+        <div class="bar-mini"><div style="width:27.1%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="piemonte 1 - u05 (moncalieri)">
+      <td class="td-nome">
+        <div class="nome-full">PIEMONTE 1 - U05 (MONCALIERI)</div>
+        <div class="nome-cap">Moncalieri</div>
+      </td>
+      <td class="td-comuni">103 comuni<div class="comuni-list">Airasca, Almese, Angrogna, Avigliana, Bardonecchia +98</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">42.9%</span>
+        <div class="bar-mini"><div style="width:42.9%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">27.7%</span>
+        <div class="bar-mini"><div style="width:27.7%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="piemonte 2 - u01 (alessandria)">
+      <td class="td-nome">
+        <div class="nome-full">PIEMONTE 2 - U01 (ALESSANDRIA)</div>
+        <div class="nome-cap">Alessandria</div>
+      </td>
+      <td class="td-comuni">187 comuni<div class="comuni-list">Acqui Terme, Albera Ligure, Alessandria, Alfiano Natta, Alice Bel Colle +182</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">52.6%</span>
+        <div class="bar-mini"><div style="width:52.6%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">24.6%</span>
+        <div class="bar-mini"><div style="width:24.6%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="piemonte 2 - u02 (novara)">
+      <td class="td-nome">
+        <div class="nome-full">PIEMONTE 2 - U02 (NOVARA)</div>
+        <div class="nome-cap">Novara</div>
+      </td>
+      <td class="td-comuni">152 comuni<div class="comuni-list">Agrate Conturbia, Ameno, Antrona Schieranco, Anzola D'Ossola, Arizzano +147</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">52.8%</span>
+        <div class="bar-mini"><div style="width:52.8%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">24.9%</span>
+        <div class="bar-mini"><div style="width:24.9%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="piemonte 2 - u03 (vercelli)">
+      <td class="td-nome">
+        <div class="nome-full">PIEMONTE 2 - U03 (VERCELLI)</div>
+        <div class="nome-cap">Vercelli</div>
+      </td>
+      <td class="td-comuni">165 comuni<div class="comuni-list">Ailoche, Alagna Valsesia, Albano Vercellese, Alice Castello, Alto Sermenza +160</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">54.1%</span>
+        <div class="bar-mini"><div style="width:54.1%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">23.3%</span>
+        <div class="bar-mini"><div style="width:23.3%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="piemonte 2 - u04 (asti)">
+      <td class="td-nome">
+        <div class="nome-full">PIEMONTE 2 - U04 (ASTI)</div>
+        <div class="nome-cap">Asti</div>
+      </td>
+      <td class="td-comuni">196 comuni<div class="comuni-list">Agliano Terme, Alba, Albaretto Della Torre, Albugnano, Antignano +191</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">53.4%</span>
+        <div class="bar-mini"><div style="width:53.4%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">23.9%</span>
+        <div class="bar-mini"><div style="width:23.9%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="piemonte 2 - u05 (cuneo)">
+      <td class="td-nome">
+        <div class="nome-full">PIEMONTE 2 - U05 (CUNEO)</div>
+        <div class="nome-cap">Cuneo</div>
+      </td>
+      <td class="td-comuni">169 comuni<div class="comuni-list">Acceglio, Aisone, Alto, Argentera, Bagnasco +164</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">54.2%</span>
+        <div class="bar-mini"><div style="width:54.2%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">24.6%</span>
+        <div class="bar-mini"><div style="width:24.6%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="puglia - u01 (foggia)">
+      <td class="td-nome">
+        <div class="nome-full">PUGLIA - U01 (FOGGIA)</div>
+        <div class="nome-cap">Foggia</div>
+      </td>
+      <td class="td-comuni">39 comuni<div class="comuni-list">Accadia, Alberona, Anzano Di Puglia, Ascoli Satriano, Biccari +34</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">35.3%</span>
+        <div class="bar-mini"><div style="width:35.3%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">16.2%</span>
+        <div class="bar-mini"><div style="width:16.2%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="puglia - u02 (cerignola)">
+      <td class="td-nome">
+        <div class="nome-full">PUGLIA - U02 (CERIGNOLA)</div>
+        <div class="nome-cap">Cerignola</div>
+      </td>
+      <td class="td-comuni">25 comuni<div class="comuni-list">Apricena, Cagnano Varano, Canosa Di Puglia, Carpino, Cerignola +20</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">40.2%</span>
+        <div class="bar-mini"><div style="width:40.2%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">19.3%</span>
+        <div class="bar-mini"><div style="width:19.3%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="puglia - u03 (andria)">
+      <td class="td-nome">
+        <div class="nome-full">PUGLIA - U03 (ANDRIA)</div>
+        <div class="nome-cap">Andria</div>
+      </td>
+      <td class="td-comuni">7 comuni<div class="comuni-list">Andria, Barletta, Bisceglie, Margherita Di Savoia, Minervino Murge +2</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">42.5%</span>
+        <div class="bar-mini"><div style="width:42.5%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">20.0%</span>
+        <div class="bar-mini"><div style="width:20.0%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="puglia - u04 (molfetta)">
+      <td class="td-nome">
+        <div class="nome-full">PUGLIA - U04 (MOLFETTA)</div>
+        <div class="nome-cap">Molfetta</div>
+      </td>
+      <td class="td-comuni">17 comuni<div class="comuni-list">Adelfia, Binetto, Bitetto, Bitonto, Casamassima +12</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">42.1%</span>
+        <div class="bar-mini"><div style="width:42.1%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">22.5%</span>
+        <div class="bar-mini"><div style="width:22.5%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="puglia - u05 (bari)">
+      <td class="td-nome">
+        <div class="nome-full">PUGLIA - U05 (BARI)</div>
+        <div class="nome-cap">Bari</div>
+      </td>
+      <td class="td-comuni">9 comuni<div class="comuni-list">Bari, Bitritto, Capurso, Cellamare, Modugno +4</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">37.3%</span>
+        <div class="bar-mini"><div style="width:37.3%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">24.1%</span>
+        <div class="bar-mini"><div style="width:24.1%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="puglia - u06 (altamura)">
+      <td class="td-nome">
+        <div class="nome-full">PUGLIA - U06 (ALTAMURA)</div>
+        <div class="nome-cap">Altamura</div>
+      </td>
+      <td class="td-comuni">22 comuni<div class="comuni-list">Acquaviva Delle Fonti, Alberobello, Altamura, Cassano Delle Murge, Castellana Grotte +17</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">44.5%</span>
+        <div class="bar-mini"><div style="width:44.5%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">20.4%</span>
+        <div class="bar-mini"><div style="width:20.4%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="puglia - u07 (brindisi)">
+      <td class="td-nome">
+        <div class="nome-full">PUGLIA - U07 (BRINDISI)</div>
+        <div class="nome-cap">Brindisi</div>
+      </td>
+      <td class="td-comuni">20 comuni<div class="comuni-list">Brindisi, Carovigno, Ceglie Messapica, Cellino San Marco, Cisternino +15</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">44.9%</span>
+        <div class="bar-mini"><div style="width:44.9%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">18.4%</span>
+        <div class="bar-mini"><div style="width:18.4%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="puglia - u08 (taranto)">
+      <td class="td-nome">
+        <div class="nome-full">PUGLIA - U08 (TARANTO)</div>
+        <div class="nome-cap">Taranto</div>
+      </td>
+      <td class="td-comuni">22 comuni<div class="comuni-list">Avetrana, Carosino, Crispiano, Faggiano, Fragagnano +17</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">41.1%</span>
+        <div class="bar-mini"><div style="width:41.1%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">20.1%</span>
+        <div class="bar-mini"><div style="width:20.1%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="puglia - u09 (lecce)">
+      <td class="td-nome">
+        <div class="nome-full">PUGLIA - U09 (LECCE)</div>
+        <div class="nome-cap">Lecce</div>
+      </td>
+      <td class="td-comuni">30 comuni<div class="comuni-list">Arnesano, Calimera, Campi Salentina, Caprarica Di Lecce, Carmiano +25</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">44.2%</span>
+        <div class="bar-mini"><div style="width:44.2%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">24.1%</span>
+        <div class="bar-mini"><div style="width:24.1%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="puglia - u10 (galatina)">
+      <td class="td-nome">
+        <div class="nome-full">PUGLIA - U10 (GALATINA)</div>
+        <div class="nome-cap">Galatina</div>
+      </td>
+      <td class="td-comuni">66 comuni<div class="comuni-list">Alessano, Alezio, Alliste, Andrano, Aradeo +61</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">45.9%</span>
+        <div class="bar-mini"><div style="width:45.9%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">22.9%</span>
+        <div class="bar-mini"><div style="width:22.9%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="sardegna - u01 (cagliari)">
+      <td class="td-nome">
+        <div class="nome-full">SARDEGNA - U01 (CAGLIARI)</div>
+        <div class="nome-cap">Cagliari</div>
+      </td>
+      <td class="td-comuni">17 comuni<div class="comuni-list">Assemini, Cagliari, Capoterra, Decimomannu, Elmas +12</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">38.8%</span>
+        <div class="bar-mini"><div style="width:38.8%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">27.1%</span>
+        <div class="bar-mini"><div style="width:27.1%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="sardegna - u02 (carbonia)">
+      <td class="td-nome">
+        <div class="nome-full">SARDEGNA - U02 (CARBONIA)</div>
+        <div class="nome-cap">Carbonia</div>
+      </td>
+      <td class="td-comuni">107 comuni<div class="comuni-list">Arbus, Armungia, Ballao, Barrali, Barumini +102</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">42.7%</span>
+        <div class="bar-mini"><div style="width:42.7%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">24.1%</span>
+        <div class="bar-mini"><div style="width:24.1%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="sardegna - u03 (nuoro)">
+      <td class="td-nome">
+        <div class="nome-full">SARDEGNA - U03 (NUORO)</div>
+        <div class="nome-cap">Nuoro</div>
+      </td>
+      <td class="td-comuni">161 comuni<div class="comuni-list">Abbasanta, Aidomaggiore, Albagiara, Ales, Allai +156</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">41.9%</span>
+        <div class="bar-mini"><div style="width:41.9%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">24.6%</span>
+        <div class="bar-mini"><div style="width:24.6%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="sardegna - u04 (sassari)">
+      <td class="td-nome">
+        <div class="nome-full">SARDEGNA - U04 (SASSARI)</div>
+        <div class="nome-cap">Sassari</div>
+      </td>
+      <td class="td-comuni">92 comuni<div class="comuni-list">Aggius, Aglientu, Ala' Dei Sardi, Alghero, Anela +87</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">42.1%</span>
+        <div class="bar-mini"><div style="width:42.1%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">25.7%</span>
+        <div class="bar-mini"><div style="width:25.7%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="sicilia 1 - u01 (palermo: quartiere 11 - sette cannoli)">
+      <td class="td-nome">
+        <div class="nome-full">SICILIA 1 - U01 (PALERMO: QUARTIERE 11 - SETTE CANNOLI)</div>
+        <div class="nome-cap">Palermo: Quartiere 11 - Sette Cannoli</div>
+      </td>
+      <td class="td-comuni">2 comuni<div class="comuni-list">Palermo, Ustica</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">28.4%</span>
+        <div class="bar-mini"><div style="width:28.4%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">19.6%</span>
+        <div class="bar-mini"><div style="width:19.6%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="sicilia 1 - u02 (palermo: quartiere 20 - resuttana - s. lorenzo)">
+      <td class="td-nome">
+        <div class="nome-full">SICILIA 1 - U02 (PALERMO: QUARTIERE 20 - RESUTTANA - S. LORENZO)</div>
+        <div class="nome-cap">Palermo: Quartiere 20 - Resuttana - S. Lorenzo</div>
+      </td>
+      <td class="td-comuni">22 comuni<div class="comuni-list">Altofonte, Balestrate, Belmonte Mezzagno, Borgetto, Camporeale +17</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">36.5%</span>
+        <div class="bar-mini"><div style="width:36.5%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">14.1%</span>
+        <div class="bar-mini"><div style="width:14.1%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="sicilia 1 - u03 (bagheria)">
+      <td class="td-nome">
+        <div class="nome-full">SICILIA 1 - U03 (BAGHERIA)</div>
+        <div class="nome-cap">Bagheria</div>
+      </td>
+      <td class="td-comuni">59 comuni<div class="comuni-list">Alia, Alimena, Aliminusa, Altavilla Milicia, Bagheria +54</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">39.0%</span>
+        <div class="bar-mini"><div style="width:39.0%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">14.4%</span>
+        <div class="bar-mini"><div style="width:14.4%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="sicilia 1 - u04 (gela)">
+      <td class="td-nome">
+        <div class="nome-full">SICILIA 1 - U04 (GELA)</div>
+        <div class="nome-cap">Gela</div>
+      </td>
+      <td class="td-comuni">28 comuni<div class="comuni-list">Acquaviva Platani, Bompensiere, Butera, Caltanissetta, Cammarata +23</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">35.4%</span>
+        <div class="bar-mini"><div style="width:35.4%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">14.8%</span>
+        <div class="bar-mini"><div style="width:14.8%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="sicilia 1 - u05 (agrigento)">
+      <td class="td-nome">
+        <div class="nome-full">SICILIA 1 - U05 (AGRIGENTO)</div>
+        <div class="nome-cap">Agrigento</div>
+      </td>
+      <td class="td-comuni">36 comuni<div class="comuni-list">Agrigento, Alessandria Della Rocca, Aragona, Bivona, Burgio +31</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">38.8%</span>
+        <div class="bar-mini"><div style="width:38.8%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">15.9%</span>
+        <div class="bar-mini"><div style="width:15.9%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="sicilia 1 - u06 (marsala)">
+      <td class="td-nome">
+        <div class="nome-full">SICILIA 1 - U06 (MARSALA)</div>
+        <div class="nome-cap">Marsala</div>
+      </td>
+      <td class="td-comuni">25 comuni<div class="comuni-list">Alcamo, Buseto Palizzolo, Calatafimi Segesta, Campobello Di Mazara, Castellammare Del Golfo +20</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">36.5%</span>
+        <div class="bar-mini"><div style="width:36.5%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">17.2%</span>
+        <div class="bar-mini"><div style="width:17.2%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="sicilia 2 - u01 (ragusa)">
+      <td class="td-nome">
+        <div class="nome-full">SICILIA 2 - U01 (RAGUSA)</div>
+        <div class="nome-cap">Ragusa</div>
+      </td>
+      <td class="td-comuni">28 comuni<div class="comuni-list">Acate, Caltagirone, Castel Di Iudica, Chiaramonte Gulfi, Comiso +23</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">41.7%</span>
+        <div class="bar-mini"><div style="width:41.7%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">18.2%</span>
+        <div class="bar-mini"><div style="width:18.2%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="sicilia 2 - u02 (catania)">
+      <td class="td-nome">
+        <div class="nome-full">SICILIA 2 - U02 (CATANIA)</div>
+        <div class="nome-cap">Catania</div>
+      </td>
+      <td class="td-comuni">9 comuni<div class="comuni-list">Camporotondo Etneo, Catania, Gravina Di Catania, Mascalucia, Misterbianco +4</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">36.4%</span>
+        <div class="bar-mini"><div style="width:36.4%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">14.5%</span>
+        <div class="bar-mini"><div style="width:14.5%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="sicilia 2 - u03 (acireale)">
+      <td class="td-nome">
+        <div class="nome-full">SICILIA 2 - U03 (ACIREALE)</div>
+        <div class="nome-cap">Acireale</div>
+      </td>
+      <td class="td-comuni">34 comuni<div class="comuni-list">Aci Bonaccorsi, Aci Castello, Aci Catena, Aci Sant'Antonio, Acireale +29</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">41.1%</span>
+        <div class="bar-mini"><div style="width:41.1%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">12.7%</span>
+        <div class="bar-mini"><div style="width:12.7%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="sicilia 2 - u04 (siracusa)">
+      <td class="td-nome">
+        <div class="nome-full">SICILIA 2 - U04 (SIRACUSA)</div>
+        <div class="nome-cap">Siracusa</div>
+      </td>
+      <td class="td-comuni">21 comuni<div class="comuni-list">Augusta, Avola, Buccheri, Buscemi, Canicattini Bagni +16</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">39.2%</span>
+        <div class="bar-mini"><div style="width:39.2%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">16.4%</span>
+        <div class="bar-mini"><div style="width:16.4%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="sicilia 2 - u05 (barcellona pozzo di gotto)">
+      <td class="td-nome">
+        <div class="nome-full">SICILIA 2 - U05 (BARCELLONA POZZO DI GOTTO)</div>
+        <div class="nome-cap">Barcellona Pozzo Di Gotto</div>
+      </td>
+      <td class="td-comuni">80 comuni<div class="comuni-list">Acquedolci, Agira, Aidone, Alcara Li Fusi, Assoro +75</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">35.4%</span>
+        <div class="bar-mini"><div style="width:35.4%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">16.0%</span>
+        <div class="bar-mini"><div style="width:16.0%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="sicilia 2 - u06 (messina)">
+      <td class="td-nome">
+        <div class="nome-full">SICILIA 2 - U06 (MESSINA)</div>
+        <div class="nome-cap">Messina</div>
+      </td>
+      <td class="td-comuni">48 comuni<div class="comuni-list">Ali', Ali' Terme, Antillo, Casalvecchio Siculo, Castelmola +43</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">29.1%</span>
+        <div class="bar-mini"><div style="width:29.1%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">13.4%</span>
+        <div class="bar-mini"><div style="width:13.4%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="toscana - u01 (grosseto)">
+      <td class="td-nome">
+        <div class="nome-full">TOSCANA - U01 (GROSSETO)</div>
+        <div class="nome-cap">Grosseto</div>
+      </td>
+      <td class="td-comuni">63 comuni<div class="comuni-list">Abbadia San Salvatore, Arcidosso, Asciano, Buonconvento, Campagnatico +58</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">40.9%</span>
+        <div class="bar-mini"><div style="width:40.9%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">33.5%</span>
+        <div class="bar-mini"><div style="width:33.5%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="toscana - u02 (massa)">
+      <td class="td-nome">
+        <div class="nome-full">TOSCANA - U02 (MASSA)</div>
+        <div class="nome-cap">Massa</div>
+      </td>
+      <td class="td-comuni">24 comuni<div class="comuni-list">Aulla, Bagnone, Camaiore, Carrara, Casola In Lunigiana +19</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">45.3%</span>
+        <div class="bar-mini"><div style="width:45.3%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">27.3%</span>
+        <div class="bar-mini"><div style="width:27.3%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="toscana - u03 (lucca)">
+      <td class="td-nome">
+        <div class="nome-full">TOSCANA - U03 (LUCCA)</div>
+        <div class="nome-cap">Lucca</div>
+      </td>
+      <td class="td-comuni">39 comuni<div class="comuni-list">Abetone Cutigliano, Altopascio, Bagni Di Lucca, Barga, Borgo A Mozzano +34</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">47.1%</span>
+        <div class="bar-mini"><div style="width:47.1%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">27.3%</span>
+        <div class="bar-mini"><div style="width:27.3%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="toscana - u04 (pisa)">
+      <td class="td-nome">
+        <div class="nome-full">TOSCANA - U04 (PISA)</div>
+        <div class="nome-cap">Pisa</div>
+      </td>
+      <td class="td-comuni">38 comuni<div class="comuni-list">Bientina, Buti, Calci, Calcinaia, Capannoli +33</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">40.3%</span>
+        <div class="bar-mini"><div style="width:40.3%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">34.5%</span>
+        <div class="bar-mini"><div style="width:34.5%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="toscana - u05 (livorno)">
+      <td class="td-nome">
+        <div class="nome-full">TOSCANA - U05 (LIVORNO)</div>
+        <div class="nome-cap">Livorno</div>
+      </td>
+      <td class="td-comuni">19 comuni<div class="comuni-list">Bibbona, Campiglia Marittima, Campo Nell'Elba, Capoliveri, Capraia Isola +14</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">36.0%</span>
+        <div class="bar-mini"><div style="width:36.0%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">33.5%</span>
+        <div class="bar-mini"><div style="width:33.5%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="toscana - u06 (prato)">
+      <td class="td-nome">
+        <div class="nome-full">TOSCANA - U06 (PRATO)</div>
+        <div class="nome-cap">Prato</div>
+      </td>
+      <td class="td-comuni">23 comuni<div class="comuni-list">Agliana, Barberino Di Mugello, Borgo San Lorenzo, Cantagallo, Carmignano +18</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">40.4%</span>
+        <div class="bar-mini"><div style="width:40.4%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">33.4%</span>
+        <div class="bar-mini"><div style="width:33.4%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="toscana - u07 (firenze)">
+      <td class="td-nome">
+        <div class="nome-full">TOSCANA - U07 (FIRENZE)</div>
+        <div class="nome-cap">Firenze</div>
+      </td>
+      <td class="td-comuni">1 comuni<div class="comuni-list">Firenze</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">27.3%</span>
+        <div class="bar-mini"><div style="width:27.3%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">42.5%</span>
+        <div class="bar-mini"><div style="width:42.5%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#2471a3">CSX</span></td>
+    </tr>
+    <tr class="row" data-collegio="toscana - u08 (scandicci)">
+      <td class="td-nome">
+        <div class="nome-full">TOSCANA - U08 (SCANDICCI)</div>
+        <div class="nome-cap">Scandicci</div>
+      </td>
+      <td class="td-comuni">28 comuni<div class="comuni-list">Bagno A Ripoli, Barberino Tavarnelle, Calenzano, Campi Bisenzio, Capraia E Limite +23</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">31.2%</span>
+        <div class="bar-mini"><div style="width:31.2%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">40.7%</span>
+        <div class="bar-mini"><div style="width:40.7%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#2471a3">CSX</span></td>
+    </tr>
+    <tr class="row" data-collegio="toscana - u09 (arezzo)">
+      <td class="td-nome">
+        <div class="nome-full">TOSCANA - U09 (AREZZO)</div>
+        <div class="nome-cap">Arezzo</div>
+      </td>
+      <td class="td-comuni">38 comuni<div class="comuni-list">Anghiari, Arezzo, Badia Tedalda, Bibbiena, Bucine +33</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">43.5%</span>
+        <div class="bar-mini"><div style="width:43.5%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">32.4%</span>
+        <div class="bar-mini"><div style="width:32.4%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="trentino-alto adige/sudtirol - u01 (trento)">
+      <td class="td-nome">
+        <div class="nome-full">TRENTINO-ALTO ADIGE/SUDTIROL - U01 (TRENTO)</div>
+        <div class="nome-cap">Trento</div>
+      </td>
+      <td class="td-comuni">81 comuni<div class="comuni-list">Albiano, Aldeno, Altavalle, Amblar-Don, Andalo +76</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">41.3%</span>
+        <div class="bar-mini"><div style="width:41.3%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">31.2%</span>
+        <div class="bar-mini"><div style="width:31.2%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="trentino-alto adige/sudtirol - u02 (rovereto)">
+      <td class="td-nome">
+        <div class="nome-full">TRENTINO-ALTO ADIGE/SUDTIROL - U02 (ROVERETO)</div>
+        <div class="nome-cap">Rovereto</div>
+      </td>
+      <td class="td-comuni">85 comuni<div class="comuni-list">Ala, Altopiano Della Vigolana, Arco, Avio, Baselga Di Pine' +80</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">42.9%</span>
+        <div class="bar-mini"><div style="width:42.9%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">28.9%</span>
+        <div class="bar-mini"><div style="width:28.9%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="trentino-alto adige/sudtirol - u03 (bolzano/bozen)">
+      <td class="td-nome">
+        <div class="nome-full">TRENTINO-ALTO ADIGE/SUDTIROL - U03 (BOLZANO/BOZEN)</div>
+        <div class="nome-cap">Bolzano/Bozen</div>
+      </td>
+      <td class="td-comuni">41 comuni<div class="comuni-list">Aldino/Aldein, Andriano/Andrian, Anterivo/Altrei, Appiano Sulla Strada Del Vino/Eppan An Der Weinstrasse, Avelengo/Hafling +36</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">26.3%</span>
+        <div class="bar-mini"><div style="width:26.3%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">22.3%</span>
+        <div class="bar-mini"><div style="width:22.3%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="trentino-alto adige/sudtirol - u04 (bressanone/brixen)">
+      <td class="td-nome">
+        <div class="nome-full">TRENTINO-ALTO ADIGE/SUDTIROL - U04 (BRESSANONE/BRIXEN)</div>
+        <div class="nome-cap">Bressanone/Brixen</div>
+      </td>
+      <td class="td-comuni">75 comuni<div class="comuni-list">Badia/Abtei, Barbiano/Barbian, Braies/Prags, Brennero/Brenner, Bressanone/Brixen +70</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">11.1%</span>
+        <div class="bar-mini"><div style="width:11.1%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">16.4%</span>
+        <div class="bar-mini"><div style="width:16.4%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#2471a3">CSX</span></td>
+    </tr>
+    <tr class="row" data-collegio="umbria - u01 (terni)">
+      <td class="td-nome">
+        <div class="nome-full">UMBRIA - U01 (TERNI)</div>
+        <div class="nome-cap">Terni</div>
+      </td>
+      <td class="td-comuni">64 comuni<div class="comuni-list">Acquasparta, Allerona, Alviano, Amelia, Arrone +59</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">47.5%</span>
+        <div class="bar-mini"><div style="width:47.5%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">25.4%</span>
+        <div class="bar-mini"><div style="width:25.4%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="umbria - u02 (perugia)">
+      <td class="td-nome">
+        <div class="nome-full">UMBRIA - U02 (PERUGIA)</div>
+        <div class="nome-cap">Perugia</div>
+      </td>
+      <td class="td-comuni">28 comuni<div class="comuni-list">Assisi, Bastia Umbra, Bettona, Cannara, Citerna +23</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">45.0%</span>
+        <div class="bar-mini"><div style="width:45.0%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">27.1%</span>
+        <div class="bar-mini"><div style="width:27.1%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="veneto 1 - u01 (venezia)">
+      <td class="td-nome">
+        <div class="nome-full">VENETO 1 - U01 (VENEZIA)</div>
+        <div class="nome-cap">Venezia</div>
+      </td>
+      <td class="td-comuni">17 comuni<div class="comuni-list">Annone Veneto, Caorle, Cavallino-Treporti, Ceggia, Cinto Caomaggiore +12</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">50.6%</span>
+        <div class="bar-mini"><div style="width:50.6%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">27.7%</span>
+        <div class="bar-mini"><div style="width:27.7%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="veneto 1 - u02 (chioggia)">
+      <td class="td-nome">
+        <div class="nome-full">VENETO 1 - U02 (CHIOGGIA)</div>
+        <div class="nome-cap">Chioggia</div>
+      </td>
+      <td class="td-comuni">28 comuni<div class="comuni-list">Campagna Lupia, Campolongo Maggiore, Camponogara, Cavarzere, Chioggia +23</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">53.8%</span>
+        <div class="bar-mini"><div style="width:53.8%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">24.6%</span>
+        <div class="bar-mini"><div style="width:24.6%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="veneto 1 - u03 (treviso)">
+      <td class="td-nome">
+        <div class="nome-full">VENETO 1 - U03 (TREVISO)</div>
+        <div class="nome-cap">Treviso</div>
+      </td>
+      <td class="td-comuni">36 comuni<div class="comuni-list">Arcade, Breda Di Piave, Carbonera, Casale Sul Sile, Casier +31</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">56.3%</span>
+        <div class="bar-mini"><div style="width:56.3%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">22.5%</span>
+        <div class="bar-mini"><div style="width:22.5%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="veneto 1 - u04 (castelfranco veneto)">
+      <td class="td-nome">
+        <div class="nome-full">VENETO 1 - U04 (CASTELFRANCO VENETO)</div>
+        <div class="nome-cap">Castelfranco Veneto</div>
+      </td>
+      <td class="td-comuni">41 comuni<div class="comuni-list">Altivole, Asolo, Borso Del Grappa, Caerano Di San Marco, Castelcucco +36</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">63.0%</span>
+        <div class="bar-mini"><div style="width:63.0%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">17.7%</span>
+        <div class="bar-mini"><div style="width:17.7%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="veneto 1 - u05 (belluno)">
+      <td class="td-nome">
+        <div class="nome-full">VENETO 1 - U05 (BELLUNO)</div>
+        <div class="nome-cap">Belluno</div>
+      </td>
+      <td class="td-comuni">77 comuni<div class="comuni-list">Agordo, Alano Di Piave, Alleghe, Alpago, Arsie' +72</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">55.5%</span>
+        <div class="bar-mini"><div style="width:55.5%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">23.7%</span>
+        <div class="bar-mini"><div style="width:23.7%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="veneto 2 - u01 (rovigo)">
+      <td class="td-nome">
+        <div class="nome-full">VENETO 2 - U01 (ROVIGO)</div>
+        <div class="nome-cap">Rovigo</div>
+      </td>
+      <td class="td-comuni">86 comuni<div class="comuni-list">Adria, Agna, Anguillara Veneta, Ariano Nel Polesine, Arqua' Petrarca +81</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">60.8%</span>
+        <div class="bar-mini"><div style="width:60.8%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">20.3%</span>
+        <div class="bar-mini"><div style="width:20.3%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="veneto 2 - u02 (selvazzano dentro)">
+      <td class="td-nome">
+        <div class="nome-full">VENETO 2 - U02 (SELVAZZANO DENTRO)</div>
+        <div class="nome-cap">Selvazzano Dentro</div>
+      </td>
+      <td class="td-comuni">41 comuni<div class="comuni-list">Borgoricco, Cadoneghe, Campo San Martino, Campodarsego, Campodoro +36</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">59.3%</span>
+        <div class="bar-mini"><div style="width:59.3%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">20.3%</span>
+        <div class="bar-mini"><div style="width:20.3%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="veneto 2 - u03 (padova)">
+      <td class="td-nome">
+        <div class="nome-full">VENETO 2 - U03 (PADOVA)</div>
+        <div class="nome-cap">Padova</div>
+      </td>
+      <td class="td-comuni">25 comuni<div class="comuni-list">Abano Terme, Albignasego, Arre, Arzergrande, Battaglia Terme +20</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">47.8%</span>
+        <div class="bar-mini"><div style="width:47.8%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">29.2%</span>
+        <div class="bar-mini"><div style="width:29.2%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="veneto 2 - u04 (bassano del grappa)">
+      <td class="td-nome">
+        <div class="nome-full">VENETO 2 - U04 (BASSANO DEL GRAPPA)</div>
+        <div class="nome-cap">Bassano Del Grappa</div>
+      </td>
+      <td class="td-comuni">63 comuni<div class="comuni-list">Arsiero, Asiago, Bassano Del Grappa, Breganze, Brogliano +58</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">57.6%</span>
+        <div class="bar-mini"><div style="width:57.6%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">21.7%</span>
+        <div class="bar-mini"><div style="width:21.7%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="veneto 2 - u05 (vicenza)">
+      <td class="td-nome">
+        <div class="nome-full">VENETO 2 - U05 (VICENZA)</div>
+        <div class="nome-cap">Vicenza</div>
+      </td>
+      <td class="td-comuni">51 comuni<div class="comuni-list">Agugliaro, Albettone, Alonte, Altavilla Vicentina, Altissimo +46</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">56.6%</span>
+        <div class="bar-mini"><div style="width:56.6%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">22.0%</span>
+        <div class="bar-mini"><div style="width:22.0%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="veneto 2 - u06 (verona)">
+      <td class="td-nome">
+        <div class="nome-full">VENETO 2 - U06 (VERONA)</div>
+        <div class="nome-cap">Verona</div>
+      </td>
+      <td class="td-comuni">41 comuni<div class="comuni-list">Affi, Badia Calavena, Bosco Chiesanuova, Brentino Belluno, Brenzone Sul Garda +36</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">53.9%</span>
+        <div class="bar-mini"><div style="width:53.9%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">24.4%</span>
+        <div class="bar-mini"><div style="width:24.4%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+    <tr class="row" data-collegio="veneto 2 - u07 (villafranca di verona)">
+      <td class="td-nome">
+        <div class="nome-full">VENETO 2 - U07 (VILLAFRANCA DI VERONA)</div>
+        <div class="nome-cap">Villafranca Di Verona</div>
+      </td>
+      <td class="td-comuni">57 comuni<div class="comuni-list">Albaredo D'Adige, Angiari, Arcole, Bardolino, Belfiore +52</div></td>
+      <td class="td-voto">
+        <span style="color:#c0392b;font-weight:500">64.7%</span>
+        <div class="bar-mini"><div style="width:64.7%;background:#c0392b;height:3px"></div></div>
+      </td>
+      <td class="td-voto">
+        <span style="color:#2471a3;font-weight:500">16.6%</span>
+        <div class="bar-mini"><div style="width:16.6%;background:#2471a3;height:3px"></div></div>
+      </td>
+      <td><span class="badge-win" style="background:#c0392b">CDX</span></td>
+    </tr>
+</tbody>
+</table>
+</div>
+
+<script>
+function filtra() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const rows = document.querySelectorAll('.row');
+  let n = 0;
+  rows.forEach(r => {
+    const match = r.dataset.collegio.includes(q) ||
+                  r.textContent.toLowerCase().includes(q);
+    r.classList.toggle('hidden', !match);
+    if (match) n++;
+  });
+  document.getElementById('count').textContent = n + ' collegi';
+}
+</script>
+</body>
+</html>
