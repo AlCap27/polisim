@@ -6,16 +6,18 @@
     { "src": "**/*.txt", "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/tool", "dest": "/tool.html" },
+    { "src": "/tool", "dest": "/simulatore.html" },
     { "src": "/simulatore", "dest": "/simulatore.html" },
+    { "src": "/previsioni", "dest": "/tool.html" },
+    { "src": "/validazione", "dest": "/validazione.html" },
     { "src": "/metodologia", "dest": "/metodologia.html" },
     { "src": "/fonti", "dest": "/fonti.html" },
     { "src": "/gdpr", "dest": "/gdpr.html" },
     { "src": "/anonimizza", "dest": "/anonimizza.html" },
+    { "src": "/per-chi", "dest": "/per-chi.html" },
     { "src": "/sitemap.xml", "dest": "/sitemap.xml" },
     { "src": "/robots.txt", "dest": "/robots.txt" },
     { "src": "/(.*\\.html)", "dest": "/$1" },
-    { "src": "/validazione", "dest": "/validazione.html" },
     { "src": "/", "dest": "/index.html" }
-    ]
+  ]
 }
