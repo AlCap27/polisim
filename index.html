@@ -262,6 +262,7 @@ footer { border-top: 1px solid var(--border); padding: 40px; max-width: 1200px; 
     <div class="nav-links">
       <a href="/come-funziona.html">Come funziona</a>
       <a href="/metodologia.html">Metodologia</a>
+      <a href="/validazione.html">Validazione</a>
       <a href="/fonti.html">Fonti</a>
       <a href="/en.html">EN</a>
       <a class="nav-btn" href="/tool">Usa il tool →</a>
@@ -287,7 +288,7 @@ footer { border-top: 1px solid var(--border); padding: 40px; max-width: 1200px; 
     <div class="hero-stats">
       <div class="hero-stat"><span class="hero-stat-n">4.696</span><span class="hero-stat-l">Rispondenti ITANES 2022</span></div>
       <div class="hero-stat"><span class="hero-stat-n">147</span><span class="hero-stat-l">Collegi Camera</span></div>
-      <div class="hero-stat"><span class="hero-stat-n">±4.4pp</span><span class="hero-stat-l">RMSE MRP nazionale</span></div>
+      <div class="hero-stat"><span class="hero-stat-n">±4.3pp</span><span class="hero-stat-l">RMSE out-of-sample MRP</span></div>
     </div>
   </div>
   <div>
@@ -445,8 +446,8 @@ footer { border-top: 1px solid var(--border); padding: 40px; max-width: 1200px; 
     </div>
     <div class="roadmap-item dev">
       <span class="roadmap-badge badge-live">✓ Live</span>
-      <div class="roadmap-title">MRP — Mixed Linear Model con effetti casuali per regione</div>
-      <p class="roadmap-desc">Modello attivo: RMSE=4.44pp, R²=0.782 su 142 collegi Camera. Effetti casuali per 18 regioni — Veneto +8pp, Toscana −7pp, Emilia −6pp. Serie storiche 2018–2024 integrate.</p>
+      <div class="roadmap-title">MRP Dirichlet-Multinomial bayesiano</div>
+      <p class="roadmap-desc">Architettura: Dirichlet-Multinomial multi-coalizione (PyMC). 252 osservazioni, 54 celle demografiche, r_hat=1.000. Output: mediana + IC 90% + P(vittoria) per collegio. RMSE 4.3pp out-of-sample.</p>
       <p class="roadmap-tech">statsmodels MixedLM · Gelman & Little 1997 · Wang et al. IJF 2021</p>
     </div>
     <div class="roadmap-item">

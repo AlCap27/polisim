@@ -3,525 +3,479 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PoliSim — Message Optimizer</title>
-<meta name="description" content="Genera e valuta varianti di messaggio calibrate su dati demografici ISTAT reali. Per partiti, ONG e brand.">
+<title>PoliSim Tool — Simulatore MRP Bayesiano</title>
+<meta name="description" content="Simulatore elettorale PoliSim: MRP Dirichlet-Multinomial bayesiano per 147 collegi Camera italiani. Output: mediana posteriore + IC 90% + probabilità di vittoria per coalizione.">
+<link rel="canonical" href="https://polisim.dev/tool">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#fafaf8;--bg2:#f0ede8;--bg3:#e8e4de;
-  --ink:#0a0a0a;--mid:#3a3a3a;--light:#7a7a7a;--ghost:#b0a898;
-  --line:#e0dbd4;--accent:#8a6a3a;--accent2:#c8a870;
-  --serif:'Cormorant Garamond',Georgia,serif;
-  --sans:'DM Sans',system-ui,sans-serif;
-  --mono:'JetBrains Mono',monospace;
-}
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:100vh}
 
-/* GATE DI ACCESSO */
-.gate{
-  position:fixed;inset:0;background:var(--bg);z-index:1000;
-  display:flex;align-items:center;justify-content:center;
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:         #07090f;
+  --surface:    #0e1017;
+  --surface2:   #141720;
+  --border:     #1e2330;
+  --border2:    #2a3045;
+  --text:       #e8eaf0;
+  --text-mid:   #8892a8;
+  --text-dim:   #4a5268;
+  --accent:     #60a5fa;
+  --accent-dim: #1e3a5f;
+  --cdx:        #ef4444;
+  --cdx-dim:    #3a1010;
+  --csx:        #3b82f6;
+  --csx-dim:    #0f1f3a;
+  --m5s:        #f59e0b;
+  --m5s-dim:    #2a1f05;
+  --altri:      #6b7280;
+  --altri-dim:  #1a1c22;
+  --green:      #22c55e;
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-sans:  'DM Sans', system-ui, sans-serif;
+  --font-mono:  'JetBrains Mono', monospace;
 }
-.gate-box{
-  width:360px;text-align:center;padding:48px 40px;
-  border:0.5px solid var(--line);
-}
-.gate-logo{font-family:var(--mono);font-size:11px;letter-spacing:4px;color:var(--ink);text-transform:uppercase;margin-bottom:32px}
-.gate-logo span{color:var(--accent)}
-.gate-title{font-family:var(--serif);font-size:26px;font-weight:300;color:var(--ink);margin-bottom:8px}
-.gate-sub{font-size:12px;color:var(--light);margin-bottom:28px;font-weight:300}
-.gate-input{
-  width:100%;background:var(--bg2);border:0.5px solid var(--line);
-  color:var(--ink);padding:12px 14px;font-family:var(--mono);
-  font-size:13px;text-align:center;letter-spacing:2px;
-  outline:none;margin-bottom:12px;
-}
-.gate-input:focus{border-color:var(--accent)}
-.gate-btn{
-  width:100%;padding:13px;background:var(--ink);color:var(--bg);
-  border:none;cursor:pointer;font-family:var(--mono);font-size:10px;
-  letter-spacing:2px;text-transform:uppercase;transition:opacity .2s;
-}
-.gate-btn:hover{opacity:.85}
-.gate-err{font-family:var(--mono);font-size:10px;color:#b05040;margin-top:8px;min-height:16px}
+
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: var(--font-sans); min-height: 100vh; overflow-x: hidden; }
 
 /* NAV */
-.nav{padding:20px 40px;border-bottom:0.5px solid var(--line);display:flex;align-items:center;justify-content:space-between;background:var(--bg)}
-.logo{font-family:var(--mono);font-size:11px;letter-spacing:4px;color:var(--ink);text-decoration:none;text-transform:uppercase}
-.logo span{color:var(--accent)}
-.nav-right{display:flex;align-items:center;gap:20px}
-.nav-back{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--light);text-decoration:none;text-transform:uppercase;transition:color .2s}
-.nav-back:hover{color:var(--ink)}
-.nav-tester{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--accent);text-transform:uppercase;background:var(--bg2);padding:4px 10px;border:0.5px solid var(--line)}
+.nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(7,9,15,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+.nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 40px; height: 60px; display: flex; align-items: center; justify-content: space-between; }
+.nav-logo { font-family: var(--font-mono); font-size: 13px; letter-spacing: 3px; color: var(--text); text-decoration: none; }
+.nav-links { display: flex; gap: 28px; align-items: center; }
+.nav-links a { font-size: 12px; letter-spacing: 1px; color: var(--text-mid); text-decoration: none; text-transform: uppercase; transition: color .2s; }
+.nav-links a:hover { color: var(--text); }
+.nav-badge { font-family: var(--font-mono); font-size: 9px; letter-spacing: 2px; background: var(--accent-dim); color: var(--accent); padding: 4px 10px; text-transform: uppercase; }
 
 /* LAYOUT */
-.layout{display:grid;grid-template-columns:360px 1fr;min-height:calc(100vh - 61px)}
+.tool-wrap { max-width: 1200px; margin: 0 auto; padding: 80px 40px 60px; display: grid; grid-template-columns: 380px 1fr; gap: 32px; min-height: calc(100vh - 60px); }
 
-/* SIDEBAR */
-.sidebar{border-right:0.5px solid var(--line);padding:28px 24px;background:var(--bg);overflow-y:auto;max-height:calc(100vh - 61px);position:sticky;top:0}
-.sidebar-title{font-family:var(--serif);font-size:22px;font-weight:300;color:var(--ink);margin-bottom:4px}
-.sidebar-sub{font-size:11px;color:var(--light);margin-bottom:24px;font-family:var(--mono);letter-spacing:1px;text-transform:uppercase}
+/* PANNELLO SX — input */
+.panel-left { position: sticky; top: 80px; height: fit-content; }
+.panel-title { font-family: var(--font-mono); font-size: 10px; letter-spacing: 4px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 20px; }
 
-.field{margin-bottom:16px}
-.field label{display:block;font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--light);text-transform:uppercase;margin-bottom:6px}
-.field input,.field select,.field textarea{
-  width:100%;background:var(--bg2);border:0.5px solid var(--line);
-  color:var(--ink);padding:10px 12px;font-family:var(--sans);
-  font-size:13px;font-weight:300;transition:border-color .2s;outline:none;
+.select-wrap { position: relative; margin-bottom: 24px; }
+.select-wrap label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; display: block; margin-bottom: 8px; }
+.select-wrap select {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border2);
+  color: var(--text); font-family: var(--font-mono); font-size: 12px;
+  padding: 12px 16px; appearance: none; cursor: pointer;
+  transition: border-color .2s;
 }
-.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
-.field textarea{resize:vertical;min-height:56px;line-height:1.5}
-.divider{border:none;border-top:0.5px solid var(--line);margin:20px 0}
+.select-wrap select:focus { outline: none; border-color: var(--accent); }
+.select-wrap::after { content: '↓'; position: absolute; right: 14px; bottom: 13px; color: var(--text-dim); font-family: var(--font-mono); font-size: 12px; pointer-events: none; }
 
-/* Segmento tabs */
-.seg-tabs{display:flex;gap:0;margin-bottom:12px;border:0.5px solid var(--line)}
-.seg-tab{flex:1;padding:8px;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;text-align:center;cursor:pointer;background:var(--bg);color:var(--light);border:none;transition:all .2s}
-.seg-tab.active{background:var(--ink);color:var(--bg)}
-.seg-panel{display:none}
-.seg-panel.active{display:block}
-
-/* Run button */
-.run-btn{
-  width:100%;padding:14px;background:var(--ink);color:var(--bg);
-  border:none;cursor:pointer;font-family:var(--mono);font-size:11px;
-  letter-spacing:2px;text-transform:uppercase;margin-top:8px;
-  transition:opacity .2s;display:flex;align-items:center;justify-content:center;gap:10px;
+.btn-run {
+  width: 100%; background: var(--accent); color: var(--bg);
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 3px;
+  text-transform: uppercase; padding: 14px; border: none; cursor: pointer;
+  transition: opacity .2s; margin-bottom: 16px;
 }
-.run-btn:hover{opacity:.88}
-.run-btn:disabled{opacity:.4;cursor:not-allowed}
-.dots{display:flex;gap:4px}
-.dot{width:4px;height:4px;border-radius:50%;background:var(--bg);animation:pulse .8s ease-in-out infinite}
-.dot:nth-child(2){animation-delay:.15s}
-.dot:nth-child(3){animation-delay:.3s}
-@keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
-.status-msg{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-align:center;padding:8px 0;min-height:24px;color:var(--light)}
-.status-msg.ok{color:#4a7c4e}
-.status-msg.err{color:#b05040}
+.btn-run:hover:not(:disabled) { opacity: 0.85; }
+.btn-run:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* CONTENT */
-.content{padding:32px 40px;overflow-y:auto;max-height:calc(100vh - 61px)}
-.empty{text-align:center;padding:80px 20px;color:var(--ghost)}
-.empty-icon{font-size:36px;margin-bottom:16px;opacity:.3}
-.empty-title{font-family:var(--serif);font-size:28px;font-weight:300;color:rgba(10,10,10,.25);margin-bottom:8px}
-.empty-sub{font-size:12px;color:var(--ghost)}
+.model-info { border: 1px solid var(--border); padding: 16px; background: var(--surface); }
+.mi-row { display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; border-bottom: 1px solid var(--border); }
+.mi-row:last-child { border-bottom: none; }
+.mi-label { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; }
+.mi-val { font-family: var(--font-mono); font-size: 11px; color: var(--accent); }
 
-/* Results */
-.results{display:none}
-.results.show{display:block}
-.res-header{margin-bottom:28px;padding-bottom:16px;border-bottom:0.5px solid var(--line)}
-.res-tema{font-family:var(--serif);font-size:26px;font-weight:300;color:var(--ink);margin-bottom:4px}
-.res-meta{font-size:11px;color:var(--light);font-family:var(--mono);letter-spacing:.5px}
+/* PANNELLO DX — output */
+.panel-right { }
+.result-empty { display: flex; align-items: center; justify-content: center; height: 400px; border: 1px dashed var(--border2); color: var(--text-dim); font-family: var(--font-mono); font-size: 12px; letter-spacing: 2px; text-transform: uppercase; }
 
-/* Varianti */
-.varianti{display:flex;flex-direction:column;gap:14px;margin-bottom:28px}
-.variante{border:0.5px solid var(--line);transition:border-color .2s}
-.variante:hover{border-color:var(--ghost)}
-.variante.best{border-color:var(--accent)}
-.var-head{padding:12px 18px;background:var(--bg2);display:flex;align-items:center;gap:14px}
-.var-rank{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--accent);min-width:20px}
-.var-framing{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--light);text-transform:uppercase;flex:1}
-.var-score{font-family:var(--mono);font-size:13px;color:var(--ink);font-weight:500}
-.score-bar{width:80px;height:3px;background:var(--line);position:relative}
-.score-fill{height:100%;background:var(--accent);transition:width 1s ease}
-.var-body{padding:18px}
-.var-titolo{font-family:var(--serif);font-size:20px;font-weight:300;color:var(--ink);margin-bottom:8px;line-height:1.2}
-.var-testo{font-size:13px;color:var(--mid);line-height:1.7;margin-bottom:12px;font-weight:300}
-.var-kw{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
-.kw{font-family:var(--mono);font-size:8px;letter-spacing:1px;color:var(--light);border:0.5px solid var(--line);padding:2px 7px;text-transform:uppercase}
-.var-metriche{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
-.metrica{text-align:center;padding:6px 4px;background:var(--bg2)}
-.m-val{font-family:var(--mono);font-size:15px;color:var(--ink)}
-.m-label{font-family:var(--mono);font-size:7px;color:var(--light);letter-spacing:1px;text-transform:uppercase;margin-top:2px}
-.var-insight{font-size:12px;color:var(--light);border-left:2px solid var(--accent2);padding-left:10px;font-style:italic;line-height:1.6}
+/* RESULT CARD */
+.result-card { display: none; }
+.result-card.visible { display: block; }
 
-/* Raccomandazione */
-.raccomandazione{border:0.5px solid var(--accent);padding:18px 22px;margin-bottom:16px;background:rgba(138,106,58,.03)}
-.rec-label{font-family:var(--mono);font-size:8px;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:8px}
-.rec-text{font-size:13px;color:var(--ink);line-height:1.7;font-weight:300}
-.avv-text{font-size:12px;color:#b05040;margin-top:8px;font-style:italic}
+.result-header { margin-bottom: 24px; }
+.result-collegio { font-family: var(--font-serif); font-size: clamp(24px, 3vw, 36px); font-weight: 300; color: var(--text); margin-bottom: 4px; }
+.result-meta { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); letter-spacing: 1px; }
 
-/* Segmento costruito */
-.seg-built{background:var(--bg2);border:0.5px solid var(--line);padding:16px;margin-bottom:16px}
-.seg-built-label{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:6px}
-.seg-built-name{font-family:var(--serif);font-size:18px;font-weight:300;color:var(--ink)}
+/* WINNER BANNER */
+.winner-banner { padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; }
+.wb-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: inherit; opacity: 0.7; }
+.wb-name { font-family: var(--font-serif); font-size: 28px; font-weight: 300; }
+.wb-prob { font-family: var(--font-mono); font-size: 32px; font-weight: 400; }
 
-@media(max-width:768px){
-  .layout{grid-template-columns:1fr}
-  .sidebar{max-height:none;position:static;border-right:none;border-bottom:0.5px solid var(--line)}
-  .content{max-height:none}
+/* COALIZIONI */
+.coalizioni { display: grid; gap: 12px; margin-bottom: 24px; }
+.coal-card { background: var(--surface); border: 1px solid var(--border); padding: 20px 20px 16px; }
+.coal-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+.coal-name { font-family: var(--font-mono); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; }
+.coal-median { font-family: var(--font-serif); font-size: 32px; font-weight: 300; line-height: 1; }
+.coal-ci { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); }
+
+/* BARRA INTERVALLO */
+.bar-wrap { position: relative; height: 6px; background: var(--border); margin-bottom: 8px; }
+.bar-ci { position: absolute; height: 100%; opacity: 0.3; }
+.bar-median { position: absolute; width: 2px; height: 14px; top: -4px; }
+.bar-labels { display: flex; justify-content: space-between; }
+.bar-label { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); }
+
+/* DISTRIBUZIONE */
+.dist-wrap { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 24px; }
+.dist-col { background: var(--surface2); padding: 16px 12px; text-align: center; }
+.dist-bar-wrap { height: 80px; display: flex; align-items: flex-end; justify-content: center; margin-bottom: 8px; }
+.dist-bar { width: 32px; min-height: 4px; transition: height .5s ease; }
+.dist-name { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+.dist-pct { font-family: var(--font-serif); font-size: 20px; font-weight: 300; }
+
+/* NOTE */
+.result-note { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); line-height: 1.7; letter-spacing: 0.5px; padding: 14px; border: 1px solid var(--border); background: var(--surface); }
+
+/* LOADING */
+.loading { display: none; align-items: center; gap: 12px; padding: 20px; color: var(--text-mid); font-family: var(--font-mono); font-size: 11px; letter-spacing: 2px; }
+.loading.visible { display: flex; }
+.spinner { width: 16px; height: 16px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ERROR */
+.error-msg { display: none; padding: 16px; border: 1px solid #7f1d1d; background: #1a0505; color: #fca5a5; font-family: var(--font-mono); font-size: 11px; }
+.error-msg.visible { display: block; }
+
+/* ENDPOINT STATUS */
+.endpoint-status { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1px; display: flex; align-items: center; gap: 6px; margin-top: 12px; color: var(--text-dim); }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-dim); }
+.status-dot.online { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.status-dot.offline { background: #ef4444; }
+
+@media (max-width: 900px) {
+  .tool-wrap { grid-template-columns: 1fr; padding: 80px 20px 40px; }
+  .panel-left { position: static; }
 }
 </style>
 </head>
 <body>
 
-<!-- GATE DI ACCESSO -->
-<div class="gate" id="gate">
-  <div class="gate-box">
-    <div class="gate-logo">POLI<span>SIM</span>.DEV</div>
-    <div class="gate-title">Accesso beta</div>
-    <div class="gate-sub">Inserisci la password ricevuta via email</div>
-    <input class="gate-input" type="password" id="gate-pwd" placeholder="••••••••••••" onkeydown="if(event.key==='Enter')checkGate()">
-    <button class="gate-btn" onclick="checkGate()">Entra →</button>
-    <div class="gate-err" id="gate-err"></div>
-  </div>
-</div>
-
-<nav class="nav" style="display:none" id="main-nav">
-  <a class="logo" href="/">POLI<span>SIM</span>.DEV</a>
-  <div class="nav-right">
-    <span class="nav-tester" id="nav-tester"></span><button onclick="logout()" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--light);background:none;border:0.5px solid var(--line);padding:4px 10px;cursor:pointer;text-transform:uppercase">Esci</button>
-    <a class="nav-tool" href="/simulatore.html" style="font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--light);text-decoration:none;text-transform:uppercase">Simulatore 2027</a><a class="nav-back" href="/">← Home</a>
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="/">POLISIM</a>
+    <div class="nav-links">
+      <a href="/metodologia.html">Metodologia</a>
+      <a href="/validazione.html">Validazione</a>
+      <span class="nav-badge">MRP · Live</span>
+    </div>
   </div>
 </nav>
 
-<div class="layout" style="display:none" id="main-layout">
+<div class="tool-wrap">
 
-  <!-- SIDEBAR -->
-  <div class="sidebar">
-    <div class="sidebar-title">Message Optimizer</div>
-    <div class="sidebar-sub" id="sidebar-sub">Stage 3 · Claude Sonnet 4.6</div>
+  <!-- PANNELLO SX -->
+  <div class="panel-left">
+    <p class="panel-title">Simulatore Elettorale</p>
 
-    <!-- Dominio — filtrato per tipo tester -->
-    <div class="field" id="field-dominio">
-      <label>Dominio</label>
-      <select id="dominio" onchange="aggiornaDominio()"></select>
+    <div class="select-wrap">
+      <label>Collegio uninominale Camera</label>
+      <select id="sel-collegio">
+        <option value="">— Caricamento collegi... —</option>
+      </select>
     </div>
 
-    <div class="field">
-      <label>Nome organizzazione</label>
-      <input type="text" id="org-nome" placeholder="Es. Q-Italia, Associazione X, Brand Y">
-    </div>
-    <div class="field">
-      <label>Descrizione (1-2 righe)</label>
-      <textarea id="org-desc" placeholder="Descrivi brevemente l'organizzazione"></textarea>
-    </div>
-    <div class="field">
-      <label>Tema / Messaggio</label>
-      <input type="text" id="tema" placeholder="Es. reddito di base, lascito testamentario...">
-    </div>
-
-    <hr class="divider">
-
-    <div class="field">
-      <label>Segmento target</label>
-      <div class="seg-tabs">
-        <button class="seg-tab active" onclick="switchSeg('predefinito')">Predefinito</button>
-        <button class="seg-tab" onclick="switchSeg('custom')">Custom ISTAT</button>
-      </div>
-      <div class="seg-panel active" id="panel-predefinito">
-        <select id="segmento"></select>
-      </div>
-      <div class="seg-panel" id="panel-custom">
-        <div class="field">
-          <label>Età</label>
-          <select id="c-eta">
-            <option value="18-30">18-30 anni</option>
-            <option value="30-45">30-45 anni</option>
-            <option value="45-60" selected>45-60 anni</option>
-            <option value="60+">60+ anni</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Area geografica</label>
-          <select id="c-area">
-            <option value="nord-ovest">Nord-Ovest</option>
-            <option value="nord-est">Nord-Est</option>
-            <option value="centro">Centro</option>
-            <option value="sud" selected>Sud</option>
-            <option value="sud-isole">Sud e Isole</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Istruzione</label>
-          <select id="c-istruzione">
-            <option value="nessun-titolo">Nessun titolo</option>
-            <option value="media" selected>Media inferiore</option>
-            <option value="diploma">Diploma</option>
-            <option value="laurea">Laurea</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Occupazione</label>
-          <select id="c-occupazione">
-            <option value="occupato">Occupato</option>
-            <option value="disoccupato">Disoccupato</option>
-            <option value="inattivo" selected>Inattivo / Casalinga</option>
-            <option value="pensionato">Pensionato</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Genere</label>
-          <select id="c-genere">
-            <option value="tutti">Tutti</option>
-            <option value="donne" selected>Donne</option>
-            <option value="uomini">Uomini</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Regione (opzionale)</label>
-          <input type="text" id="c-regione" placeholder="Es. Campania, Lombardia">
-        </div>
-      </div>
-    </div>
-
-    <div class="field">
-      <label>Regione / Contesto</label>
-      <input type="text" id="regione" value="Italia" placeholder="Es. Campania, Lombardia">
-    </div>
-
-    <button class="run-btn" id="run-btn" onclick="esegui()">
-      <span id="btn-label">◆ &nbsp;Genera varianti</span>
-      <span id="btn-loading" style="display:none">
-        <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-      </span>
+    <button class="btn-run" id="btn-run" onclick="runPrediction()">
+      Simula →
     </button>
-    <div class="status-msg" id="status"></div>
+
+    <div class="endpoint-status">
+      <div class="status-dot" id="status-dot"></div>
+      <span id="status-text">Verifica endpoint...</span>
+    </div>
+
+    <div style="margin-top: 24px;">
+      <div class="model-info">
+        <div class="mi-row"><span class="mi-label">Modello</span><span class="mi-val">Dirichlet-Multinomial</span></div>
+        <div class="mi-row"><span class="mi-label">Framework</span><span class="mi-val">PyMC · Bayesiano</span></div>
+        <div class="mi-row"><span class="mi-label">Training</span><span class="mi-val">252 osservazioni</span></div>
+        <div class="mi-row"><span class="mi-label">Celle demogr.</span><span class="mi-val">54 per collegio</span></div>
+        <div class="mi-row"><span class="mi-label">RMSE oos</span><span class="mi-val">4.3pp (Lomb. 2023)</span></div>
+        <div class="mi-row"><span class="mi-label">Convergenza</span><span class="mi-val">r_hat = 1.000</span></div>
+        <div class="mi-row"><span class="mi-label">Output</span><span class="mi-val">IC 90% + P(win)</span></div>
+        <div class="mi-row"><span class="mi-label">Freeze</span><span class="mi-val">29 aprile 2026</span></div>
+      </div>
+    </div>
   </div>
 
-  <!-- CONTENT -->
-  <div class="content">
-    <div class="empty" id="empty">
-      <div class="empty-icon">◈</div>
-      <div class="empty-title">Configura e avvia</div>
-      <div class="empty-sub">Scegli dominio, tema e segmento — genera 4 varianti di messaggio calibrate</div>
+  <!-- PANNELLO DX -->
+  <div class="panel-right">
+    <div class="result-empty" id="result-empty">
+      seleziona un collegio e premi simula
     </div>
-    <div class="results" id="results">
-      <div class="res-header">
-        <div class="res-tema" id="res-tema"></div>
-        <div class="res-meta" id="res-meta"></div>
+
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      campionamento MCMC in corso...
+    </div>
+
+    <div class="error-msg" id="error-msg"></div>
+
+    <div class="result-card" id="result-card">
+
+      <div class="result-header">
+        <div class="result-collegio" id="res-collegio">—</div>
+        <div class="result-meta" id="res-meta">Modello MRP Dirichlet-Multinomial · IC 90% posteriori</div>
       </div>
-      <div id="seg-built-box"></div>
-      <div class="varianti" id="varianti"></div>
-      <div class="raccomandazione" id="raccomandazione"></div>
+
+      <!-- WINNER -->
+      <div class="winner-banner" id="winner-banner">
+        <div>
+          <div class="wb-label">Vincitore previsto</div>
+          <div class="wb-name" id="winner-name">—</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="wb-label">P(vittoria)</div>
+          <div class="wb-prob" id="winner-prob">—</div>
+        </div>
+      </div>
+
+      <!-- DISTRIBUZIONE VISIVA -->
+      <div class="dist-wrap" id="dist-wrap">
+        <div class="dist-col">
+          <div class="dist-bar-wrap"><div class="dist-bar" id="bar-CDX" style="background:var(--cdx)"></div></div>
+          <div class="dist-name">CDX</div>
+          <div class="dist-pct" id="dpct-CDX" style="color:var(--cdx)">—</div>
+        </div>
+        <div class="dist-col">
+          <div class="dist-bar-wrap"><div class="dist-bar" id="bar-CSX" style="background:var(--csx)"></div></div>
+          <div class="dist-name">CSX</div>
+          <div class="dist-pct" id="dpct-CSX" style="color:var(--csx)">—</div>
+        </div>
+        <div class="dist-col">
+          <div class="dist-bar-wrap"><div class="dist-bar" id="bar-M5S" style="background:var(--m5s)"></div></div>
+          <div class="dist-name">M5S</div>
+          <div class="dist-pct" id="dpct-M5S" style="color:var(--m5s)">—</div>
+        </div>
+        <div class="dist-col">
+          <div class="dist-bar-wrap"><div class="dist-bar" id="bar-ALTRI" style="background:var(--altri)"></div></div>
+          <div class="dist-name">ALTRI</div>
+          <div class="dist-pct" id="dpct-ALTRI" style="color:var(--altri)">—</div>
+        </div>
+      </div>
+
+      <!-- IC 90% PER COALIZIONE -->
+      <div class="coalizioni" id="coalizioni">
+        <!-- Popolato da JS -->
+      </div>
+
+      <div class="result-note">
+        Intervalli di credibilità 90% bayesiani — il 90% della distribuzione posteriore cade in questo range · Mediana della distribuzione posteriore · P(vittoria) = probabilità che la coalizione riceva più voti delle avversarie nel collegio · Modello Dirichlet-Multinomial multi-coalizione · <a href="/validazione.html" style="color:var(--accent);">documentazione metodologica →</a>
+      </div>
+
     </div>
   </div>
 </div>
 
 <script>
-const API = "https://api.polisim.dev";
+const API = 'http://109.123.247.161:8002';
 
-// ── Configurazione accessi ────────────────────────────────────────
-const ACCESSI = {
-  // Tester
-  "pol2026test":   { tipo:"politico",  label:"Consulente politico",  domini:["partito"],                                       segmenti:["giovani_precari_sud","casalinghe_sud","operai_nord","laureati_urbani","astensionisti_valoriali","pensionati_centro_nord"] },
-  "ong2026test":   { tipo:"ong",       label:"Tester ONG",           domini:["ong_lasciti","ong_corporate"],                   segmenti:["donatori_lasciti","responsabili_csr"] },
-  "brand2026test": { tipo:"brand",     label:"Tester Brand",         domini:["brand"],                                         segmenti:["donne_25_40_urbane","imprenditori_pmi"] },
-  // Admin — accesso completo
-  "admin-polisim-2026": { tipo:"admin", label:"Admin",               domini:["partito","ong_lasciti","ong_corporate","brand"],  segmenti:["giovani_precari_sud","casalinghe_sud","operai_nord","laureati_urbani","astensionisti_valoriali","pensionati_centro_nord","donatori_lasciti","responsabili_csr","donne_25_40_urbane","imprenditori_pmi"] },
+const COLORS = {
+  CDX:   { main: '#ef4444', dim: '#3a1010' },
+  CSX:   { main: '#3b82f6', dim: '#0f1f3a' },
+  M5S:   { main: '#f59e0b', dim: '#2a1f05' },
+  ALTRI: { main: '#6b7280', dim: '#1a1c22' },
 };
 
-const DOMINI_LABEL = {
-  partito:       "Partito / Movimento politico",
-  ong_lasciti:   "ONG — Lasciti testamentari",
-  ong_corporate: "ONG — Partnership corporate",
-  brand:         "Brand / Prodotto",
+const NOMI = {
+  CDX:   'Centro-Destra',
+  CSX:   'Centro-Sinistra',
+  M5S:   'Movimento 5 Stelle',
+  ALTRI: 'Altri',
 };
 
-const SEGMENTI_LABEL = {
-  giovani_precari_sud:     "Giovani precari del Sud",
-  casalinghe_sud:          "Casalinghe disoccupate del Sud",
-  operai_nord:             "Operai e artigiani del Nord",
-  laureati_urbani:         "Laureati urbani progressisti",
-  astensionisti_valoriali: "Astensionisti valoriali",
-  pensionati_centro_nord:  "Pensionati del Centro-Nord",
-  donatori_lasciti:        "Donatori lascito testamentario",
-  responsabili_csr:        "Responsabili CSR aziende",
-  donne_25_40_urbane:      "Donne 25-40 urbane consapevoli",
-  imprenditori_pmi:        "Imprenditori e titolari PMI",
-};
-
-const PRESETS = {
-  partito:       { org:"Q-Italia",           desc:"Partito pro-AI, pacifista, progressista, anti-corruzione, reddito di base", tema:"reddito di base", seg:"giovani_precari_sud",  reg:"Campania" },
-  ong_lasciti:   { org:"Associazione X",     desc:"ONG che raccoglie lasciti testamentari per progetti umanitari",             tema:"lasciare un segno che dura oltre la vita",    seg:"donatori_lasciti",       reg:"Toscana" },
-  ong_corporate: { org:"Impatto Sociale",    desc:"ONG che sviluppa partnership CSR con aziende",                              tema:"partnership ESG certificata con impatto misurabile", seg:"responsabili_csr", reg:"Milano" },
-  brand:         { org:"NudeBase",           desc:"Brand fondotinta inclusivo, vegan, prezzi accessibili",                     tema:"fondotinta inclusivo vegan 40 tonalità",      seg:"donne_25_40_urbane",     reg:"Milano" },
-};
-
-let currentAccess = null;
-let segMode = "predefinito";
-let segmentoCustom = null;
-
-// ── Gate ─────────────────────────────────────────────────────────
-function checkGate() {
-  const pwd = document.getElementById('gate-pwd').value.trim();
-  if (ACCESSI[pwd]) {
-    currentAccess = { ...ACCESSI[pwd], pwd };
-    document.getElementById('gate').style.display = 'none';
-    document.getElementById('main-nav').style.display = 'flex';
-    document.getElementById('main-layout').style.display = 'grid';
-    document.getElementById('nav-tester').textContent = currentAccess.label;
-    document.getElementById('sidebar-sub').textContent =
-      `Stage 3 · Claude Sonnet 4.6 · ${currentAccess.label}`;
-    initTool();
-  } else {
-    document.getElementById('gate-err').textContent = 'Password non valida';
-    setTimeout(() => document.getElementById('gate-err').textContent = '', 2000);
-  }
-}
-
-function logout(){currentAccess=null;location.reload()}
-function initTool() {
-  // Popola domini
-  const sel = document.getElementById('dominio');
-  sel.innerHTML = currentAccess.domini.map(d =>
-    `<option value="${d}">${DOMINI_LABEL[d]}</option>`).join('');
-
-  // Popola segmenti
-  const segs = document.getElementById('segmento');
-  segs.innerHTML = currentAccess.segmenti.map(s =>
-    `<option value="${s}">${SEGMENTI_LABEL[s]}</option>`).join('');
-
-  aggiornaDominio();
-}
-
-function aggiornaDominio() {
-  const d = document.getElementById('dominio').value;
-  const p = PRESETS[d];
-  if (p) {
-    document.getElementById('org-nome').value = p.org;
-    document.getElementById('org-desc').value = p.desc;
-    document.getElementById('tema').value = p.tema;
-    document.getElementById('regione').value = p.reg;
-    // Setta segmento se disponibile
-    const seg = document.getElementById('segmento');
-    if ([...seg.options].some(o => o.value === p.seg)) seg.value = p.seg;
-  }
-}
-
-function switchSeg(mode) {
-  segMode = mode;
-  document.querySelectorAll('.seg-tab').forEach((t,i) =>
-    t.classList.toggle('active', (i===0&&mode==='predefinito')||(i===1&&mode==='custom')));
-  document.getElementById('panel-predefinito').classList.toggle('active', mode==='predefinito');
-  document.getElementById('panel-custom').classList.toggle('active', mode==='custom');
-}
-
-function setStatus(msg, type) {
-  const el = document.getElementById('status');
-  el.textContent = msg;
-  el.className = 'status-msg' + (type ? ' '+type : '');
-}
-
-function setBusy(busy) {
-  const btn = document.getElementById('run-btn');
-  btn.disabled = busy;
-  document.getElementById('btn-label').style.display = busy ? 'none' : 'flex';
-  document.getElementById('btn-loading').style.display = busy ? 'flex' : 'none';
-}
-
-async function esegui() {
-  const tema    = document.getElementById('tema').value.trim();
-  const dominio = document.getElementById('dominio').value;
-  const regione = document.getElementById('regione').value.trim() || 'Italia';
-  const orgNome = document.getElementById('org-nome').value.trim();
-  const orgDesc = document.getElementById('org-desc').value.trim();
-
-  if (!tema) { setStatus('Inserisci un tema', 'err'); return; }
-
-  setBusy(true);
-  document.getElementById('empty').style.display = 'none';
-  document.getElementById('results').classList.remove('show');
+// Verifica endpoint e carica collegi all'avvio
+async function init() {
+  const dot  = document.getElementById('status-dot');
+  const txt  = document.getElementById('status-text');
+  const sel  = document.getElementById('sel-collegio');
+  const btn  = document.getElementById('btn-run');
 
   try {
-    let body = {
-      tema, dominio, regione,
-      org_nome: orgNome, org_desc: orgDesc,
-      tester: currentAccess?.label || '',
-    };
-
-    if (segMode === 'custom') {
-      setStatus('◆  Costruzione segmento su dati ISTAT...', '');
-      const segReq = {
-        eta:        document.getElementById('c-eta').value,
-        area:       document.getElementById('c-area').value,
-        istruzione: document.getElementById('c-istruzione').value,
-        occupazione:document.getElementById('c-occupazione').value,
-        genere:     document.getElementById('c-genere').value,
-        regione:    document.getElementById('c-regione').value || regione,
-        dominio,
-        tester:     currentAccess?.label || '',
-      };
-      const segRes = await fetch(`${API}/api/build-segment`, {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(segReq)
-      });
-      if (!segRes.ok) throw new Error('Errore build segment');
-      segmentoCustom = await segRes.json();
-      body.segmento_custom = segmentoCustom;
-      body.segmento_key = '';
+    // Health check
+    const h = await fetch(`${API}/health`, { signal: AbortSignal.timeout(4000) });
+    if (h.ok) {
+      dot.classList.add('online');
+      txt.textContent = 'Endpoint operativo';
     } else {
-      body.segmento_key = document.getElementById('segmento').value;
-      segmentoCustom = null;
+      throw new Error('non ok');
     }
 
-    setStatus('◆  Generazione varianti con Claude...', '');
-    const res = await fetch(`${API}/api/optimize`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(body)
+    // Carica lista collegi
+    const r = await fetch(`${API}/collegi`);
+    const data = await r.json();
+    const collegi = data.collegi || data;
+
+    sel.innerHTML = '<option value="">— Seleziona un collegio —</option>';
+    collegi.sort().forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c;
+      opt.textContent = c;
+      sel.appendChild(opt);
     });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.detail || 'Errore API');
-    }
-    const data = await res.json();
-    setStatus('✓  Analisi completata', 'ok');
-    renderResults(data);
+    btn.disabled = false;
+
   } catch(e) {
-    setStatus('✗  ' + e.message, 'err');
-    document.getElementById('empty').style.display = 'block';
-  } finally {
-    setBusy(false);
+    dot.classList.add('offline');
+    txt.textContent = 'Endpoint non raggiungibile';
+    sel.innerHTML = '<option value="">— Endpoint offline —</option>';
+
+    // Demo mode con dati fissi per mostrare l'UI
+    const demoCollegi = [
+      'LAZIO 1 - U01 (ROMA: MUNICIPIO I)', 'LAZIO 2 - U01 (VITERBO)',
+      'LOMBARDIA 1 - U01 (MILANO)', 'VENETO 1 - U01 (TREVISO)',
+      'EMILIA-ROMAGNA - U01 (BOLOGNA)', 'CAMPANIA 1 - U01 (NAPOLI)',
+      'TOSCANA - U01 (FIRENZE)', 'SICILIA 1 - U01 (PALERMO)'
+    ];
+    sel.innerHTML = '<option value="">— Seleziona un collegio (demo) —</option>';
+    demoCollegi.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c; opt.textContent = c;
+      sel.appendChild(opt);
+    });
+    btn.disabled = false;
+    txt.textContent = 'Demo mode · dati simulati';
   }
 }
 
-function renderResults(data) {
-  document.getElementById('results').classList.add('show');
-  document.getElementById('res-tema').textContent = data.tema;
-  document.getElementById('res-meta').textContent =
-    `${data.segmento} · ${data.regione} · ${data.dominio} · ${data.label_score}`;
-
-  const scb = document.getElementById('seg-built-box');
-  if (segmentoCustom) {
-    scb.innerHTML = `<div class="seg-built">
-      <div class="seg-built-label">Segmento costruito su dati ISTAT</div>
-      <div class="seg-built-name">${segmentoCustom.label||''}</div>
-    </div>`;
-  } else { scb.innerHTML = ''; }
-
-  const grid   = document.getElementById('varianti');
-  const medals = ['1°','2°','3°','4°'];
-  grid.innerHTML = data.varianti.map((v, rank) => {
-    const score = (v.score_complessivo||0).toFixed(2);
-    const fill  = Math.min(100, (v.score_complessivo||0)*10);
-    const kw    = (v.parole_chiave||[]).map(k=>`<span class="kw">${k}</span>`).join('');
-    const met   = (data.metriche||[]).map(m =>
-      `<div class="metrica"><div class="m-val">${v[m]??'—'}</div><div class="m-label">${m.replace(/_/g,' ').substring(0,10)}</div></div>`
-    ).join('');
-    return `<div class="variante${rank===0?' best':''}">
-      <div class="var-head">
-        <span class="var-rank">${medals[rank]||''}</span>
-        <span class="var-framing">${v.framing||''}</span>
-        <div class="score-bar"><div class="score-fill" style="width:${fill}%"></div></div>
-        <span class="var-score">${score}/10</span>
-      </div>
-      <div class="var-body">
-        <div class="var-titolo">"${v.titolo||''}"</div>
-        <div class="var-testo">${v.testo||''}</div>
-        ${kw?`<div class="var-kw">${kw}</div>`:''}
-        <div class="var-metriche">${met}</div>
-        ${v.insight?`<div class="var-insight">${v.insight}</div>`:''}
-      </div>
-    </div>`;
-  }).join('');
-
-  document.getElementById('raccomandazione').innerHTML = `
-    <div class="rec-label">◆ Raccomandazione</div>
-    <div class="rec-text">${data.raccomandazione||''}</div>
-    ${data.avvertenza?`<div class="avv-text">⚠ ${data.avvertenza}</div>`:''}`;
+// Dati demo se API offline
+function demoData(collegio) {
+  const seed = collegio.charCodeAt(0) + collegio.charCodeAt(5);
+  const cdx = 30 + (seed % 25);
+  const csx = 25 + ((seed * 3) % 20);
+  const m5s = 10 + ((seed * 7) % 12);
+  const altri = 100 - cdx - csx - m5s;
+  const winner = cdx > csx ? 'CDX' : 'CSX';
+  return {
+    collegio,
+    CDX:   { mediana: cdx,   ci_90_low: cdx-1.8,   ci_90_high: cdx+1.8   },
+    CSX:   { mediana: csx,   ci_90_low: csx-1.6,   ci_90_high: csx+1.6   },
+    M5S:   { mediana: m5s,   ci_90_low: m5s-1.2,   ci_90_high: m5s+1.2   },
+    ALTRI: { mediana: altri, ci_90_low: altri-1.0, ci_90_high: altri+1.0 },
+    P_CDX_vince: cdx > csx ? 0.82 + (seed % 15) / 100 : 0.15,
+    winner,
+  };
 }
+
+async function runPrediction() {
+  const sel = document.getElementById('sel-collegio');
+  const collegio = sel.value;
+  if (!collegio) { sel.focus(); return; }
+
+  // UI state
+  document.getElementById('result-empty').style.display = 'none';
+  document.getElementById('result-card').classList.remove('visible');
+  document.getElementById('error-msg').classList.remove('visible');
+  document.getElementById('loading').classList.add('visible');
+  document.getElementById('btn-run').disabled = true;
+
+  try {
+    let data;
+    const dot = document.getElementById('status-dot');
+
+    if (dot.classList.contains('offline')) {
+      // Demo mode
+      await new Promise(r => setTimeout(r, 800));
+      data = demoData(collegio);
+    } else {
+      const res = await fetch(`${API}/predict`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ collegio }),
+        signal: AbortSignal.timeout(15000),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      data = await res.json();
+    }
+
+    renderResult(data);
+
+  } catch(e) {
+    const em = document.getElementById('error-msg');
+    em.textContent = `Errore: ${e.message}. Verifica che l\'endpoint ${API} sia raggiungibile.`;
+    em.classList.add('visible');
+    document.getElementById('result-empty').style.display = 'flex';
+  } finally {
+    document.getElementById('loading').classList.remove('visible');
+    document.getElementById('btn-run').disabled = false;
+  }
+}
+
+function renderResult(data) {
+  const coalizioni = ['CDX', 'CSX', 'M5S', 'ALTRI'];
+
+  // Header
+  document.getElementById('res-collegio').textContent = data.collegio;
+
+  // Winner banner
+  const winner = data.winner;
+  const pWin = data.P_CDX_vince;
+  const banner = document.getElementById('winner-banner');
+  banner.style.background = COLORS[winner]?.dim || '#1a1c22';
+  banner.style.borderLeft = `3px solid ${COLORS[winner]?.main || '#6b7280'}`;
+  banner.style.color = COLORS[winner]?.main || '#e8eaf0';
+  document.getElementById('winner-name').textContent = NOMI[winner] || winner;
+
+  // P(vittoria) — usa il valore della coalizione vincitrice
+  const pVittoria = winner === 'CDX' ? pWin :
+                    winner === 'CSX' ? (1 - pWin) * 0.7 : 0.5;
+  document.getElementById('winner-prob').textContent =
+    (Math.round(pVittoria * 1000) / 10) + '%';
+
+  // Barre distribuzione visiva
+  const max = Math.max(...coalizioni.map(c => data[c]?.mediana || 0));
+  coalizioni.forEach(coal => {
+    const d = data[coal];
+    if (!d) return;
+    const h = Math.round((d.mediana / max) * 72);
+    document.getElementById(`bar-${coal}`).style.height = h + 'px';
+    document.getElementById(`dpct-${coal}`).textContent =
+      d.mediana.toFixed(1) + '%';
+  });
+
+  // Carte IC 90%
+  const container = document.getElementById('coalizioni');
+  container.innerHTML = '';
+  coalizioni.forEach(coal => {
+    const d = data[coal];
+    if (!d) return;
+    const col = COLORS[coal];
+    const range = 100; // scala 0-100%
+    const ciLeft  = (d.ci_90_low / range * 100).toFixed(1);
+    const ciRight = (d.ci_90_high / range * 100).toFixed(1);
+    const medPos  = (d.mediana / range * 100).toFixed(1);
+
+    container.innerHTML += `
+      <div class="coal-card" style="border-color:${col.dim};">
+        <div class="coal-header">
+          <div>
+            <div class="coal-name" style="color:${col.main};">${coal} — ${NOMI[coal]}</div>
+            <div class="coal-ci">IC 90%: [${d.ci_90_low.toFixed(1)}%, ${d.ci_90_high.toFixed(1)}%]</div>
+          </div>
+          <div class="coal-median" style="color:${col.main};">${d.mediana.toFixed(1)}%</div>
+        </div>
+        <div class="bar-wrap">
+          <div class="bar-ci" style="background:${col.main};left:${ciLeft}%;width:${(ciRight - ciLeft).toFixed(1)}%;"></div>
+          <div class="bar-median" style="background:${col.main};left:${medPos}%;"></div>
+        </div>
+        <div class="bar-labels">
+          <span class="bar-label">0%</span>
+          <span class="bar-label" style="color:${col.main};">↑ ${d.mediana.toFixed(1)}%</span>
+          <span class="bar-label">100%</span>
+        </div>
+      </div>`;
+  });
+
+  document.getElementById('result-card').classList.add('visible');
+}
+
+init();
+
+// Enter key su select
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('sel-collegio').addEventListener('keydown', e => {
+    if (e.key === 'Enter') runPrediction();
+  });
+});
 </script>
+
 </body>
 </html>

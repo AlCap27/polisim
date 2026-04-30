@@ -179,7 +179,7 @@ footer { border-top: 1px solid var(--border); padding: 32px 40px; max-width: 120
     <div class="stats">
       <div class="stat"><span class="stat-n">4,696</span><span class="stat-l">ITANES 2022 respondents</span></div>
       <div class="stat"><span class="stat-n">147</span><span class="stat-l">Camera constituencies</span></div>
-      <div class="stat"><span class="stat-n">±4.4pp</span><span class="stat-l">RMSE — MRP national</span></div>
+      <div class="stat"><span class="stat-n">±4.3pp</span><span class="stat-l">RMSE — out-of-sample MRP</span></div>
     </div>
   </div>
   <div>
@@ -286,8 +286,8 @@ footer { border-top: 1px solid var(--border); padding: 32px 40px; max-width: 120
     </div>
     <div class="rm next">
       <span class="rm-badge b-live">✓ Live</span>
-      <div class="rm-title">MRP — Mixed Linear Model with regional random effects</div>
-      <p class="rm-desc">Active model: RMSE=4.44pp, R²=0.782 on 142 Camera constituencies. Random intercepts for 18 Italian regions — Veneto +8pp, Tuscany −7pp, Emilia −6pp. Historical series 2018–2024 integrated.</p>
+      <div class="rm-title">MRP Bayesian Dirichlet-Multinomial</div>
+      <p class="rm-desc">Architecture: Dirichlet-Multinomial multi-coalition (PyMC). 252 observations, 54 demographic cells, r_hat=1.000. Output: posterior median + 90% credibility intervals + P(win) per constituency. RMSE 4.3pp out-of-sample.</p>
       <p class="rm-tech">statsmodels MixedLM · Gelman & Little 1997 · Wang et al. IJF 2021</p>
     </div>
     <div class="rm">
@@ -349,6 +349,7 @@ footer { border-top: 1px solid var(--border); padding: 32px 40px; max-width: 120
   <div class="foot-links">
     <a href="/">Italiano</a>
     <a href="/metodologia.html">Methodology (IT)</a>
+    <a href="/validazione.html">Validation</a>
     <a href="/fonti.html">Sources</a>
     <a href="/tools/anonimizza.html">Data Shield</a>
   </div>
