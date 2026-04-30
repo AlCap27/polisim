@@ -18,6 +18,7 @@
     { "src": "/sitemap.xml", "dest": "/sitemap.xml" },
     { "src": "/robots.txt", "dest": "/robots.txt" },
     { "src": "/(.*\\.html)", "dest": "/$1" },
+    { "src": "/collegi", "dest": "/collegi.html" },
     { "src": "/", "dest": "/index.html" }
   ]
 }
