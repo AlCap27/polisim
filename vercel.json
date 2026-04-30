@@ -15,7 +15,7 @@
     { "src": "/sitemap.xml", "dest": "/sitemap.xml" },
     { "src": "/robots.txt", "dest": "/robots.txt" },
     { "src": "/(.*\\.html)", "dest": "/$1" },
-    { "src": "/", "dest": "/index.html" }
     { "src": "/validazione", "dest": "/validazione.html" },
-  ]
+    { "src": "/", "dest": "/index.html" }
+    ]
 }
