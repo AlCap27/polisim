@@ -135,6 +135,22 @@ body { background: var(--bg); color: var(--text); font-family: var(--font-sans);
 .error-msg { display: none; padding: 16px; border: 1px solid #7f1d1d; background: #1a0505; color: #fca5a5; font-family: var(--font-mono); font-size: 11px; }
 .error-msg.visible { display: block; }
 
+/* OVERRIDE EURISTICO */
+.oe-wrap { margin-top: 20px; border: 1px solid var(--border2); background: var(--surface); padding: 16px; }
+.oe-title { font-family: var(--font-mono); font-size: 9px; letter-spacing: 3px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+.oe-reset { font-size: 9px; color: var(--accent); cursor: pointer; letter-spacing: 1px; }
+.oe-reset:hover { opacity: 0.7; }
+.oe-row { margin-bottom: 10px; }
+.oe-label { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); display: flex; justify-content: space-between; margin-bottom: 4px; }
+.oe-val { color: var(--accent); }
+.oe-slider { width: 100%; accent-color: var(--accent); cursor: pointer; }
+.oe-nota { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); margin-top: 10px; line-height: 1.5; }
+
+/* RESULT OVERRIDE */
+.override-banner { padding: 10px 16px; margin-bottom: 12px; border: 1px solid var(--border2); display: flex; justify-content: space-between; align-items: center; }
+.ob-label { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); letter-spacing: 1px; }
+.ob-val { font-family: var(--font-mono); font-size: 12px; }
+
 /* ENDPOINT STATUS */
 .endpoint-status { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1px; display: flex; align-items: center; gap: 6px; margin-top: 12px; color: var(--text-dim); }
 .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-dim); }
@@ -194,6 +210,27 @@ body { background: var(--bg); color: var(--text); font-family: var(--font-sans);
         <div class="mi-row"><span class="mi-label">Freeze</span><span class="mi-val">29 aprile 2026</span></div>
       </div>
     </div>
+  </div>
+
+  <!-- OVERRIDE EURISTICO -->
+  <div class="oe-wrap" id="oe-wrap" style="display:none;">
+    <div class="oe-title">
+      Override euristico
+      <span class="oe-reset" onclick="resetOverride()">Reset</span>
+    </div>
+    <div class="oe-row">
+      <div class="oe-label"><span>CDX</span><span class="oe-val" id="oe-cdx-val">0pp</span></div>
+      <input class="oe-slider" type="range" id="oe-cdx" min="-15" max="15" value="0" step="0.5" oninput="aggiornaOverride()">
+    </div>
+    <div class="oe-row">
+      <div class="oe-label"><span>CSX</span><span class="oe-val" id="oe-csx-val">0pp</span></div>
+      <input class="oe-slider" type="range" id="oe-csx" min="-15" max="15" value="0" step="0.5" oninput="aggiornaOverride()">
+    </div>
+    <div class="oe-row">
+      <div class="oe-label"><span>M5S</span><span class="oe-val" id="oe-m5s-val">0pp</span></div>
+      <input class="oe-slider" type="range" id="oe-m5s" min="-15" max="15" value="0" step="0.5" oninput="aggiornaOverride()">
+    </div>
+    <p class="oe-nota">Corregge il risultato MRP con il tuo "naso politico" — candidato debole, lista civica forte, effetti locali non catturati dal modello demografico.</p>
   </div>
 
   <!-- PANNELLO DX -->
@@ -283,6 +320,88 @@ const NOMI = {
 };
 
 // Verifica endpoint e carica collegi all'avvio
+function aggiornaOverride() {
+  if (!_datiMRP) return;
+
+  const delta = {
+    CDX:   parseFloat(document.getElementById('oe-cdx').value),
+    CSX:   parseFloat(document.getElementById('oe-csx').value),
+    M5S:   parseFloat(document.getElementById('oe-m5s').value),
+    ALTRI: 0,
+  };
+  // ALTRI assorbe la differenza per mantenere la somma a 100
+  delta.ALTRI = -(delta.CDX + delta.CSX + delta.M5S);
+
+  // Aggiorna label slider
+  ['CDX','CSX','M5S'].forEach(k => {
+    const v = delta[k];
+    const el = document.getElementById(`oe-${k.toLowerCase()}-val`);
+    if (el) el.textContent = (v >= 0 ? '+' : '') + v + 'pp';
+  });
+
+  // Applica delta ai dati originali
+  const datiOverride = { ..._datiMRP };
+  const coalizioni = ['CDX', 'CSX', 'M5S', 'ALTRI'];
+  coalizioni.forEach(k => {
+    if (_datiMRP[k]) {
+      const d = delta[k] || 0;
+      datiOverride[k] = {
+        mediana:    Math.max(0, _datiMRP[k].mediana + d),
+        ci_90_low:  Math.max(0, _datiMRP[k].ci_90_low + d),
+        ci_90_high: Math.min(100, _datiMRP[k].ci_90_high + d),
+      };
+    }
+  });
+
+  // Ricalcola winner
+  const mediane = { CDX: datiOverride.CDX?.mediana || 0, CSX: datiOverride.CSX?.mediana || 0, M5S: datiOverride.M5S?.mediana || 0 };
+  datiOverride.winner = Object.entries(mediane).sort((a,b) => b[1]-a[1])[0][0];
+
+  // Stima P(vittoria) corretta proporzionalmente
+  const origMed = _datiMRP[datiOverride.winner]?.mediana || 50;
+  const newMed  = datiOverride[datiOverride.winner]?.mediana || 50;
+  const ratio   = newMed / Math.max(origMed, 1);
+  datiOverride.P_CDX_vince = Math.min(0.999, Math.max(0.001,
+    datiOverride.winner === 'CDX'
+      ? _datiMRP.P_CDX_vince * ratio
+      : _datiMRP.P_CDX_vince / ratio
+  ));
+
+  // Mostra banner override se attivo
+  const hasOverride = delta.CDX !== 0 || delta.CSX !== 0 || delta.M5S !== 0;
+  const existing = document.getElementById('override-banner');
+  if (existing) existing.remove();
+
+  if (hasOverride) {
+    const banner = document.createElement('div');
+    banner.id = 'override-banner';
+    banner.className = 'override-banner';
+    banner.innerHTML = `
+      <div>
+        <div class="ob-label">MRP puro</div>
+        <div class="ob-val" style="color:var(--text-mid);">CDX ${_datiMRP.CDX?.mediana.toFixed(1)}% · CSX ${_datiMRP.CSX?.mediana.toFixed(1)}% · M5S ${_datiMRP.M5S?.mediana.toFixed(1)}%</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="ob-label">Con override</div>
+        <div class="ob-val" style="color:var(--accent);">CDX ${datiOverride.CDX?.mediana.toFixed(1)}% · CSX ${datiOverride.CSX?.mediana.toFixed(1)}% · M5S ${datiOverride.M5S?.mediana.toFixed(1)}%</div>
+      </div>`;
+    const card = document.getElementById('result-card');
+    card.insertBefore(banner, card.firstChild);
+  }
+
+  renderResult(datiOverride);
+}
+
+function resetOverride() {
+  ['cdx','csx','m5s'].forEach(k => {
+    document.getElementById(`oe-${k}`).value = 0;
+    document.getElementById(`oe-${k}-val`).textContent = '0pp';
+  });
+  if (_datiMRP) renderResult(_datiMRP);
+  const b = document.getElementById('override-banner');
+  if (b) b.remove();
+}
+
 async function init() {
   const dot  = document.getElementById('status-dot');
   const txt  = document.getElementById('status-text');
@@ -399,8 +518,15 @@ async function runPrediction() {
   }
 }
 
+// Salva dati MRP originali per applicare override
+let _datiMRP = null;
+
 function renderResult(data) {
+  _datiMRP = data;
   const coalizioni = ['CDX', 'CSX', 'M5S', 'ALTRI'];
+
+  // Mostra pannello override
+  document.getElementById('oe-wrap').style.display = 'block';
 
   // Header
   document.getElementById('res-collegio').textContent = data.collegio;
