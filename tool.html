@@ -620,6 +620,23 @@ function renderResult(data, fromOverride = false) {
   }
 }
 
+// Inserisce il box impatto dopo il winner banner
+function inserisciBoxImpatto(html) {
+  const existing = document.getElementById('impatto-step1');
+  if (existing) existing.remove();
+  const div = document.createElement('div');
+  div.id = 'impatto-step1';
+  div.innerHTML = html;
+  // Inserisci dopo il winner-banner e prima di dist-wrap
+  const distWrap = document.getElementById('dist-wrap');
+  const card = document.getElementById('result-card');
+  if (distWrap) {
+    card.insertBefore(div, distWrap);
+  } else {
+    card.appendChild(div);
+  }
+}
+
 async function mostraImpatto(mrpData) {
   const p = window._profiloStep1;
   if (!p) return;
@@ -639,7 +656,7 @@ async function mostraImpatto(mrpData) {
   div.innerHTML = `<div style="background:var(--surface2);border:1px solid var(--border2);padding:14px 18px;margin-top:16px;font-family:var(--font-mono);font-size:10px;color:var(--text-dim);">
     Valutazione coerenza messaggio-territorio in corso...
   </div>`;
-  document.getElementById('result-card').appendChild(div);
+  inserisciBoxImpatto(div.innerHTML);
 
   // Chiama Claude per valutare coerenza messaggio-bacino-territorio
   let scoreCoerenza = 0.5;
