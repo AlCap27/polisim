@@ -214,6 +214,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:10
     <!-- Modo -->
     <div class="mode-tabs">
       <button class="mode-tab active" id="tab-B" onclick="setModo('B')">Sondaggio 2027</button>
+      <button class="mode-tab" id="tab-C" onclick="setModo('C')">Partito esistente</button>
       <button class="mode-tab" id="tab-A" onclick="setModo('A')">Partito nuovo</button>
     </div>
 
@@ -256,7 +257,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:10
         <label>Preset (opzionale)</label>
         <select id="profilo-preset" onchange="applicaPreset()">
           <option value="">— Compila manualmente —</option>
-          <optgroup label="── Partiti esistenti ──────────────">
+          <optgroup id="group-esistenti" label="── Partiti esistenti ──────────────">
           <option value="fdi">Fratelli d'Italia (FdI)</option>
           <option value="pd">Partito Democratico (PD)</option>
           <option value="m5s">Movimento 5 Stelle (M5S)</option>
@@ -267,7 +268,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:10
           <option value="iv">Italia Viva (IV)</option>
           <option value="fn">Futuro Nazionale (FN)</option>
           </optgroup>
-          <optgroup label="── Partiti nuovi (esempi) ──────────">
+          <optgroup id="group-nuovi" label="── Partiti nuovi (esempi) ──────────">
           <option value="q_italia">Q-Italia — pro-AI, pacifista, reddito di base</option>
           <option value="italia_verde">Italia Verde — ambientalista radicale</option>
           <option value="italia_sovrana">Italia Sovrana — sovranista</option>
@@ -346,11 +347,36 @@ function checkGate() {
 }
 
 function setModo(m) {
-  modo = m;
+  modo = m === 'C' ? 'A' : m; // C usa lo stesso motore di A (partito esistente)
   document.getElementById('tab-B').classList.toggle('active', m==='B');
+  document.getElementById('tab-C').classList.toggle('active', m==='C');
   document.getElementById('tab-A').classList.toggle('active', m==='A');
   document.getElementById('panel-B').style.display = m==='B'?'block':'none';
-  document.getElementById('panel-A').style.display = m==='A'?'block':'none';
+  document.getElementById('panel-A').style.display = (m==='A'||m==='C')?'block':'none';
+  // In modalità C (partito esistente): mostra solo preset partiti esistenti
+  const presetWrap = document.getElementById('preset-wrap');
+  const groupEsistenti = document.getElementById('group-esistenti');
+  const groupNuovi = document.getElementById('group-nuovi');
+  if (presetWrap) {
+    if (m === 'C') {
+      // Preseleziona FdI di default e nasconde gruppo nuovi
+      if (groupNuovi) groupNuovi.style.display = 'none';
+      if (groupEsistenti) groupEsistenti.style.display = '';
+      const sel = document.getElementById('profilo-preset');
+      if (sel && (!sel.value || sel.value === 'q_italia' || sel.value === 'italia_verde' || sel.value === 'italia_sovrana')) {
+        sel.value = 'pd';
+        applicaPreset();
+      }
+    } else if (m === 'A') {
+      // Modalità partito nuovo: nasconde gruppo esistenti
+      if (groupEsistenti) groupEsistenti.style.display = 'none';
+      if (groupNuovi) groupNuovi.style.display = '';
+      const sel = document.getElementById('profilo-preset');
+      if (sel && sel.value && PRESET_DATA[sel.value]?.esistente) {
+        sel.value = '';
+      }
+    }
+  }
 }
 
 document.getElementById('scenario').addEventListener('change', function() {
@@ -715,7 +741,7 @@ function vaiAPrevisioni() {
   const quotaNaz = quotaEl ? parseFloat(quotaEl.textContent) : (presetDati.quota_attuale || 0);
 
   const profilo = {
-    modalita:   document.getElementById('tab-b')?.classList.contains('active') ? 'B' : 'A',
+    modalita:   document.getElementById('tab-B')?.classList.contains('active') ? 'B' : 'A',
     nome:       document.getElementById('p-nome')?.value || presetDati.nome || '',
     desc:       document.getElementById('p-desc')?.value || presetDati.desc || '',
     temi:       document.getElementById('p-temi')?.value || presetDati.temi || '',
