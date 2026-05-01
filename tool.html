@@ -39,6 +39,14 @@
 html { scroll-behavior: smooth; }
 body { background: var(--bg); color: var(--text); font-family: var(--font-sans); min-height: 100vh; overflow-x: hidden; }
 
+/* BANNER PROFILO DA STEP 1 */
+.profilo-banner { background: var(--accent-dim); border: 1px solid var(--accent); padding: 14px 20px; margin-bottom: 24px; display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: start; }
+.pb-title { font-family: var(--font-mono); font-size: 9px; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; margin-bottom: 6px; }
+.pb-nome { font-family: var(--font-serif); font-size: 20px; font-weight: 300; color: var(--text); }
+.pb-dettagli { font-family: var(--font-mono); font-size: 10px; color: var(--text-mid); margin-top: 4px; line-height: 1.6; }
+.pb-close { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); cursor: pointer; padding: 2px 6px; }
+.pb-close:hover { color: var(--text); }
+
 /* NAV */
 .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(7,9,15,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
 .nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 40px; height: 60px; display: flex; align-items: center; justify-content: space-between; }
@@ -235,6 +243,15 @@ body { background: var(--bg); color: var(--text); font-family: var(--font-sans);
 
   <!-- PANNELLO DX -->
   <div class="panel-right">
+    <div id="profilo-banner" class="profilo-banner" style="display:none;">
+      <div>
+        <div class="pb-title">Profilo da Step 1 — Simulatore</div>
+        <div class="pb-nome" id="pb-nome">—</div>
+        <div class="pb-dettagli" id="pb-dettagli"></div>
+      </div>
+      <span class="pb-close" onclick="document.getElementById('profilo-banner').style.display='none'">✕</span>
+    </div>
+
     <div class="result-empty" id="result-empty">
       seleziona un collegio e premi simula
     </div>
@@ -597,11 +614,33 @@ function renderResult(data, fromOverride = false) {
 
 init();
 
-// Enter key su select
+// Enter key su select + lettura profilo Step 1
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('sel-collegio').addEventListener('keydown', e => {
     if (e.key === 'Enter') runPrediction();
   });
+
+  // Leggi profilo da Step 1 se presente
+  try {
+    const raw = sessionStorage.getItem('polisim_profilo');
+    if (raw) {
+      const p = JSON.parse(raw);
+      const banner = document.getElementById('profilo-banner');
+      const nome   = document.getElementById('pb-nome');
+      const dett   = document.getElementById('pb-dettagli');
+      if (p.nome || p.desc) {
+        nome.textContent = p.nome || 'Profilo senza nome';
+        const parti = [];
+        if (p.temi)   parti.push('Temi: ' + p.temi.substring(0,60) + (p.temi.length>60?'…':''));
+        if (p.bacino) parti.push('Bacino: ' + p.bacino.substring(0,60) + (p.bacino.length>60?'…':''));
+        if (p.asse)   parti.push('Posizionamento: ' + p.asse + '/10');
+        dett.innerHTML = parti.join('<br>');
+        banner.style.display = 'grid';
+        document.getElementById('result-empty').textContent =
+          'Seleziona un collegio per testare "' + (p.nome||'il profilo') + '"';
+      }
+    }
+  } catch(e) { console.warn('sessionStorage:', e); }
 });
 </script>
 

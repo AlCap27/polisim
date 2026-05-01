@@ -67,6 +67,10 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:10
 .sond-tot{font-family:var(--mono);font-size:10px;color:var(--accent);margin-top:8px;text-align:right}
 .sond-tot.err{color:#b05040}
 
+/* Step 2 btn */
+.step2-btn{width:100%;padding:14px;background:var(--accent2);color:var(--bg);border:none;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-top:16px;display:flex;align-items:center;justify-content:center;gap:8px}
+.step2-btn:hover{opacity:.85}
+
 /* Run btn */
 .run-btn{width:100%;padding:14px;background:var(--ink);color:var(--bg);border:none;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:10px}
 .run-btn:disabled{opacity:.4;cursor:not-allowed}
@@ -660,7 +664,36 @@ function renderA(el, data) {
       Seggi stimati: Camera ${data.seggi_stimati_camera} · Senato ${data.seggi_stimati_senato} ·
       Soglia 3%: ${data.soglia_3pct_voti.toLocaleString('it-IT')} voti ·
       Elettori totali: ${data.elettori_totali.toLocaleString('it-IT')}
-    </div>`;
+    </div>
+
+    <button class="step2-btn" onclick="vaiAPrevisioni()">
+      Testa per collegio → Previsioni MRP
+    </button>`;
+}
+
+// Step 1 → Step 2: passa il profilo al tool previsioni
+function vaiAPrevisioni() {
+  // Raccoglie il contesto corrente dalla simulazione
+  const profilo = {
+    modalita: document.querySelector('[data-modal]')?.dataset?.modal ||
+              (document.getElementById('tab-b')?.classList.contains('active') ? 'B' : 'A'),
+    nome:     document.getElementById('p-nome')?.value || '',
+    desc:     document.getElementById('p-desc')?.value || '',
+    temi:     document.getElementById('p-temi')?.value || '',
+    bacino:   document.getElementById('p-bacino')?.value || '',
+    asse:     document.getElementById('p-asse')?.value || '5',
+    timestamp: new Date().toISOString(),
+  };
+
+  // Salva in sessionStorage (non persiste oltre la sessione)
+  try {
+    sessionStorage.setItem('polisim_profilo', JSON.stringify(profilo));
+  } catch(e) {
+    console.warn('sessionStorage non disponibile:', e);
+  }
+
+  // Naviga a /previsioni
+  window.location.href = '/previsioni';
 }
 </script>
 </body>
