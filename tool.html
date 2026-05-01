@@ -206,8 +206,11 @@ body { background: var(--bg); color: var(--text); font-family: var(--font-sans);
       <span id="status-text">Verifica endpoint...</span>
     </div>
 
-    <div style="margin-top: 24px;">
-      <div class="model-info">
+    <details style="margin-top:20px;">
+      <summary style="font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;cursor:pointer;list-style:none;padding:8px 0;">
+        ▸ Info modello
+      </summary>
+      <div class="model-info" style="margin-top:8px;">
         <div class="mi-row"><span class="mi-label">Modello</span><span class="mi-val">Dirichlet-Multinomial</span></div>
         <div class="mi-row"><span class="mi-label">Framework</span><span class="mi-val">PyMC · Bayesiano</span></div>
         <div class="mi-row"><span class="mi-label">Training</span><span class="mi-val">252 osservazioni</span></div>
@@ -217,7 +220,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font-sans);
         <div class="mi-row"><span class="mi-label">Output</span><span class="mi-val">IC 90% + P(win)</span></div>
         <div class="mi-row"><span class="mi-label">Freeze</span><span class="mi-val">29 aprile 2026</span></div>
       </div>
-    </div>
+    </details>
   </div>
 
   <!-- OVERRIDE EURISTICO -->
@@ -617,81 +620,126 @@ function renderResult(data, fromOverride = false) {
   }
 }
 
-function mostraImpatto(mrpData) {
+async function mostraImpatto(mrpData) {
   const p = window._profiloStep1;
   if (!p) return;
 
-  // Rimuovi impatto precedente
   const existing = document.getElementById('impatto-step1');
   if (existing) existing.remove();
 
-  const coalRef = p.coalizione || 'CSX';
-  const quotaNaz = parseFloat(p.quota_naz) || 0;
+  const coalRef   = p.coalizione || 'CSX';
+  const quotaNaz  = parseFloat(p.quota_naz) || 0;
   const esistente = p.esistente === true || p.esistente === 'true';
-
-  // Stima impatto locale proporzionale alla forza della coalizione nel collegio
   const forza_locale = mrpData[coalRef]?.mediana || mrpData['CSX']?.mediana || 30;
-  const forza_media  = 30; // media nazionale approssimata
-  const moltiplicatore = forza_locale / forza_media;
+  const collegio  = mrpData.collegio || '';
 
-  let html = '';
+  // Placeholder mentre Claude valuta
+  const div = document.createElement('div');
+  div.id = 'impatto-step1';
+  div.innerHTML = `<div style="background:var(--surface2);border:1px solid var(--border2);padding:14px 18px;margin-top:16px;font-family:var(--font-mono);font-size:10px;color:var(--text-dim);">
+    Valutazione coerenza messaggio-territorio in corso...
+  </div>`;
+  document.getElementById('result-card').appendChild(div);
 
-  if (esistente && quotaNaz > 0) {
-    // Partito esistente — stima impatto messaggio
-    const delta_locale = (quotaNaz * moltiplicatore / 100 * forza_locale).toFixed(1);
-    html = `
-      <div style="background:var(--accent-dim);border:1px solid var(--accent);padding:16px 20px;margin-top:16px;">
-        <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:8px;">
-          Impatto stimato — ${p.nome}
+  // Chiama Claude per valutare coerenza messaggio-bacino-territorio
+  let scoreCoerenza = 0.5;
+  let valutazione   = '';
+  let rischioRigetto = 'medio';
+
+  try {
+    const prompt = `Sei un analista politico italiano esperto.
+Valuta la coerenza tra questo profilo politico e il territorio indicato.
+
+PARTITO: ${p.nome}
+TEMI: ${p.temi || 'non specificati'}
+BACINO TARGET: ${p.bacino || 'non specificato'}
+POSIZIONAMENTO (1=sx, 10=dx): ${p.asse || 5}
+COLLEGIO: ${collegio}
+FORZA COALIZIONE DI RIFERIMENTO (${coalRef}) NEL COLLEGIO: ${forza_locale.toFixed(1)}%
+QUOTA NAZIONALE STIMATA: ${quotaNaz.toFixed(1)}%
+
+Rispondi SOLO con un JSON senza markdown:
+{
+  "score_coerenza": 0.0-1.0,
+  "rischio_rigetto": "basso|medio|alto|critico",
+  "impatto_pp": numero (positivo o negativo, realistico),
+  "motivazione": "spiegazione in 2 righe max",
+  "alert": "messaggio di allerta se score < 0.3, altrimenti null"
+}
+
+Score 1.0 = messaggio perfettamente coerente con bacino e territorio.
+Score 0.0 = messaggio completamente contraddittorio con bacino e territorio.
+Considera: posizionamento ideologico, temi, cultura politica locale del collegio.`;
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 300,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.[0]?.text || '{}';
+    const clean = text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+
+    scoreCoerenza  = parsed.score_coerenza ?? 0.5;
+    rischioRigetto = parsed.rischio_rigetto || 'medio';
+    valutazione    = parsed.motivazione || '';
+    const alertMsg = parsed.alert;
+    const impattoPp = parsed.impatto_pp ?? (quotaNaz * (forza_locale/30) * scoreCoerenza * 0.1);
+
+    const coloreScore = scoreCoerenza >= 0.7 ? 'var(--green)' :
+                        scoreCoerenza >= 0.4 ? 'var(--m5s)' : '#ef4444';
+    const coloreRischio = rischioRigetto === 'basso' ? 'var(--green)' :
+                          rischioRigetto === 'medio' ? 'var(--m5s)' :
+                          rischioRigetto === 'alto'  ? '#f97316' : '#ef4444';
+
+    const impSegno = impattoPp >= 0 ? '+' : '';
+    const impColore = impattoPp >= 0 ? 'var(--green)' : '#ef4444';
+
+    div.innerHTML = `
+      <div style="background:var(--surface);border:1px solid var(--border2);padding:20px;margin-top:16px;">
+        <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:3px;color:var(--text-dim);text-transform:uppercase;margin-bottom:14px;">
+          Analisi impatto — ${p.nome} · ${collegio}
         </div>
-        <div style="font-size:13px;color:var(--text);margin-bottom:6px;">
-          Con la campagna testata, il partito potrebbe guadagnare circa
-          <strong style="color:var(--accent);">+${delta_locale}pp</strong>
-          in questo collegio rispetto al dato attuale.
+
+        ${alertMsg ? `<div style="background:#3a0a0a;border:1px solid #ef4444;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#fca5a5;line-height:1.5;">
+          ⚠ ${alertMsg}
+        </div>` : ''}
+
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:14px;">
+          <div style="background:var(--surface2);padding:12px;">
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);margin-bottom:4px;">IMPATTO STIMATO</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:${impColore};">${impSegno}${impattoPp.toFixed(1)}pp</div>
+          </div>
+          <div style="background:var(--surface2);padding:12px;">
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);margin-bottom:4px;">COERENZA</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:${coloreScore};">${Math.round(scoreCoerenza*100)}%</div>
+          </div>
+          <div style="background:var(--surface2);padding:12px;">
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);margin-bottom:4px;">RISCHIO RIGETTO</div>
+            <div style="font-family:var(--font-mono);font-size:14px;font-weight:500;color:${coloreRischio};margin-top:8px;">${rischioRigetto.toUpperCase()}</div>
+          </div>
         </div>
-        <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-mid);line-height:1.6;">
-          Stima basata su: quota nazionale ${quotaNaz.toFixed(1)}% ·
-          forza locale ${coalRef} ${forza_locale.toFixed(1)}% ·
-          moltiplicatore territorio ${moltiplicatore.toFixed(2)}x<br>
-          ⚠ Stima esplorativa — non validata su campagne reali
+
+        <div style="font-size:12px;color:var(--text-mid);line-height:1.7;">${valutazione}</div>
+        <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);margin-top:10px;">
+          ⚠ Stima esplorativa · Non validata su campagne reali · Forza locale ${coalRef}: ${forza_locale.toFixed(1)}%
         </div>
       </div>`;
-  } else if (!esistente && quotaNaz > 0) {
-    // Partito nuovo — spiega perché non appare nel collegio
-    const soglia_voti = Math.round(quotaNaz / 100 * 80000); // stima elettori medi
-    html = `
-      <div style="background:var(--surface2);border:1px solid var(--border2);padding:16px 20px;margin-top:16px;">
-        <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:3px;color:var(--text-dim);text-transform:uppercase;margin-bottom:8px;">
-          Nota — Partito nuovo in questo collegio
-        </div>
-        <div style="font-size:13px;color:var(--text);margin-bottom:6px;">
-          <strong>${p.nome}</strong> con il ${quotaNaz.toFixed(1)}% nazionale
-          non compete nel collegio uninominale — il Rosatellum assegna il seggio
-          al candidato con più voti tra i presenti.
-        </div>
-        <div style="font-size:12px;color:var(--text-mid);line-height:1.6;">
-          Il partito raccoglierebbe voti solo nella quota proporzionale (Camera: 245 seggi).
-          Per competere nell'uninominale serve un accordo di coalizione con un partito presente.<br>
-          <span style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);">
-          Stima voti assoluti in questo collegio: ~${soglia_voti.toLocaleString('it-IT')} voti
-          </span>
-        </div>
-      </div>`;
-  } else {
-    // Nessuna quota — mostra solo il profilo
-    html = `
-      <div style="background:var(--surface2);border:1px solid var(--border2);padding:12px 16px;margin-top:16px;">
-        <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);">
-          Profilo "${p.nome}" caricato da Step 1 — torna al simulatore per ottenere una stima di quota nazionale.
-        </div>
-      </div>`;
-  }
 
-  if (html) {
-    const div = document.createElement('div');
-    div.id = 'impatto-step1';
-    div.innerHTML = html;
-    document.getElementById('result-card').appendChild(div);
+  } catch(e) {
+    // Fallback se Claude non risponde
+    const impattoPp = (quotaNaz * (forza_locale/30) * 0.08).toFixed(1);
+    div.innerHTML = `
+      <div style="background:var(--surface2);border:1px solid var(--border2);padding:14px 18px;margin-top:16px;">
+        <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);margin-bottom:8px;letter-spacing:2px;text-transform:uppercase;">Impatto stimato</div>
+        <div style="font-size:13px;color:var(--text);">Impatto stimato: +${impattoPp}pp · Valutazione coerenza non disponibile.</div>
+        <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);margin-top:6px;">⚠ Stima aritmetica senza valutazione semantica</div>
+      </div>`;
   }
 }
 
