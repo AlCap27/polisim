@@ -647,43 +647,21 @@ async function mostraImpatto(mrpData) {
   let rischioRigetto = 'medio';
 
   try {
-    const prompt = `Sei un analista politico italiano esperto.
-Valuta la coerenza tra questo profilo politico e il territorio indicato.
-
-PARTITO: ${p.nome}
-TEMI: ${p.temi || 'non specificati'}
-BACINO TARGET: ${p.bacino || 'non specificato'}
-POSIZIONAMENTO (1=sx, 10=dx): ${p.asse || 5}
-COLLEGIO: ${collegio}
-FORZA COALIZIONE DI RIFERIMENTO (${coalRef}) NEL COLLEGIO: ${forza_locale.toFixed(1)}%
-QUOTA NAZIONALE STIMATA: ${quotaNaz.toFixed(1)}%
-
-Rispondi SOLO con un JSON senza markdown:
-{
-  "score_coerenza": 0.0-1.0,
-  "rischio_rigetto": "basso|medio|alto|critico",
-  "impatto_pp": numero (positivo o negativo, realistico),
-  "motivazione": "spiegazione in 2 righe max",
-  "alert": "messaggio di allerta se score < 0.3, altrimenti null"
-}
-
-Score 1.0 = messaggio perfettamente coerente con bacino e territorio.
-Score 0.0 = messaggio completamente contraddittorio con bacino e territorio.
-Considera: posizionamento ideologico, temi, cultura politica locale del collegio.`;
-
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('https://api2.polisim.dev/api/valuta-coerenza', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 300,
-        messages: [{ role: 'user', content: prompt }]
+        nome:        p.nome || '',
+        temi:        p.temi || '',
+        bacino:      p.bacino || '',
+        asse:        parseFloat(p.asse) || 5,
+        coalizione:  p.coalizione || 'CSX',
+        quota_naz:   quotaNaz,
+        collegio:    collegio,
+        forza_locale: forza_locale
       })
     });
-    const data = await res.json();
-    const text = data.content?.[0]?.text || '{}';
-    const clean = text.replace(/```json|```/g, '').trim();
-    const parsed = JSON.parse(clean);
+    const parsed = await res.json();
 
     scoreCoerenza  = parsed.score_coerenza ?? 0.5;
     rischioRigetto = parsed.rischio_rigetto || 'medio';
@@ -761,7 +739,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const nome   = document.getElementById('pb-nome');
       const dett   = document.getElementById('pb-dettagli');
       if (p.nome || p.desc) {
-        nome.textContent = p.nome || 'Profilo senza nome';
+        nome.innerHTML = (p.nome || 'Profilo senza nome') +
+          (parseFloat(p.quota_naz) > 0
+            ? ' <span style="font-family:var(--font-mono);font-size:14px;color:var(--accent);margin-left:12px;">' + parseFloat(p.quota_naz).toFixed(1) + '%</span>'
+            : '');
         const parti = [];
         if (p.temi)   parti.push('Temi: ' + p.temi.substring(0,60) + (p.temi.length>60?'…':''));
         if (p.bacino) parti.push('Bacino: ' + p.bacino.substring(0,60) + (p.bacino.length>60?'…':''));
