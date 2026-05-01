@@ -626,12 +626,13 @@ function inserisciBoxImpatto(html) {
   if (existing) existing.remove();
   const div = document.createElement('div');
   div.id = 'impatto-step1';
+  div.style.marginBottom = '16px';
   div.innerHTML = html;
-  // Inserisci dopo il winner-banner e prima di dist-wrap
-  const distWrap = document.getElementById('dist-wrap');
-  const card = document.getElementById('result-card');
-  if (distWrap) {
-    card.insertBefore(div, distWrap);
+  // Inserisci dopo winner-banner, prima di dist-wrap
+  const winner = document.getElementById('winner-banner');
+  const card   = document.getElementById('result-card');
+  if (winner && winner.nextSibling) {
+    card.insertBefore(div, winner.nextSibling);
   } else {
     card.appendChild(div);
   }
