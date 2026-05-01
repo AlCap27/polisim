@@ -610,6 +610,89 @@ function renderResult(data, fromOverride = false) {
   });
 
   document.getElementById('result-card').classList.add('visible');
+
+  // Se c'è un profilo da Step 1, mostra stima impatto nel collegio
+  if (window._profiloStep1 && !fromOverride) {
+    mostraImpatto(data);
+  }
+}
+
+function mostraImpatto(mrpData) {
+  const p = window._profiloStep1;
+  if (!p) return;
+
+  // Rimuovi impatto precedente
+  const existing = document.getElementById('impatto-step1');
+  if (existing) existing.remove();
+
+  const coalRef = p.coalizione || 'CSX';
+  const quotaNaz = parseFloat(p.quota_naz) || 0;
+  const esistente = p.esistente === true || p.esistente === 'true';
+
+  // Stima impatto locale proporzionale alla forza della coalizione nel collegio
+  const forza_locale = mrpData[coalRef]?.mediana || mrpData['CSX']?.mediana || 30;
+  const forza_media  = 30; // media nazionale approssimata
+  const moltiplicatore = forza_locale / forza_media;
+
+  let html = '';
+
+  if (esistente && quotaNaz > 0) {
+    // Partito esistente — stima impatto messaggio
+    const delta_locale = (quotaNaz * moltiplicatore / 100 * forza_locale).toFixed(1);
+    html = `
+      <div style="background:var(--accent-dim);border:1px solid var(--accent);padding:16px 20px;margin-top:16px;">
+        <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:8px;">
+          Impatto stimato — ${p.nome}
+        </div>
+        <div style="font-size:13px;color:var(--text);margin-bottom:6px;">
+          Con la campagna testata, il partito potrebbe guadagnare circa
+          <strong style="color:var(--accent);">+${delta_locale}pp</strong>
+          in questo collegio rispetto al dato attuale.
+        </div>
+        <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-mid);line-height:1.6;">
+          Stima basata su: quota nazionale ${quotaNaz.toFixed(1)}% ·
+          forza locale ${coalRef} ${forza_locale.toFixed(1)}% ·
+          moltiplicatore territorio ${moltiplicatore.toFixed(2)}x<br>
+          ⚠ Stima esplorativa — non validata su campagne reali
+        </div>
+      </div>`;
+  } else if (!esistente && quotaNaz > 0) {
+    // Partito nuovo — spiega perché non appare nel collegio
+    const soglia_voti = Math.round(quotaNaz / 100 * 80000); // stima elettori medi
+    html = `
+      <div style="background:var(--surface2);border:1px solid var(--border2);padding:16px 20px;margin-top:16px;">
+        <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:3px;color:var(--text-dim);text-transform:uppercase;margin-bottom:8px;">
+          Nota — Partito nuovo in questo collegio
+        </div>
+        <div style="font-size:13px;color:var(--text);margin-bottom:6px;">
+          <strong>${p.nome}</strong> con il ${quotaNaz.toFixed(1)}% nazionale
+          non compete nel collegio uninominale — il Rosatellum assegna il seggio
+          al candidato con più voti tra i presenti.
+        </div>
+        <div style="font-size:12px;color:var(--text-mid);line-height:1.6;">
+          Il partito raccoglierebbe voti solo nella quota proporzionale (Camera: 245 seggi).
+          Per competere nell'uninominale serve un accordo di coalizione con un partito presente.<br>
+          <span style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);">
+          Stima voti assoluti in questo collegio: ~${soglia_voti.toLocaleString('it-IT')} voti
+          </span>
+        </div>
+      </div>`;
+  } else {
+    // Nessuna quota — mostra solo il profilo
+    html = `
+      <div style="background:var(--surface2);border:1px solid var(--border2);padding:12px 16px;margin-top:16px;">
+        <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);">
+          Profilo "${p.nome}" caricato da Step 1 — torna al simulatore per ottenere una stima di quota nazionale.
+        </div>
+      </div>`;
+  }
+
+  if (html) {
+    const div = document.createElement('div');
+    div.id = 'impatto-step1';
+    div.innerHTML = html;
+    document.getElementById('result-card').appendChild(div);
+  }
 }
 
 init();
@@ -625,6 +708,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const raw = sessionStorage.getItem('polisim_profilo');
     if (raw) {
       const p = JSON.parse(raw);
+      window._profiloStep1 = p;
       const banner = document.getElementById('profilo-banner');
       const nome   = document.getElementById('pb-nome');
       const dett   = document.getElementById('pb-dettagli');

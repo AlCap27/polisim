@@ -256,9 +256,22 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:10
         <label>Preset (opzionale)</label>
         <select id="profilo-preset" onchange="applicaPreset()">
           <option value="">— Compila manualmente —</option>
+          <optgroup label="── Partiti esistenti ──────────────">
+          <option value="fdi">Fratelli d'Italia (FdI)</option>
+          <option value="pd">Partito Democratico (PD)</option>
+          <option value="m5s">Movimento 5 Stelle (M5S)</option>
+          <option value="fi">Forza Italia (FI)</option>
+          <option value="lega">Lega</option>
+          <option value="avs">Alleanza Verdi e Sinistra (AVS)</option>
+          <option value="az">Azione</option>
+          <option value="iv">Italia Viva (IV)</option>
+          <option value="fn">Futuro Nazionale (FN)</option>
+          </optgroup>
+          <optgroup label="── Partiti nuovi (esempi) ──────────">
           <option value="q_italia">Q-Italia — pro-AI, pacifista, reddito di base</option>
           <option value="italia_verde">Italia Verde — ambientalista radicale</option>
           <option value="italia_sovrana">Italia Sovrana — sovranista</option>
+          </optgroup>
         </select>
       </div>
       <div class="field">
@@ -476,6 +489,17 @@ async function esegui() {
 
 
 const PRESET_DATA = {
+  // Partiti esistenti — profili basati su posizionamento ITANES 2022
+  fdi: {nome:"Fratelli d'Italia",desc:'Partito conservatore di destra, nazionalista, atlantista, governo Meloni. Primo partito italiano dal 2022.',temi:'sicurezza, identità nazionale, natalità, merito, atlantismo, contrasto immigrazione irregolare',bacino:'elettori CDX tradizionali, ex-AN, ceto medio meridionale, piccola impresa',asse:8.5, esistente:true, quota_attuale:28.5, coalizione:'CDX'},
+  pd: {nome:'Partito Democratico',desc:'Partito progressista, europeista, centrista di sinistra. Primo partito di opposizione.',temi:'lavoro, welfare, scuola pubblica, diritti civili, Europa federale, transizione verde',bacino:'elettori CSX, lavoratori dipendenti, giovani istruiti, aree urbane, ex-DC moderati',asse:3.5, esistente:true, quota_attuale:22.2, coalizione:'CSX'},
+  m5s: {nome:'Movimento 5 Stelle',desc:'Partito populista trasversale, post-ideologico, reddito di cittadinanza, ambientalista.',temi:'reddito di cittadinanza, acqua pubblica, decrescita, legalità, pace, salario minimo',bacino:'ceto popolare urbano e meridionale, giovani disoccupati, anti-establishment',asse:4.5, esistente:true, quota_attuale:12.5, coalizione:'M5S'},
+  fi: {nome:'Forza Italia',desc:'Partito liberale-moderato di centro-destra, europeista, atlantista, fondato da Berlusconi.',temi:'flat tax, impresa, liberalizzazioni, Europa, atlantismo, moderatismo CDX',bacino:'imprenditori, professionisti, elettori moderati CDX, anziani, Sud',asse:7.0, esistente:true, quota_attuale:8.3, coalizione:'CDX'},
+  lega: {nome:'Lega',desc:'Partito sovranista, securitario, euroscettico moderato. Ex-Lega Nord.',temi:'sicurezza, immigrazione, autonomia regionale, flat tax, no euro-burocrazia',bacino:'piccola impresa Nord, operai bianchi, ex-leghisti, aree industriali decline',asse:8.0, esistente:true, quota_attuale:7.0, coalizione:'CDX'},
+  avs: {nome:'Alleanza Verdi e Sinistra',desc:'Coalizione sinistra-verde, progressista, pacifista, diritti.',temi:'transizione ecologica, diritti LGBTQ+, pace, salario minimo, reddito universale',bacino:'giovani urbani, attivisti clima, sinistra radicale, ex-SEL',asse:2.0, esistente:true, quota_attuale:6.5, coalizione:'CSX'},
+  az: {nome:'Azione',desc:'Partito liberale riformista di centro, pro-mercato, europeista.',temi:'riforme liberali, merito, Europa, agenda Draghi, efficienza PA',bacino:'professionisti urbani, ceto medio istruito, ex-PD moderati, ex-FI liberali',asse:5.5, esistente:true, quota_attuale:3.1, coalizione:'CENTRO'},
+  iv: {nome:'Italia Viva',desc:"Partito liberal-democratico di centro, riformista, fondato da Renzi.",temi:'riforme, lavoro, impresa, Europa, agenda Draghi, terza via',bacino:'ex-PD renziani, ceto medio urbano, professionisti, donne istruite',asse:5.5, esistente:true, quota_attuale:2.4, coalizione:'CENTRO'},
+  fn: {nome:'Futuro Nazionale',desc:'Partito conservatore-nazionale, alternativa a destra di FdI.',temi:'sovranità, tradizione, famiglia naturale, controllo immigrazione, no globalismo',bacino:'elettori destra radicale, ex-CasaPound, nazionalisti, giovani CDX radicali',asse:9.5, esistente:true, quota_attuale:3.4, coalizione:'CDX'},
+  // Partiti nuovi (esempi)
   q_italia: {nome:'Q-Italia',desc:'Partito pro-AI, pacifista, progressista, anti-corruzione, reddito di base',temi:'intelligenza artificiale bene comune, pacifismo razionale, reddito di base, giustizia rigenerativa',bacino:'astensionisti valoriali, ex-M5S, giovani, progressisti delusi PD',asse:3},
   italia_verde: {nome:'Italia Verde',desc:'Ambientalista radicale, decrescita, diritti animali',temi:'transizione ecologica, decrescita, diritti animali, rinnovabili 100%',bacino:'giovani urbani, AVS elettori, attivisti clima',asse:2},
   italia_sovrana: {nome:'Italia Sovrana',desc:'Sovranista, uscita euro, controllo immigrazione',temi:'sovranità monetaria, controllo frontiere, reindustrializzazione',bacino:"FdI moderati, Lega del Sud, astensionisti destra",asse:8},
@@ -484,6 +508,16 @@ function applicaPreset() {
   const key = document.getElementById('profilo-preset').value;
   if (!key) return;
   const p = PRESET_DATA[key];
+  // Se è un partito esistente, mostra nota
+  const notaEl = document.getElementById('nota-partito-esistente');
+  if (p && p.esistente) {
+    if (notaEl) {
+      notaEl.style.display = 'block';
+      notaEl.textContent = `${p.nome} · quota attuale: ${p.quota_attuale}% · coalizione: ${p.coalizione}. Modifica temi e messaggio per simulare una campagna specifica.`;
+    }
+  } else {
+    if (notaEl) notaEl.style.display = 'none';
+  }
   document.getElementById('p-nome').value = p.nome;
   document.getElementById('p-desc').value = p.desc;
   document.getElementById('p-temi').value = p.temi;
@@ -673,16 +707,24 @@ function renderA(el, data) {
 
 // Step 1 → Step 2: passa il profilo al tool previsioni
 function vaiAPrevisioni() {
-  // Raccoglie il contesto corrente dalla simulazione
+  const presetKey = document.getElementById('profilo-preset')?.value || '';
+  const presetDati = PRESET_DATA[presetKey] || {};
+
+  // Leggi quota nazionale dall'ultimo risultato se disponibile
+  const quotaEl = document.querySelector('.quota-pct');
+  const quotaNaz = quotaEl ? parseFloat(quotaEl.textContent) : (presetDati.quota_attuale || 0);
+
   const profilo = {
-    modalita: document.querySelector('[data-modal]')?.dataset?.modal ||
-              (document.getElementById('tab-b')?.classList.contains('active') ? 'B' : 'A'),
-    nome:     document.getElementById('p-nome')?.value || '',
-    desc:     document.getElementById('p-desc')?.value || '',
-    temi:     document.getElementById('p-temi')?.value || '',
-    bacino:   document.getElementById('p-bacino')?.value || '',
-    asse:     document.getElementById('p-asse')?.value || '5',
-    timestamp: new Date().toISOString(),
+    modalita:   document.getElementById('tab-b')?.classList.contains('active') ? 'B' : 'A',
+    nome:       document.getElementById('p-nome')?.value || presetDati.nome || '',
+    desc:       document.getElementById('p-desc')?.value || presetDati.desc || '',
+    temi:       document.getElementById('p-temi')?.value || presetDati.temi || '',
+    bacino:     document.getElementById('p-bacino')?.value || presetDati.bacino || '',
+    asse:       document.getElementById('p-asse')?.value || String(presetDati.asse || 5),
+    quota_naz:  quotaNaz,
+    esistente:  presetDati.esistente || false,
+    coalizione: presetDati.coalizione || '',
+    timestamp:  new Date().toISOString(),
   };
 
   // Salva in sessionStorage (non persiste oltre la sessione)
