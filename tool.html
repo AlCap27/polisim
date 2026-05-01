@@ -389,7 +389,7 @@ function aggiornaOverride() {
     card.insertBefore(banner, card.firstChild);
   }
 
-  renderResult(datiOverride);
+  renderResult(datiOverride, true);
 }
 
 function resetOverride() {
@@ -521,12 +521,13 @@ async function runPrediction() {
 // Salva dati MRP originali per applicare override
 let _datiMRP = null;
 
-function renderResult(data) {
-  _datiMRP = data;
+function renderResult(data, fromOverride = false) {
+  // Salva solo i dati originali MRP, non quelli dell'override
+  if (!fromOverride) _datiMRP = data;
   const coalizioni = ['CDX', 'CSX', 'M5S', 'ALTRI'];
 
-  // Mostra pannello override
-  document.getElementById('oe-wrap').style.display = 'block';
+  // Mostra pannello override solo dopo il primo risultato reale
+  if (!fromOverride) document.getElementById('oe-wrap').style.display = 'block';
 
   // Header
   document.getElementById('res-collegio').textContent = data.collegio;
@@ -551,10 +552,11 @@ function renderResult(data) {
   coalizioni.forEach(coal => {
     const d = data[coal];
     if (!d) return;
-    const h = Math.round((d.mediana / max) * 72);
+    const med = Math.max(0, d.mediana);
+    const h = Math.round((med / Math.max(max, 1)) * 72);
     document.getElementById(`bar-${coal}`).style.height = h + 'px';
     document.getElementById(`dpct-${coal}`).textContent =
-      d.mediana.toFixed(1) + '%';
+      med.toFixed(1) + '%';
   });
 
   // Carte IC 90%
@@ -565,9 +567,9 @@ function renderResult(data) {
     if (!d) return;
     const col = COLORS[coal];
     const range = 100; // scala 0-100%
-    const ciLeft  = (d.ci_90_low / range * 100).toFixed(1);
-    const ciRight = (d.ci_90_high / range * 100).toFixed(1);
-    const medPos  = (d.mediana / range * 100).toFixed(1);
+    const ciLeft  = (Math.max(0, d.ci_90_low) / range * 100).toFixed(1);
+    const ciRight = (Math.min(100, d.ci_90_high) / range * 100).toFixed(1);
+    const medPos  = (Math.max(0, Math.min(100, d.mediana)) / range * 100).toFixed(1);
 
     container.innerHTML += `
       <div class="coal-card" style="border-color:${col.dim};">
