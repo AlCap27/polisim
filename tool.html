@@ -706,8 +706,8 @@ Considera: posizionamento ideologico, temi, cultura politica locale del collegio
           Analisi impatto — ${p.nome} · ${collegio}
         </div>
 
-        ${alertMsg ? `<div style="background:#3a0a0a;border:1px solid #ef4444;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#fca5a5;line-height:1.5;">
-          ⚠ ${alertMsg}
+        ${(alertMsg || scoreCoerenza < 0.5) ? `<div style="background:${scoreCoerenza < 0.3 ? '#3a0a0a' : '#2a1a05'};border:1px solid ${scoreCoerenza < 0.3 ? '#ef4444' : '#f97316'};padding:10px 14px;margin-bottom:12px;font-size:12px;color:${scoreCoerenza < 0.3 ? '#fca5a5' : '#fdba74'};line-height:1.5;">
+          ⚠ ${alertMsg || 'Attenzione: coerenza messaggio-bacino sotto la soglia di affidabilità. I dati di impatto potrebbero sovrastimare l\'effetto reale.'}
         </div>` : ''}
 
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:14px;">
@@ -766,6 +766,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (p.temi)   parti.push('Temi: ' + p.temi.substring(0,60) + (p.temi.length>60?'…':''));
         if (p.bacino) parti.push('Bacino: ' + p.bacino.substring(0,60) + (p.bacino.length>60?'…':''));
         if (p.asse)   parti.push('Posizionamento: ' + p.asse + '/10');
+        const qn = parseFloat(p.quota_naz);
+        if (qn > 0)   parti.push('Quota nazionale Step 1: <strong style="color:var(--accent);">' + qn.toFixed(1) + '%</strong>');
         dett.innerHTML = parti.join('<br>');
         banner.style.display = 'grid';
         document.getElementById('result-empty').textContent =

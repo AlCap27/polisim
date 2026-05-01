@@ -256,7 +256,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:10
       <div class="field">
         <label>Preset (opzionale)</label>
         <select id="profilo-preset" onchange="applicaPreset()">
-          <option value="">— Compila manualmente —</option>
+          <option value="">— Scegli partito —</option>
           <optgroup id="group-esistenti" label="── Partiti esistenti ──────────────">
           <option value="fdi">Fratelli d'Italia (FdI)</option>
           <option value="pd">Partito Democratico (PD)</option>
@@ -284,8 +284,8 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:10
         <textarea id="p-desc" style="min-height:60px;resize:vertical;width:100%;background:var(--bg2);border:0.5px solid var(--line);color:var(--ink);padding:10px 12px;font-family:var(--sans);font-size:13px;outline:none" placeholder="Es. Partito liberale classico, pro-mercato, laico, europeista moderato"></textarea>
       </div>
       <div class="field">
-        <label>Temi principali (separati da virgola)</label>
-        <input type="text" id="p-temi" placeholder="Es. flat tax, libertà d&apos;impresa, laicità, diritti civili">
+        <label>Messaggio / tema da testare</label>
+        <input type="text" id="p-temi" placeholder="Es. &apos;Più sicurezza nelle città&apos;, &apos;Salario minimo subito&apos;, &apos;Flat tax al 15%&apos;">
       </div>
       <div class="field">
         <label>Bacino target</label>
@@ -736,9 +736,14 @@ function vaiAPrevisioni() {
   const presetKey = document.getElementById('profilo-preset')?.value || '';
   const presetDati = PRESET_DATA[presetKey] || {};
 
-  // Leggi quota nazionale dall'ultimo risultato se disponibile
+  // Leggi quota nazionale dal risultato corrente
   const quotaEl = document.querySelector('.quota-pct');
-  const quotaNaz = quotaEl ? parseFloat(quotaEl.textContent) : (presetDati.quota_attuale || 0);
+  let quotaNaz = 0;
+  if (quotaEl) {
+    quotaNaz = parseFloat(quotaEl.textContent.replace('%','').trim()) || 0;
+  }
+  if (!quotaNaz) quotaNaz = presetDati.quota_attuale || 0;
+  console.log('Quota nazionale passata a Step 2:', quotaNaz);
 
   const profilo = {
     modalita:   document.getElementById('tab-B')?.classList.contains('active') ? 'B' : 'A',
