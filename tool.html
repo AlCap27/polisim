@@ -647,10 +647,7 @@ async function mostraImpatto(mrpData) {
   let rischioRigetto = 'medio';
 
   try {
-    const res = await fetch('https://api2.polisim.dev/api/valuta-coerenza', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    const payload = {
         nome:        p.nome || '',
         temi:        p.temi || '',
         bacino:      p.bacino || '',
@@ -659,9 +656,16 @@ async function mostraImpatto(mrpData) {
         quota_naz:   quotaNaz,
         collegio:    collegio,
         forza_locale: forza_locale
-      })
+      };
+    console.log('valuta-coerenza payload:', JSON.stringify(payload));
+    const res = await fetch('https://api2.polisim.dev/api/valuta-coerenza', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
     });
+    console.log('valuta-coerenza status:', res.status);
     const parsed = await res.json();
+    console.log('valuta-coerenza response:', parsed);
 
     scoreCoerenza  = parsed.score_coerenza ?? 0.5;
     rischioRigetto = parsed.rischio_rigetto || 'medio';
