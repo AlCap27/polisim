@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PoliSim — Simulatore Elettorale e Message Optimizer per l'Italia</title>
 <meta name="description" content="PoliSim: simulatore elettorale + message optimizer + previsioni MRP per collegio. Dati ISTAT 2021, Eligendo, PolitPro live. Step1→Step2: testa il messaggio e poi verifica l'impatto per collegio con IC 90% bayesiani. RMSE 4.3pp out-of-sample.">
-<meta property="og:title" content="PoliSim — Intelligenza politica basata su dati">
+<meta property="og:title" content="PoliSim — Comunicazione civica trasparente su dati pubblici">
 <meta property="og:description" content="Infrastruttura civic tech open-source per partiti, ONG e istituzioni pilota. Dati reali ITANES 2022 · N=4.696 rispondenti · 147 collegi Camera.">
 <link rel="canonical" href="https://polisim.dev/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -279,8 +279,8 @@ footer { border-top: 1px solid var(--border); padding: 40px; max-width: 1200px; 
 <section class="hero">
   <div>
     <p class="hero-kicker">Simulatore Elettorale · Message Optimizer · Italia 2027</p>
-    <h1 class="hero-title">Intelligenza <em>politica</em><br>basata su dati reali</h1>
-    <p class="hero-sub">PoliSim simula Camera e Senato, profila 5 segmenti empirici dell'elettorato italiano e ottimizza ogni messaggio per il segmento giusto. Dati aperti. Metodologia trasparente.</p>
+    <h1 class="hero-title">Comunicazione civica<br><em>trasparente</em> su dati pubblici</h1>
+    <p class="hero-sub">PoliSim collega census data aperti (ISTAT, Eurostat), principi verificabili (statuti, carte dei valori) e AI con limitazioni dichiarate per aiutare organizzazioni civiche a comunicare in modo coerente e misurabile.</p>
     <div class="hero-ctas">
       <a class="btn-primary" href="/tool">Simulatore elettorale →</a>
       <a class="btn-secondary" href="/tool#messaggi">Message Optimizer →</a>
@@ -293,8 +293,8 @@ footer { border-top: 1px solid var(--border); padding: 40px; max-width: 1200px; 
   </div>
   <div>
     <div class="hero-quote">
-      <p class="hero-quote-text">I chatbot ottimizzati per la persuasione politica riescono a spostare le opinioni di <strong>25 punti percentuali</strong>.</p>
-      <p class="hero-quote-source">American Enterprise Institute, 2025 · 77.000 partecipanti</p>
+      <p class="hero-quote-text">La coerenza tra principi dichiarati e messaggi reali è il fattore più predittivo della fiducia istituzionale nelle organizzazioni civiche.</p>
+      <p class="hero-quote-source">PoliSim usa dati pubblici (ISTAT, Eligendo) e AI trasparente per aiutare sindacati, comuni e ONG a mantenere questa coerenza in modo verificabile. <a href="/metodologia.html" style="color:var(--blue-light);text-decoration:none;">Metodologia →</a></p>
     </div>
   </div>
 </section>
@@ -475,20 +475,6 @@ footer { border-top: 1px solid var(--border); padding: 40px; max-width: 1200px; 
 
   <div class="tri-grid">
 
-    <div class="tri-card tri-partiti" id="partiti">
-      <div class="tri-accent tri-accent-p"></div>
-      <span class="tri-kicker tri-k-p">Partiti &amp; consulenti</span>
-      <div class="tri-title">Intelligenza<br>elettorale</div>
-      <p class="tri-desc">Simula Camera e Senato, identifica i collegi contendibili, ottimizza il messaggio per il segmento target.</p>
-      <ul class="tri-feats">
-        <li>Swing model 147 collegi Camera + 74 Senato</li>
-        <li>Doppia maggioranza verificata</li>
-        <li>Framing per 5 segmenti psicografici</li>
-        <li>A/B test messaggi ante-campagna</li>
-      </ul>
-      <a class="tri-cta tri-cta-p" href="/per-chi.html#partiti">Scopri per i partiti →</a>
-    </div>
-
     <div class="tri-card tri-ong" id="ong">
       <div class="tri-accent tri-accent-o"></div>
       <span class="tri-kicker tri-k-o">ONG &amp; advocacy</span>
@@ -515,6 +501,20 @@ footer { border-top: 1px solid var(--border); padding: 40px; max-width: 1200px; 
         <li>Dati aperti · GDPR by design · No vendor lock-in</li>
       </ul>
       <a class="tri-cta tri-cta-b" href="/per-chi.html#partners">Diventa pilot partner →</a>
+    </div>
+
+    <div class="tri-card tri-partiti" id="partiti">
+      <div class="tri-accent tri-accent-p"></div>
+      <span class="tri-kicker tri-k-p">Partiti &amp; consulenti politici</span>
+      <div class="tri-title">Intelligenza<br>elettorale</div>
+      <p class="tri-desc">Simula Camera e Senato, identifica i collegi contendibili, ottimizza il messaggio per il segmento target.</p>
+      <ul class="tri-feats">
+        <li>Swing model 147 collegi Camera + 74 Senato</li>
+        <li>Doppia maggioranza verificata</li>
+        <li>Framing per 5 segmenti psicografici</li>
+        <li>A/B test messaggi ante-campagna</li>
+      </ul>
+      <a class="tri-cta tri-cta-p" href="/per-chi.html#partiti">Scopri per i partiti →</a>
     </div>
 
   </div>
@@ -582,7 +582,7 @@ const cits = [
   { s: 'ITANES 2022 · Vezzoni et al.', t: 'Panel elettorale italiano — N=4.696 rispondenti, 326 variabili. DOI: 10.13130/RD_UNIMI/JV77WR', url: 'https://doi.org/10.13130/RD_UNIMI/JV77WR' },
   { s: 'Wang et al. · IJF 2014', t: 'MRP: forecasting US elections with non-representative polls — median absolute difference 1.9pp', url: 'https://sites.stat.columbia.edu/gelman/research/published/forecasting-with-nonrepresentative-polls.pdf' },
   { s: 'Entman · J. Communication 1993', t: 'Framing: toward clarification of a fractured paradigm — fondamento teorico del message optimizer', url: '#' },
-  { s: 'AEI · 2025 · 77.000 partecipanti', t: 'AI chatbots ottimizzati per persuasione politica spostano le opinioni di 25 punti percentuali', url: '#' },
+  { s: 'Entman, R.M. · Journal of Communication · 1993', t: 'Framing: Toward Clarification of a Fractured Paradigm — base teorica del message optimizer', url: 'https://polisim.dev/fonti.html' },
   { s: 'MIT Technology Review · 2025', t: 'Every major operation already segments voters, tests messages, and optimizes delivery. AI lowers the cost.', url: 'https://www.technologyreview.com' },
   { s: 'ScienceDirect · IJF 2021', t: 'Penalized regression su indicatori socioeconomici per previsione elettorale sub-nazionale', url: 'https://www.sciencedirect.com/science/article/abs/pii/S0169207021001072' },
   { s: 'Media & Communication · 2024', t: 'Audience segmentation: second key determinant of political communication effectiveness — Kreiss & McGregor', url: 'https://www.frontiersin.org/journals/political-science' },
