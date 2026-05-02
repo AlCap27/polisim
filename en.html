@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PoliSim — Italian Electoral Intelligence Platform</title>
 <meta property="og:title" content="PoliSim — Italian Electoral Intelligence Platform">
-<meta property="og:description" content="Electoral simulator and message optimizer for Italy. ITANES 2022 (N=4,696), ISTAT 2021, Eligendo OpenData. MRP in development.">
-<meta name="description" content="PoliSim analyses the Italian electorate using ITANES 2022 (N=4,696), ISTAT 2021 and Eligendo open data. Simulates Camera+Senate 2027, optimises messages across 5 empirical psychographic segments. MRP live: RMSE 4.44pp, R²=0.782 on 142 constituencies.">
+<meta property="og:description" content="Civic tech infrastructure for principled, data-grounded communication. Bayesian MRP (220 constituencies, RMSE 4.3pp), multi-step coherence evaluation, open data only. Field validation with trade unions and NGOs in progress. Open-source Q3 2026.">
+<meta name="description" content="PoliSim: civic tech infrastructure for data-grounded political communication. Bayesian MRP live (RMSE 4.3pp, 220 constituencies), multi-step message coherence evaluation, heuristic override. Open data only: ISTAT 2021, Eligendo, PolitPro. Open-source release Q3 2026.">
 <link rel="canonical" href="https://polisim.dev/en.html">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -37,7 +37,7 @@
       "name": "What is the next development milestone for PoliSim?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Two major developments are in progress: MRP (Multilevel Regression and Poststratification) for constituency-level estimates reducing error from ±8-12pp to ±2-3pp; and LightRAG/Karpathy wiki-memory for persistent territorial profile memory."
+        "text": "The Bayesian MRP model (Dirichlet-Multinomial, PyMC) is live at /previsioni. 252 observations, 54 demographic cells per constituency, RMSE 4.3pp out-of-sample (Lombardia 2023), r_hat=1.000. A multi-step analysis flow connects the national simulator to the constituency-level model, with a message coherence evaluator returning a 0–1 score, rejection risk classification, and estimated impact in percentage points."
       }
     }
   ]
@@ -287,9 +287,15 @@ footer { border-top: 1px solid var(--border); padding: 32px 40px; max-width: 120
     <div class="rm next">
       <span class="rm-badge b-live">✓ Live</span>
       <div class="rm-title">MRP Bayesian Dirichlet-Multinomial</div>
-      <p class="rm-desc">Architecture: Dirichlet-Multinomial multi-coalition (PyMC). 252 observations, 54 demographic cells, r_hat=1.000. Output: posterior median + 90% credibility intervals + P(win) per constituency. RMSE 4.3pp out-of-sample.</p>
+      <p class="rm-desc">Architecture: Dirichlet-Multinomial multi-coalition (PyMC). 252 observations (2018–2025), 54 demographic cells per constituency, r_hat=1.000, 10 divergences over 8,000 samples. Output: posterior median + 90% credibility intervals + P(win) per constituency. RMSE 4.3pp out-of-sample (Lombardia 2023 blind test). Freeze: 29 April 2026.</p>
       <p class="rm-tech">statsmodels MixedLM · Gelman & Little 1997 · Wang et al. IJF 2021</p>
     </div>
+
+  <div style="background:#f0f4f0;padding:24px;margin-top:1px;border:1px solid #d0d8d0;">
+    <span style="background:#1a4a1a;color:#7ef57e;font-family:var(--font-mono);font-size:9px;letter-spacing:2px;padding:4px 10px;display:inline-block;margin-bottom:14px;text-transform:uppercase;">✓ Live · May 2026</span>
+    <div style="font-family:var(--font-serif);font-size:20px;font-weight:400;margin-bottom:10px;">Multi-step flow · Coherence evaluation · Heuristic override</div>
+    <p style="font-size:13px;color:#555;line-height:1.65;">Step 1 (national simulator — 9 pre-loaded party profiles based on ITANES 2022, PolitPro live polling updated daily) feeds automatically into Step 2 (constituency-level MRP). A second Claude instance evaluates message-territory coherence: 0–1 score, rejection risk classification (low / medium / high / critical), estimated impact in percentage points, explicit alert when coherence falls below threshold. A heuristic override layer lets the operator correct the MRP output with local political knowledge the model cannot have — weak parachuted candidate, strong civic list, local dynamics not captured by demographics. Both outputs (pure MRP and operator-corrected) are shown side by side.</p>
+  </div>
     <div class="rm">
       <span class="rm-badge b-plan">◌ Planned</span>
       <div class="rm-title">LightRAG · Persistent territorial profile memory</div>
@@ -319,7 +325,7 @@ footer { border-top: 1px solid var(--border); padding: 32px 40px; max-width: 120
     </div>
     <div class="lim">
       <span class="lim-badge">⚠ Limitation 2 · Macro-area swing model</span>
-      <p class="lim-text">The current swing model operates at macro-area level (regions/provinces), not individual constituencies. Error per constituency is ±8-12pp. MRP implementation will reduce this to ±2-3pp — in development.</p>
+      <p class="lim-text">The MRP model reasons about aggregate coalitions (CDX/CSX/M5S/Other), not individual parties. Party-level estimates are on the post-validation roadmap. Coherence evaluation scores are exploratory — not validated on real campaign outcomes.</p>
     </div>
     <div class="lim">
       <span class="lim-badge">⚠ Limitation 3 · Uncalibrated weights</span>

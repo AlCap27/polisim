@@ -6,7 +6,7 @@
 <title>Validazione PoliSim — Tre Proof of Concept su dati reali</title>
 <meta property="og:title" content="Validazione PoliSim — PoC 1, 2, 3 su dati reali italiani">
 <meta property="og:description" content="PoliSim validato su 142 collegi Camera italiani. OLS Lazio RMSE 3.9pp, Ridge nazionale RMSE 5.2pp, MRP mixed effects RMSE 4.44pp R²=0.782. Dati ISTAT, Eligendo, ITANES 2022.">
-<meta name="description" content="Tre Proof of Concept PoliSim su dati reali. PoC 1: OLS Lazio 11 collegi RMSE 3.9pp. PoC 2: Ridge 142 collegi RMSE 5.2pp. PoC 3: MRP mixed effects RMSE 4.44pp R²=0.782.">
+<meta name="description" content="Validazione PoliSim: PoC 1 OLS Lazio RMSE 3.9pp, PoC 2 Ridge 142 collegi, PoC 3 MRP Dirichlet-Multinomial bayesiano RMSE 4.3pp out-of-sample (Lombardia 2023). Flusso Step1→Step2 live. Valutazione coerenza messaggio-territorio in produzione.">
 <link rel="canonical" href="https://polisim.dev/validazione.html">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -145,8 +145,8 @@ footer { border-top: 1px solid var(--border); padding: 32px 40px; max-width: 120
 
   <div class="summary-grid">
     <div class="sum-item"><span class="sum-n">142</span><span class="sum-l">Collegi Camera analizzati</span></div>
-    <div class="sum-item"><span class="sum-n">4.44pp</span><span class="sum-l">RMSE modello finale MRP</span></div>
-    <div class="sum-item"><span class="sum-n">0.782</span><span class="sum-l">R² modello finale MRP</span></div>
+    <div class="sum-item"><span class="sum-n">4.3pp</span><span class="sum-l">RMSE out-of-sample MRP</span></div>
+    <div class="sum-item"><span class="sum-n">1.000</span><span class="sum-l">r_hat convergenza PyMC</span></div>
     <div class="sum-item"><span class="sum-n">10</span><span class="sum-l">Elezioni storiche 2018–2024</span></div>
   </div>
 </div>
@@ -292,19 +292,19 @@ footer { border-top: 1px solid var(--border); padding: 32px 40px; max-width: 120
 
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);">
     <div style="background:#f0f4f0;padding:24px 20px;">
-      <p style="font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:#2a7a3a;text-transform:uppercase;margin-bottom:8px;">Priorità alta</p>
-      <p style="font-size:14px;font-weight:500;margin-bottom:8px;">Tassi occupazione reali + categorie complete</p>
-      <p style="font-size:12px;color:var(--gray);line-height:1.6;">Microdati ISTAT per comune invece di medie regionali. Separazione disoccupati/inattivi: celle da 36 a 54 con dati misurati. Impatto atteso: ±0.3-0.5pp sull'RMSE.</p>
+      <p style="font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:#2a7a3a;text-transform:uppercase;margin-bottom:8px;">✓ Live · Maggio 2026</p>
+      <p style="font-size:14px;font-weight:500;margin-bottom:8px;">Flusso Step 1→Step 2 + coerenza</p>
+      <p style="font-size:12px;color:var(--gray);line-height:1.6;">Il simulatore nazionale è connesso al tool MRP per collegio. Valutazione coerenza messaggio-territorio via Claude: score 0–1, rischio rigetto, impatto stimato in pp. Override euristico con slider CDX/CSX/M5S.</p>
     </div>
     <div style="background:#f0f4f0;padding:24px 20px;">
-      <p style="font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:#2a7a3a;text-transform:uppercase;margin-bottom:8px;">Priorità alta</p>
-      <p style="font-size:14px;font-weight:500;margin-bottom:8px;">Ottimizzazione campionamento bayesiano</p>
-      <p style="font-size:12px;color:var(--gray);line-height:1.6;">Tuning da 2.000 a 3.000 iterazioni, target accettazione 0.99. Elimina le 10 divergenze residue e produce distribuzioni posteriori ancora più stabili.</p>
+      <p style="font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:#2a7a3a;text-transform:uppercase;margin-bottom:8px;">✓ Live · Maggio 2026</p>
+      <p style="font-size:14px;font-weight:500;margin-bottom:8px;">Sondaggi PolitPro live</p>
+      <p style="font-size:12px;color:var(--gray);line-height:1.6;">Quote partiti aggiornate ogni mattina da PolitPro (11 partiti). Il simulatore carica automaticamente i valori correnti all'apertura. Scraper cron 08:00 sul VPS, fallback su valori hardcodati.</p>
     </div>
     <div style="background:var(--bg);padding:24px 20px;">
-      <p style="font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:var(--blue-light);text-transform:uppercase;margin-bottom:8px;">Priorità media</p>
-      <p style="font-size:14px;font-weight:500;margin-bottom:8px;">Struttura gerarchica + training set esteso</p>
-      <p style="font-size:12px;color:var(--gray);line-height:1.6;">Interazioni età×occupazione nel modello PyMC. Aggiunta comunali capoluoghi come osservazioni. Confronto con aggregatori sondaggi per quantificare gap mobilizzazione.</p>
+      <p style="font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:var(--blue-light);text-transform:uppercase;margin-bottom:8px;">Priorità alta</p>
+      <p style="font-size:14px;font-weight:500;margin-bottom:8px;">MRP per partiti singoli + shapefile</p>
+      <p style="font-size:12px;color:var(--gray);line-height:1.6;">Il modello attuale ragiona per coalizioni aggregate (CDX/CSX/M5S). La prossima evoluzione porta le stime a livello di singolo partito e introduce shapefile per granularità di singolo collegio uninominale.</p>
     </div>
   </div>
 </section>

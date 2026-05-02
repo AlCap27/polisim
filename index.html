@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PoliSim — Simulatore Elettorale e Message Optimizer per l'Italia</title>
-<meta name="description" content="PoliSim analizza l'elettorato italiano con dati reali ITANES 2022, ISTAT 2021 e Eligendo. MRP con effetti regione (RMSE 4.44pp, R²=0.782). Simula Camera+Senato 2027 e ottimizza i messaggi per 5 segmenti empirici.">
+<meta name="description" content="PoliSim: simulatore elettorale + message optimizer + previsioni MRP per collegio. Dati ISTAT 2021, Eligendo, PolitPro live. Step1→Step2: testa il messaggio e poi verifica l'impatto per collegio con IC 90% bayesiani. RMSE 4.3pp out-of-sample.">
 <meta property="og:title" content="PoliSim — Intelligenza politica basata su dati">
 <meta property="og:description" content="Infrastruttura civic tech open-source per partiti, ONG e istituzioni pilota. Dati reali ITANES 2022 · N=4.696 rispondenti · 147 collegi Camera.">
 <link rel="canonical" href="https://polisim.dev/">
@@ -63,7 +63,7 @@
       "name": "Quali sono i prossimi sviluppi di PoliSim?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "In sviluppo: MRP (Multilevel Regression and Poststratification) per stime a livello di collegio singolo, e integrazione LightRAG/Karpathy per memoria persistente dei profili territoriali."
+        "text": "Il modello MRP Dirichlet-Multinomial bayesiano (PyMC) è live su /previsioni. 252 osservazioni, 54 celle demografiche per collegio, RMSE 4.3pp out-of-sample (Lombardia 2023). Prossima evoluzione: integrazione shapefile per granularità a livello di singolo collegio."
       }
     }
   ]
@@ -405,7 +405,7 @@ footer { border-top: 1px solid var(--border); padding: 40px; max-width: 1200px; 
 <section class="section">
   <p class="section-kicker">Metodologia · Tre stadi</p>
   <h2 class="section-title">Come funziona PoliSim</h2>
-  <p class="section-sub">PoliSim risponde a una domanda diretta: dati i sondaggi oggi, quanti seggi vinceresti nel 2027 e con quale messaggio arrivi a ogni segmento?</p>
+  <p class="section-sub">PoliSim risponde a una domanda diretta: dati i sondaggi oggi, quale messaggio funziona in quale collegio — e dove rischia di non funzionare?</p>
 
   <div class="come-funziona">
     <div class="cf-step">
@@ -441,8 +441,8 @@ footer { border-top: 1px solid var(--border); padding: 40px; max-width: 1200px; 
     <div class="roadmap-item live">
       <span class="roadmap-badge badge-live">✓ Live</span>
       <div class="roadmap-title">Swing model + segmenti ITANES</div>
-      <p class="roadmap-desc">Simulazione Camera e Senato con margini per collegio, 5 segmenti psicografici derivati empiricamente da ITANES 2022, message optimizer su partiti/ONG/brand.</p>
-      <p class="roadmap-tech">Ridge regression · Random Forest · ITANES 2022 (N=4.696)</p>
+      <p class="roadmap-desc">Simulazione Camera e Senato con margini per collegio. 9 partiti reali precompilati (profili ITANES 2022). Quote aggiornate ogni mattina da PolitPro. Message optimizer: definisci il messaggio da testare e ottieni analisi strategica con proiezione geografica.</p>
+      <p class="roadmap-tech">PolitPro scraper · ITANES 2022 (N=4.696) · Claude Sonnet</p>
     </div>
     <div class="roadmap-item dev">
       <span class="roadmap-badge badge-live">✓ Live</span>
@@ -450,11 +450,11 @@ footer { border-top: 1px solid var(--border); padding: 40px; max-width: 1200px; 
       <p class="roadmap-desc">Architettura: Dirichlet-Multinomial multi-coalizione (PyMC). 252 osservazioni, 54 celle demografiche, r_hat=1.000. Output: mediana + IC 90% + P(vittoria) per collegio. RMSE 4.3pp out-of-sample.</p>
       <p class="roadmap-tech">statsmodels MixedLM · Gelman & Little 1997 · Wang et al. IJF 2021</p>
     </div>
-    <div class="roadmap-item">
-      <span class="roadmap-badge badge-planned">◌ Pianificato</span>
-      <div class="roadmap-title">LightRAG · Memoria persistente dei profili</div>
-      <p class="roadmap-desc">Integrazione LightRAG (ispirato al wiki-memory model di Karpathy) per costruire una memoria a lungo termine dei profili territoriali — tendenze storiche per collegio, comportamenti coalizionali, pattern locali.</p>
-      <p class="roadmap-tech">LightRAG · Karpathy wiki-memory · Eligendo storico</p>
+    <div class="roadmap-item live">
+      <span class="roadmap-badge badge-live">✓ Live</span>
+      <div class="roadmap-title">Step 1→Step 2 · Flusso multistep integrato</div>
+      <p class="roadmap-desc">Dal simulatore nazionale al collegio uninominale in un click. Il profilo (partito, messaggio, bacino) viene trasferito automaticamente al tool MRP. Valutazione coerenza messaggio-territorio via Claude: score 0–1, rischio rigetto, impatto stimato in pp, alert critico se incoerente.</p>
+      <p class="roadmap-tech">sessionStorage · api2.polisim.dev/api/valuta-coerenza · Claude Sonnet</p>
     </div>
     <div class="roadmap-item">
       <span class="roadmap-badge badge-planned">◌ Pianificato</span>
