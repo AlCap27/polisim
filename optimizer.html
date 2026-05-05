@@ -173,7 +173,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-sans);font-siz
     </div>
     <div class="form-full">
       <label class="field-label">Valori e missione (statuto / carta dei valori)</label>
-      <textarea class="field-textarea" id="f-valori" placeholder="Inserisci i valori fondanti, la mission, i principi guida dell'organizzazione..."></textarea>
+      <textarea class="field-textarea" id="f-valori" placeholder="Inserisci i valori fondanti, la mission, i principi guida dell&apos;organizzazione..."></textarea>
       <div class="field-hint">Più dettagliato è il corpus valoriale, più precisa sarà la valutazione</div>
     </div>
     <div class="form-full">
@@ -239,7 +239,7 @@ function checkGate() {
     document.getElementById('nav-user').textContent = ACCESSI[pwd].label;
     // Se consulente politico, mostra nota
     if (pwd === 'pol2026test') {
-      document.querySelector('.page-sub').textContent = 'Valutazione valoriale · Framework Entman · Uso per ONG e enti civici';
+      document.querySelector('.page-sub').textContent = "Valutazione valoriale · Framework Entman · Uso per ONG e enti civici";
     }
   } else {
     document.getElementById('gate-err').textContent = 'Codice non valido';
@@ -331,15 +331,15 @@ function renderResults(d) {
   // Entman grid
   const entman = d.entman || {};
   const dim = [
-    {k:'problema', n:'01', label:'Definizione del problema', hint:'Come il frame definisce la situazione'},
-    {k:'causa',    n:'02', label:'Diagnosi delle cause',      hint:'A chi o cosa viene attribuita la responsabilità'},
-    {k:'valutazione', n:'03', label:'Valutazione morale',     hint:'Il giudizio etico implicito nel messaggio'},
-    {k:'soluzione', n:'04', label:'Soluzione proposta',       hint:'L'azione suggerita al destinatario'},
+    {k:"problema", n:"01", label:"Definizione del problema", hint:"Come il frame definisce la situazione"},
+    {k:"causa",    n:"02", label:"Diagnosi delle cause",      hint:"A chi o cosa viene attribuita la responsabilità"},
+    {k:"valutazione", n:"03", label:"Valutazione morale",     hint:"Il giudizio etico implicito nel messaggio"},
+    {k:"soluzione", n:"04", label:"Soluzione proposta",       hint:"L'azione suggerita al destinatario"},
   ];
   document.getElementById('entman-grid').innerHTML = dim.map(d2 => {
     const v = entman[d2.k] || {};
-    const forza = v.forza || 'neutro';
-    const tagClass = forza === 'forte' ? 'tag-forte' : forza === 'debole' ? 'tag-debole' : 'tag-neutro';
+    const forza = v.forza || "neutro";
+    const tagClass = forza === "forte" ? 'tag-forte' : forza === "debole" ? 'tag-debole' : 'tag-neutro';
     return `<div class="entman-card">
       <div class="entman-num">${d2.n} · ${d2.label}</div>
       <span class="entman-tag ${tagClass}">${forza}</span>
