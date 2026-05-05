@@ -1,0 +1,120 @@
+# PoliSim Backend — README
+
+## Panoramica
+
+API FastAPI per PoliSim — piattaforma SaaS di analisi elettorale e ottimizzazione messaggi.
+
+**Stack:** Python + FastAPI + Claude Sonnet (Anthropic API)
+**Dati:** ISTAT 2023 (39.609 sezioni censimento Lazio) + Eligendo 2022 (Ministero Interno)
+
+---
+
+## Architettura
+
+```
+polisim_api.py (:8001)
+  /api/optimize      — Message Optimizer (4 framing × N segmenti)
+  /api/segments      — Lista segmenti disponibili
+  /api/simulate      — Simulazione elettorale
+  /api/istat/lazio   — Dati ISTAT Lazio (14 collegi Camera)
+  /api/health        — Health check
+```
+
+---
+
+## Deploy sul VPS
+
+**VPS:** `root@109.123.247.161` (Contabo)
+**Cartella:** `/opt/polisim/`
+**Servizio:** `polisim.service`
+
+```bash
+# Copia file
+scp polisim_api.py root@109.123.247.161:/opt/polisim/polisim_api.py
+
+# Riavvia
+systemctl restart polisim
+
+# Verifica
+curl https://api.polisim.dev/api/health
+```
+
+---
+
+## Segmenti disponibili
+
+### Segmenti originali (expert-calibrated)
+- `giovani_precari_sud`, `casalinghe_sud`, `operai_nord`
+- `laureati_urbani`, `astensionisti_valoriali`, `pensionati_centro_nord`
+- `donatori_lasciti`, `responsabili_csr`, `donne_25_40_urbane`, `imprenditori_pmi`
+
+### Segmenti ITANES 2022 (empirici — N=4696)
+**Fonte:** Vezzoni et al. (2023) DOI: 10.13130/RD_UNIMI/JV77WR
+
+| Segmento | N | Scala sx-dx | % CGIL |
+|----------|---|-------------|--------|
+| `progressisti_attivisti` | 1444 | 2.86 | 54.4% |
+| `delusi_m5s` | 541 | 4.96 | 36.8% |
+| `giovani_astensionisti` | 161 | 5.84 | 34.8% |
+| `qualunquisti` | 922 | 5.16 | 30.3% |
+| `centrodestra` | 1628 | 8.72 | 26.1% |
+
+---
+
+## Proof of Concept Lazio
+
+Regressione OLS su 11 collegi Camera Lazio:
+- **R² = 0.618** — 62% della varianza del voto CDX spiegata
+- **RMSE = 3.91 pp** — nella norma di un sondaggio professionale
+- **Errore medio = 3.2 pp**
+- **Formula:** `% CDX = 71.49 − 0.896 × pct_laureati + 0.082 × pct_bassa_istr`
+- **Correlazione laureati/CDX:** −0.786
+
+Margini reali 2022 per 14 collegi Lazio in `/opt/polisim/data/`.
+
+---
+
+## Dati
+
+```
+/opt/polisim/data/
+  istat_profili_segmenti.json    — profili ISTAT per segmento
+  itanes_profili.json            — profili empirici ITANES 2022
+```
+
+---
+
+## Profili organizzazione
+
+Il Message Optimizer supporta qualsiasi corpus valoriale:
+
+```python
+# Profili preconfigurati
+PROFILI = {
+    "q_italia":      {...},  # Q-Italia (14 principi)
+    "centrosinistra": {...},
+    "centrodestra":   {...},
+    # aggiungi qui nuovi profili
+}
+```
+
+Per aggiungere un profilo custom, passa `profilo_custom` nell'API request.
+
+---
+
+## Dominio e infrastruttura
+
+- **API:** `https://api.polisim.dev` (Cloudflare → VPS :8001)
+- **Frontend:** `https://polisim.dev` (Vercel → repo `AlCap27/polisim`)
+- **Repo:** `github.com/AlCap27/polisim`
+
+---
+
+## Roadmap tecnica
+
+- [ ] Estensione ISTAT a tutte le 20 regioni (ora solo Lazio)
+- [ ] Fix 3 collegi romani (spatial join per municipio)
+- [ ] MRP (Multilevel Regression with Poststratification) su ITANES 2022
+- [ ] Proprietari dataset upload con GDPR anonymisation (Data Shield già pronto)
+- [ ] LightRAG per memoria persistente multi-tenant
+- [ ] ISTAT 2023 update completo nazionale
