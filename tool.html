@@ -676,7 +676,7 @@ async function mostraImpatto(mrpData) {
         forza_locale: forza_locale
       };
     console.log('valuta-coerenza payload:', JSON.stringify(payload));
-    const res = await fetch('https://api2.polisim.dev/api/valuta-coerenza', {
+    const res = await fetch('https://api.polisim.dev/api/valuta-coerenza', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
