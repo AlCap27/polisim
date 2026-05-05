@@ -738,14 +738,19 @@ function vaiAPrevisioni() {
   const presetKey = document.getElementById('profilo-preset')?.value || '';
   const presetDati = PRESET_DATA[presetKey] || {};
 
-  // Leggi quota nazionale dal risultato corrente
-  const quotaEl = document.querySelector('.quota-pct');
+  // Leggi quota nazionale: 
+  // - modalità C (partito esistente): usa quota_attuale dal preset
+  // - modalità A (partito nuovo): leggi dal DOM .quota-pct
+  const modoCorrente = document.getElementById('tab-C')?.classList.contains('active') ? 'C' : 'B';
   let quotaNaz = 0;
-  if (quotaEl) {
-    quotaNaz = parseFloat(quotaEl.textContent.replace('%','').trim()) || 0;
+  if (modoCorrente === 'C' && presetDati.quota_attuale) {
+    // Partito esistente: usa quota reale da PolitPro/ITANES
+    quotaNaz = presetDati.quota_attuale;
+  } else {
+    const quotaEl = document.querySelector('.quota-pct');
+    if (quotaEl) quotaNaz = parseFloat(quotaEl.textContent.replace('%','').trim()) || 0;
   }
   if (!quotaNaz) quotaNaz = presetDati.quota_attuale || 0;
-  console.log('Quota nazionale passata a Step 2:', quotaNaz);
 
   const profilo = {
     modalita:   document.getElementById('tab-B')?.classList.contains('active') ? 'B' : 'A',
