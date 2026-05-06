@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PoliSim — Accesso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#faf9f7;--black:#0a0a0a;--blue:#1e3a5f;--blue-light:#4a7eb5;
+  --line:#e0dbd4;--ghost:#b0a898;--mid:#555;
+  --font-serif:"Cormorant Garamond",Georgia,serif;
+  --font-sans:"DM Sans",system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",monospace;
+}
+body{background:var(--bg);color:var(--black);font-family:var(--font-sans);min-height:100vh;display:flex;flex-direction:column}
+
+/* Nav */
+.nav{padding:16px 48px;border-bottom:0.5px solid var(--line);display:flex;align-items:center;justify-content:space-between;background:var(--bg)}
+.nav-logo{font-family:var(--font-mono);font-size:13px;letter-spacing:3px;font-weight:500;color:var(--black);text-decoration:none;text-transform:uppercase}
+.nav-logo span{color:var(--blue)}
+.nav-link{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;color:var(--mid);text-decoration:none;text-transform:uppercase}
+.nav-link:hover{color:var(--black)}
+
+/* Gate */
+.gate-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:48px 24px}
+.gate-box{max-width:480px;width:100%}
+.gate-eyebrow{font-family:var(--font-mono);font-size:9px;letter-spacing:4px;color:var(--blue-light);text-transform:uppercase;margin-bottom:16px}
+.gate-title{font-family:var(--font-serif);font-size:clamp(36px,5vw,52px);font-weight:300;line-height:1.1;color:var(--black);margin-bottom:8px}
+.gate-title em{font-style:italic;color:var(--blue)}
+.gate-sub{font-size:13px;color:var(--mid);margin-bottom:40px;line-height:1.6}
+
+/* Profili */
+.profiles{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:0.5px solid var(--line);margin-bottom:28px}
+.profile-card{background:var(--bg);padding:20px 16px;cursor:pointer;transition:background .15s;text-align:center;border:2px solid transparent}
+.profile-card:hover{background:#f0ede8}
+.profile-card.active{background:#fff;border-color:var(--black)}
+.profile-icon{font-size:22px;margin-bottom:8px}
+.profile-label{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:var(--mid);text-transform:uppercase;line-height:1.4}
+.profile-card.active .profile-label{color:var(--black)}
+.profile-desc{font-size:11px;color:#999;margin-top:4px;line-height:1.4}
+.profile-card.active .profile-desc{color:var(--mid)}
+
+/* Input */
+.input-wrap{position:relative;margin-bottom:12px}
+.gate-input{width:100%;border:0.5px solid var(--line);background:#fff;color:var(--black);padding:14px 16px;font-family:var(--font-mono);font-size:13px;outline:none;transition:border-color .15s}
+.gate-input:focus{border-color:var(--black)}
+.gate-btn{width:100%;background:var(--black);color:var(--bg);border:none;padding:14px;font-family:var(--font-mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:opacity .2s}
+.gate-btn:hover{opacity:0.85}
+.gate-err{font-family:var(--font-mono);font-size:10px;color:#c00;margin-top:8px;min-height:14px;letter-spacing:1px}
+
+/* Footer */
+.gate-footer{text-align:center;margin-top:32px;padding-top:24px;border-top:0.5px solid var(--line)}
+.gate-footer p{font-size:11px;color:var(--ghost);font-family:var(--font-mono);letter-spacing:1px}
+.gate-footer a{color:var(--mid);text-decoration:none}
+.gate-footer a:hover{color:var(--black)}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav-logo" href="/"><span>POLI</span>SIM.DEV</a>
+  <a class="nav-link" href="/">← Home</a>
+</nav>
+
+<div class="gate-wrap">
+  <div class="gate-box">
+    <div class="gate-eyebrow">Accesso riservato</div>
+    <h1 class="gate-title">Seleziona il tuo<br><em>profilo.</em></h1>
+    <p class="gate-sub">Ogni profilo accede allo strumento calibrato per il tuo contesto operativo. Inserisci il codice di accesso ricevuto.</p>
+
+    <div class="profiles">
+      <div class="profile-card active" id="p-pol" onclick="selProfilo('pol')">
+        <div class="profile-icon">🏛</div>
+        <div class="profile-label">Consulente<br>politico</div>
+        <div class="profile-desc">Simulatore elettorale + Message Optimizer</div>
+      </div>
+      <div class="profile-card" id="p-ong" onclick="selProfilo('ong')">
+        <div class="profile-icon">🤝</div>
+        <div class="profile-label">ONG /<br>Advocacy</div>
+        <div class="profile-desc">Message Optimizer + analisi Entman</div>
+      </div>
+      <div class="profile-card" id="p-civic" onclick="selProfilo('civic')">
+        <div class="profile-icon">✊</div>
+        <div class="profile-label">Sindacato /<br>Ente civico</div>
+        <div class="profile-desc">Message Optimizer + analisi Entman</div>
+      </div>
+    </div>
+
+    <div class="input-wrap">
+      <input class="gate-input" id="gate-pwd" type="password"
+             placeholder="Codice di accesso"
+             onkeydown="if(event.key==='Enter')checkGate()">
+    </div>
+    <button class="gate-btn" onclick="checkGate()">Accedi →</button>
+    <div class="gate-err" id="gate-err"></div>
+
+    <div class="gate-footer">
+      <p>Non hai ancora un codice? <a href="mailto:info@polisim.dev">info@polisim.dev</a></p>
+    </div>
+  </div>
+</div>
+
+<script>
+const ACCESSI = {
+  "pol2026test":        {profilo:"pol",  dest:"/simulatore.html"},
+  "ong2026test":        {profilo:"ong",  dest:"/optimizer.html?tipo=ong"},
+  "civic2026test":      {profilo:"civic",dest:"/optimizer.html?tipo=civic"},
+  "admin-polisim-2026": {profilo:"pol",  dest:"/simulatore.html"},
+};
+
+let profiloSel = "pol";
+
+function selProfilo(p) {
+  profiloSel = p;
+  document.querySelectorAll(".profile-card").forEach(c => c.classList.remove("active"));
+  document.getElementById("p-" + p).classList.add("active");
+  document.getElementById("gate-pwd").focus();
+}
+
+function checkGate() {
+  const pwd = document.getElementById("gate-pwd").value.trim();
+  const acc = ACCESSI[pwd];
+  if (!acc) {
+    document.getElementById("gate-err").textContent = "Codice non valido";
+    setTimeout(() => document.getElementById("gate-err").textContent = "", 2500);
+    return;
+  }
+  // Redirect alla destinazione corretta
+  window.location.href = acc.dest + "&pwd=" + encodeURIComponent(pwd);
+}
+</script>
+</body>
+</html>
