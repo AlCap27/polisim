@@ -230,6 +230,21 @@ const ACCESSI = {
 
 let tipoCorrente = 'ong_lasciti';
 
+// Auto-login da parametro URL (redirect da accesso.html)
+window.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  const pwd = params.get('pwd');
+  const tipo = params.get('tipo');
+  if (pwd && ACCESSI[pwd]) {
+    document.getElementById('gate-pwd').value = pwd;
+    if (tipo) {
+      const map = {'ong': 'ong_lasciti', 'civic': 'sindacato'};
+      if (map[tipo]) setTipo(map[tipo]);
+    }
+    checkGate();
+  }
+});
+
 function checkGate() {
   const pwd = document.getElementById('gate-pwd').value.trim();
   if (ACCESSI[pwd]) {
