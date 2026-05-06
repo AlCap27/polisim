@@ -129,7 +129,7 @@ function checkGate() {
     return;
   }
   // Redirect alla destinazione corretta
-  window.location.href = acc.dest + "&pwd=" + encodeURIComponent(pwd);
+  window.location.href = acc.dest + (acc.dest.includes("?") ? "&" : "?") + "pwd=" + encodeURIComponent(pwd);
 }
 </script>
 </body>
