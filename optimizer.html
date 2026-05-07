@@ -567,9 +567,11 @@ function checkGate() {
   document.getElementById('gate').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   document.getElementById('nav-user').textContent = ACCESSI[pwd].label;
-  // Aggiorna UI tipo
-  document.querySelectorAll('.tipo-card').forEach(c => c.classList.remove('active'));
-  document.getElementById('t-' + tipoCorrente).classList.add('active');
+  // Mostra solo la scheda pertinente al profilo
+  const showSolo = tipoCorrente === 'sindacato' ? 't-sindacato' : 't-ong_lasciti';
+  const hideSolo = tipoCorrente === 'sindacato' ? 't-ong_lasciti' : 't-sindacato';
+  document.getElementById(showSolo).classList.add('active');
+  document.getElementById(hideSolo).style.display = 'none';
 }
 
 function setTipo(t) {
