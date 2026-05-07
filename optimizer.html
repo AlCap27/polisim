@@ -212,9 +212,16 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-sans);font-siz
 
     <!-- TAB 1: ORGANIZZAZIONE -->
     <div class="tab-panel active" id="tab-org">
-      <div class="field-full">
-        <label class="field-label">Nome organizzazione</label>
-        <input class="field-input" id="f-nome" placeholder="es. CGIL Roma, Amnesty International, Comune di Bologna...">
+      <div class="field-row">
+        <div style="flex:2">
+          <label class="field-label">Nome organizzazione</label>
+          <input class="field-input" id="f-nome" placeholder="es. CGIL Roma, Amnesty International, Comune di Bologna...">
+        </div>
+        <div>
+          <label class="field-label">Quota / reach attuale <span style="font-size:8px;color:var(--ghost)">opzionale</span></label>
+          <input class="field-input" id="f-quota-base" type="number" min="0" max="100" step="0.1" placeholder="es. 22.5">
+          <p class="field-hint">% sondaggio o reach attuale — per il confronto</p>
+        </div>
       </div>
       <div class="field-full">
         <label class="field-label">Valori, missione e statuto</label>
@@ -497,15 +504,17 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-sans);font-siz
 
       <div class="cta-row">
         <button class="btn-primary" id="btn-analizza" onclick="analizza()">Analizza messaggio →</button>
-        <div id="loading" style="display:none;flex-direction:column;gap:8px;width:100%;margin-top:16px;padding:16px 20px;background:var(--bg2);border:0.5px solid var(--border2)">
-          <div style="display:flex;align-items:center;gap:12px">
-            <div style="flex:1;height:2px;background:var(--border2);overflow:hidden">
-              <div style="height:2px;background:var(--black);animation:opt-progress 1.8s ease-in-out infinite"></div>
+        <div id="loading" style="display:none;flex-direction:column;gap:12px;width:100%;margin-top:16px;padding:24px 28px;background:var(--black);border:none">
+          <div style="display:flex;align-items:center;gap:16px">
+            <div style="flex:1;height:3px;background:#333;overflow:hidden;border-radius:2px">
+              <div style="height:3px;background:#60a5fa;animation:opt-progress 1.8s ease-in-out infinite;border-radius:2px"></div>
             </div>
-            <span style="font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:var(--mid);text-transform:uppercase;white-space:nowrap">Analisi in corso</span>
           </div>
-          <div style="font-family:var(--font-mono);font-size:9px;color:var(--ghost);letter-spacing:1px">
-            Valutazione valoriale · Framework Entman · Generazione varianti...
+          <div style="font-family:var(--font-mono);font-size:11px;color:#e8e6e3;letter-spacing:2px;text-transform:uppercase">
+            Analisi in corso...
+          </div>
+          <div style="font-family:var(--font-mono);font-size:9px;color:#888;letter-spacing:1px">
+            Valutazione valoriale · Framework Entman · Generazione varianti
           </div>
         </div>
       </div>
@@ -727,17 +736,20 @@ function renderResults(d) {
 
   // Score row — con confronto prima/dopo se impatto disponibile
   const impattoPp = parseFloat(impatto) || 0;
+  const quotaBase = parseFloat(document.getElementById('f-quota-base')?.value) || null;
+  const quotaStimata = quotaBase ? (quotaBase + impattoPp).toFixed(1) : null;
   const impattoBox = impattoPp !== 0
-    ? '<div class="score-box" style="grid-column:1/-1;border-top:0.5px solid var(--border)">' +
-      '<div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;padding:4px 0">' +
+    ? '<div class="score-box" style="grid-column:1/-1;border-top:0.5px solid var(--border);background:var(--bg2)">' +
+      '<div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;padding:12px 0">' +
       '<div style="text-align:center">' +
-        '<div class="score-n" style="font-size:32px">—</div>' +
+        '<div class="score-n" style="font-size:36px">' + (quotaBase ? quotaBase.toFixed(1)+'%' : '—') + '</div>' +
         '<div class="score-l">Sondaggio attuale</div>' +
       '</div>' +
-      '<div style="font-family:var(--font-mono);font-size:16px;color:var(--light)">→</div>' +
+      '<div style="font-family:var(--font-mono);font-size:20px;color:var(--light)">→</div>' +
       '<div style="text-align:center">' +
-        '<div class="score-n ' + (impattoPp >= 0 ? 'green' : 'red') + '" style="font-size:32px">' + (impattoPp >= 0 ? '+' : '') + impattoPp + 'pp</div>' +
+        '<div class="score-n ' + (impattoPp >= 0 ? 'green' : 'red') + '" style="font-size:36px">' + (quotaStimata ? quotaStimata+'%' : (impattoPp >= 0 ? '+' : '') + impattoPp + 'pp') + '</div>' +
         '<div class="score-l">Con questo messaggio</div>' +
+        (impattoPp !== 0 ? '<div style="font-family:var(--font-mono);font-size:11px;font-weight:500;margin-top:4px;color:' + (impattoPp >= 0 ? '#2a7a3a' : '#b05040') + '">' + (impattoPp >= 0 ? '+' : '') + impattoPp + 'pp</div>' : '') +
       '</div>' +
       '</div></div>'
     : '';
