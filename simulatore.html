@@ -594,6 +594,8 @@ async function esegui() {
     const presetNow = PRESET_DATA[presetKeyNow] || {};
     window._quotaBasePartito = presetNow.quota_attuale || null;
     renderResults(data);
+    // Aggiorna box confronto quota dopo render
+    if (data.quota_nazionale_pct) aggiornaBoxConfronto(data.quota_nazionale_pct);
   } catch(e) {
     setStatus('✗  '+e.message,'err');
     document.getElementById('empty').style.display='block';
@@ -655,6 +657,24 @@ function renderResults(data) {
   } else {
     renderA(el, data);
   }
+}
+
+// Aggiorna box confronto quota dopo renderA
+function aggiornaBoxConfronto(pct) {
+  const box = document.getElementById('quota-confronto-box');
+  if (!box) return;
+  const base = window._quotaBasePartito;
+  if (!base || Math.abs(pct - base) < 0.1) { box.innerHTML = ''; return; }
+  const delta = parseFloat((pct - base).toFixed(1));
+  const cls = delta >= 0 ? 'up' : 'down';
+  const sign = delta >= 0 ? '+' : '';
+  box.innerHTML = '<div class="quota-messaggio">' +
+    '<div class="qm-base"><div class="qm-pct">' + base.toFixed(1) + '%</div>' +
+    '<div class="qm-label">Quota sondaggio</div></div>' +
+    '<div class="qm-arrow">→</div>' +
+    '<div class="qm-stima"><div class="qm-pct ' + cls + '">' + pct.toFixed(1) + '%</div>' +
+    '<div class="qm-label">Con questo messaggio</div>' +
+    '<div class="qm-delta ' + cls + '">' + sign + delta + 'pp</div></div></div>';
 }
 
 function renderB(el, data) {
@@ -803,26 +823,7 @@ function renderA(el, data) {
 
     ${data.note_strategiche?`<div class="note-strat">${data.note_strategiche}</div>`:''}
 
-    ${(() => {
-      // Mostra confronto quota base vs quota stimata con messaggio
-      const base = window._quotaBasePartito || pct;
-      const delta = parseFloat((pct - base).toFixed(1));
-      if (Math.abs(delta) < 0.1) return '';
-      const cls = delta >= 0 ? 'up' : 'down';
-      const sign = delta >= 0 ? '+' : '';
-      return \`<div class="quota-messaggio">
-        <div class="qm-base">
-          <div class="qm-pct">\${base.toFixed(1)}%</div>
-          <div class="qm-label">Quota sondaggio</div>
-        </div>
-        <div class="qm-arrow">→</div>
-        <div class="qm-stima">
-          <div class="qm-pct \${cls}">\${pct.toFixed(1)}%</div>
-          <div class="qm-label">Con questo messaggio</div>
-          <div class="qm-delta \${cls}">\${sign}\${delta}pp</div>
-        </div>
-      </div>\`;
-    })()}
+    <div id="quota-confronto-box"></div>
 
     <div class="section-label" style="margin-bottom:12px">Da dove vengono i voti</div>
     <div class="erosione-grid">${erosHtml}</div>
