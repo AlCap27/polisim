@@ -9,9 +9,11 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#fafaf8;--bg2:#f0ede8;--bg3:#e8e4de;
-  --ink:#0a0a0a;--mid:#3a3a3a;--light:#7a7a7a;--ghost:#b0a898;
-  --line:#e0dbd4;--accent:#8a6a3a;--accent2:#c8a870;
+  --bg:#faf9f7;--bg2:#f0ede8;--bg3:#e8e4de;
+  --ink:#0a0a0a;--mid:#555;--light:#888;--ghost:#bbb;
+  --line:#e0dbd4;--border2:#d0cbc4;
+  --accent:#1e3a5f;--accent2:#4a7eb5;
+  --blue:#1e3a5f;--blue-light:#4a7eb5;--blue-dim:#e8f0f8;
   --cdx:#b04040;--csx:#4060a0;--m5s:#e8a020;--centro:#508050;--altri:#888;
   --serif:'Cormorant Garamond',Georgia,serif;
   --sans:'DM Sans',system-ui,sans-serif;
@@ -24,21 +26,22 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:10
 .gate{position:fixed;inset:0;background:var(--bg);z-index:1000;display:flex;align-items:center;justify-content:center}
 .gate-box{width:360px;text-align:center;padding:48px 40px;border:0.5px solid var(--line)}
 .gate-logo{font-family:var(--mono);font-size:11px;letter-spacing:4px;color:var(--ink);text-transform:uppercase;margin-bottom:32px}
-.gate-logo span{color:var(--accent)}
+.gate-logo span{color:var(--blue)}
 .gate-title{font-family:var(--serif);font-size:26px;font-weight:300;margin-bottom:8px}
 .gate-sub{font-size:12px;color:var(--light);margin-bottom:28px}
 .gate-input{width:100%;background:var(--bg2);border:0.5px solid var(--line);color:var(--ink);padding:12px 14px;font-family:var(--mono);font-size:13px;text-align:center;letter-spacing:2px;outline:none;margin-bottom:12px}
-.gate-input:focus{border-color:var(--accent)}
+.gate-input:focus{border-color:var(--black,#0a0a0a)}
 .gate-btn{width:100%;padding:13px;background:var(--ink);color:var(--bg);border:none;cursor:pointer;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase}
 .gate-err{font-family:var(--mono);font-size:10px;color:#b05040;margin-top:8px;min-height:16px}
 
 /* NAV */
 .nav{padding:20px 40px;border-bottom:0.5px solid var(--line);display:flex;align-items:center;justify-content:space-between;background:var(--bg)}
 .logo{font-family:var(--mono);font-size:11px;letter-spacing:4px;color:var(--ink);text-decoration:none;text-transform:uppercase}
-.logo span{color:var(--accent)}
+.logo span{color:var(--blue)}
 .nav-right{display:flex;align-items:center;gap:20px}
-.nav-tester{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--accent);text-transform:uppercase;background:var(--bg2);padding:4px 10px;border:0.5px solid var(--line)}
-.nav-back{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--light);text-decoration:none;text-transform:uppercase}
+.nav-tester{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--blue);text-transform:uppercase;background:var(--bg2);padding:4px 10px;border:0.5px solid var(--line)}
+.nav-back{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--light);text-decoration:none;text-transform:uppercase;transition:color .15s}
+.nav-back:hover{color:var(--ink)}
 .nav-tool{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--light);text-decoration:none;text-transform:uppercase}
 .nav-tool:hover,.nav-back:hover{color:var(--ink)}
 
@@ -52,7 +55,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:10
 .field{margin-bottom:16px}
 .field label{display:block;font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--light);text-transform:uppercase;margin-bottom:6px}
 .field select,.field input{width:100%;background:var(--bg2);border:0.5px solid var(--line);color:var(--ink);padding:10px 12px;font-family:var(--sans);font-size:13px;font-weight:300;outline:none}
-.field select:focus,.field input:focus{border-color:var(--accent)}
+.field select:focus,.field input:focus{border-color:var(--blue)}
 .divider{border:none;border-top:0.5px solid var(--line);margin:20px 0}
 
 /* Modo tabs */
@@ -64,7 +67,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:10
 .sondaggio-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .sond-item label{font-family:var(--mono);font-size:8px;letter-spacing:1px;color:var(--light);text-transform:uppercase;display:block;margin-bottom:3px}
 .sond-item input{width:100%;background:var(--bg2);border:0.5px solid var(--line);color:var(--ink);padding:6px 8px;font-family:var(--mono);font-size:12px;outline:none}
-.sond-tot{font-family:var(--mono);font-size:10px;color:var(--accent);margin-top:8px;text-align:right}
+.sond-tot{font-family:var(--mono);font-size:10px;color:var(--blue);margin-top:8px;text-align:right}
 .sond-tot.err{color:#b05040}
 
 /* Step 2 btn */
@@ -152,7 +155,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:10
 .stima-desc{font-size:13px;color:var(--mid);font-weight:300}
 .quota-box{border:0.5px solid var(--accent);padding:20px;margin-bottom:20px;background:rgba(138,106,58,.03)}
 .quota-pct{font-family:var(--serif);font-size:56px;font-weight:300;color:var(--ink);line-height:1}
-.quota-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-top:4px}
+.quota-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--blue);text-transform:uppercase;margin-top:4px}
 .quota-range{font-family:var(--mono);font-size:12px;color:var(--light);margin-top:8px}
 .quota-soglia{font-family:var(--mono);font-size:11px;margin-top:6px}
 .quota-soglia.ok{color:#4a7c4e}
@@ -163,8 +166,8 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:10
 .er-row{display:flex;align-items:center;gap:10px}
 .er-nome{font-family:var(--mono);font-size:10px;color:var(--mid);width:100px}
 .er-bar{flex:1;height:4px;background:var(--bg3)}
-.er-fill{height:100%;background:var(--accent)}
-.er-val{font-family:var(--mono);font-size:10px;color:var(--accent);width:40px;text-align:right}
+.er-fill{height:100%;background:var(--blue)}
+.er-val{font-family:var(--mono);font-size:10px;color:var(--blue);width:40px;text-align:right}
 
 .note-strat{border-left:2px solid var(--accent2);padding:10px 14px;font-size:13px;color:var(--mid);font-style:italic;line-height:1.7;margin-bottom:20px}
 
@@ -232,7 +235,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:10
       <div id="custom-sondaggi" style="display:none">
         <div class="section-label" style="margin-bottom:6px">Inserisci quote % (devono sommare ~100)</div>
         <div style="font-family:var(--mono);font-size:9px;color:var(--light);letter-spacing:1px;margin-bottom:10px;">
-          <span id="nota-fonte-sondaggi">Fonte: <a href="https://politpro.eu/it/italia" target="_blank" rel="noopener" style="color:var(--accent2);">PolitPro</a> · aggiornato {{DATA_LIVE}}</span>
+          <span id="nota-fonte-sondaggi">Fonte: <a href="https://politpro.eu/it/italia" target="_blank" rel="noopener" style="color:var(--blue-light);">PolitPro</a> · aggiornato {{DATA_LIVE}}</span>
         </div>
         <div class="sondaggio-grid">
           <div class="sond-item"><label>FdI</label><input type="number" id="s-FDI" value="28.5" min="0" max="60" step="0.1" oninput="aggiornaTot()"></div>
@@ -290,6 +293,63 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:10
       <div class="field">
         <label>Bacino target</label>
         <input type="text" id="p-bacino" placeholder="Es. ceto medio, liberi professionisti, laici delusi da FI">
+      </div>
+
+      <!-- SEGMENTO ISTAT — espandibile -->
+      <div class="field">
+        <label style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleSegmento()">
+          <span>Segmento demografico ISTAT <span style="font-family:var(--mono);font-size:9px;color:var(--blue-light);letter-spacing:1px">OPZIONALE</span></span>
+          <span id="seg-toggle-icon" style="font-family:var(--mono);font-size:10px;color:var(--light)">+ Espandi</span>
+        </label>
+        <div id="seg-panel" style="display:none;margin-top:12px;padding:16px;background:var(--bg2);border:0.5px solid var(--line)">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+            <div>
+              <label style="font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--blue-light);text-transform:uppercase;display:block;margin-bottom:4px">Fascia età</label>
+              <select id="seg-eta" style="width:100%;background:#fff;border:0.5px solid var(--line);padding:8px 10px;font-size:12px;outline:none;color:var(--ink)">
+                <option value="">Tutte</option>
+                <option value="18-30">Giovani 18–30</option>
+                <option value="30-50">Adulti 30–50</option>
+                <option value="50-65">Maturi 50–65</option>
+                <option value="65+">Anziani 65+</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--blue-light);text-transform:uppercase;display:block;margin-bottom:4px">Istruzione</label>
+              <select id="seg-istr" style="width:100%;background:#fff;border:0.5px solid var(--line);padding:8px 10px;font-size:12px;outline:none;color:var(--ink)">
+                <option value="">Tutti i livelli</option>
+                <option value="bassa">Bassa (lic. media)</option>
+                <option value="media">Media (diploma)</option>
+                <option value="alta">Alta (laurea+)</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--blue-light);text-transform:uppercase;display:block;margin-bottom:4px">Lavoro</label>
+              <select id="seg-lavoro" style="width:100%;background:#fff;border:0.5px solid var(--line);padding:8px 10px;font-size:12px;outline:none;color:var(--ink)">
+                <option value="">Tutti</option>
+                <option value="dipendente_pubblico">Dipendente pubblico</option>
+                <option value="dipendente_privato">Dipendente privato</option>
+                <option value="autonomo">Autonomo / prof.</option>
+                <option value="operaio">Operaio / artigiano</option>
+                <option value="precario">Precario</option>
+                <option value="pensionato">Pensionato</option>
+                <option value="neet">NEET</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--blue-light);text-transform:uppercase;display:block;margin-bottom:4px">Contesto urbano</label>
+              <select id="seg-urbano" style="width:100%;background:#fff;border:0.5px solid var(--line);padding:8px 10px;font-size:12px;outline:none;color:var(--ink)">
+                <option value="">Tutti</option>
+                <option value="metropoli">Metropoli</option>
+                <option value="citta_media">Città media</option>
+                <option value="piccolo_comune">Piccolo comune</option>
+                <option value="area_rurale">Area rurale</option>
+              </select>
+            </div>
+          </div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--light);margin-top:4px">
+            I filtri aggiornano automaticamente il campo "Bacino target" sopra
+          </div>
+        </div>
       </div>
       <div class="field">
         <label>Posizionamento sinistra → destra (1-10)</label>
@@ -422,7 +482,7 @@ async function caricaSondaggiPolitPro() {
     // Aggiorna nota fonte con data
     if (nota) {
       const data = dati.aggiornato ? dati.aggiornato.substring(0,10) : '—';
-      nota.innerHTML = 'Fonte: <a href="https://politpro.eu/it/italia" target="_blank" rel="noopener" style="color:var(--accent2);">PolitPro</a> · aggiornato ' + data;
+      nota.innerHTML = 'Fonte: <a href="https://politpro.eu/it/italia" target="_blank" rel="noopener" style="color:var(--blue-light);">PolitPro</a> · aggiornato ' + data;
     }
   } catch(e) {
     console.warn('sondaggi_correnti.json non disponibile:', e.message);
@@ -751,6 +811,41 @@ function aggiornaISTAT(collegio) {
   ].join(' · ');
 }
 
+
+function toggleSegmento() {
+  const panel = document.getElementById('seg-panel');
+  const icon = document.getElementById('seg-toggle-icon');
+  const open = panel.style.display === 'none';
+  panel.style.display = open ? 'block' : 'none';
+  icon.textContent = open ? '− Chiudi' : '+ Espandi';
+}
+
+function aggiornaSegmentoBacino() {
+  const eta = document.getElementById('seg-eta')?.value;
+  const istr = document.getElementById('seg-istr')?.value;
+  const lavoro = document.getElementById('seg-lavoro')?.value;
+  const urbano = document.getElementById('seg-urbano')?.value;
+  const parts = [eta, istr, lavoro, urbano].filter(Boolean);
+  if (!parts.length) return;
+  const bacinoEl = document.getElementById('p-bacino');
+  if (bacinoEl && !bacinoEl.dataset.manual) {
+    bacinoEl.value = parts.join(', ');
+  }
+}
+
+// Aggiorna bacino al cambio di qualsiasi select segmento
+['seg-eta','seg-istr','seg-lavoro','seg-urbano'].forEach(id => {
+  document.addEventListener('DOMContentLoaded', () => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', aggiornaSegmentoBacino);
+  });
+});
+
+// Segna come manuale se l'utente digita nel bacino
+document.addEventListener('DOMContentLoaded', () => {
+  const b = document.getElementById('p-bacino');
+  if (b) b.addEventListener('input', () => b.dataset.manual = b.value ? '1' : '');
+});
 
 function aggiornaISTATBanner(collegio) {
   const d = ISTAT_COLLEGI[collegio];
