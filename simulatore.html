@@ -267,7 +267,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:10
     <div id="panel-A" style="display:none">
       <div class="field">
         <label>Preset (opzionale)</label>
-        <select id="profilo-preset" onchange="applicaPreset()">
+        <select id="profilo-preset" onchange="applicaPreset();window._quotaBasePartito=PRESET_DATA[this.value]?.quota_attuale||null">
           <option value="">— Scegli partito —</option>
           <optgroup id="group-esistenti" label="── Partiti esistenti ──────────────">
           <option value="fdi">Fratelli d'Italia (FdI)</option>
@@ -625,6 +625,8 @@ function applicaPreset() {
   const key = document.getElementById('profilo-preset').value;
   if (!key) return;
   const p = PRESET_DATA[key];
+  // Salva quota base per il confronto post-simulazione
+  window._quotaBasePartito = p?.quota_attuale || null;
   // Se è un partito esistente, mostra nota
   const notaEl = document.getElementById('nota-partito-esistente');
   if (p && p.esistente) {
