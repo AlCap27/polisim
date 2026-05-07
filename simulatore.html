@@ -500,19 +500,18 @@ async function caricaSondaggiPolitPro() {
   }
 }
 
-// Auto-login da parametro URL (?pwd=...) — evita doppia autenticazione
-window.addEventListener('DOMContentLoaded', () => {
+// Init unico — auto-login da URL + carica sondaggi
+document.addEventListener('DOMContentLoaded', () => {
+  // Auto-login da parametro URL (?pwd=...) — evita doppia autenticazione
   const params = new URLSearchParams(window.location.search);
   const pwd = params.get('pwd');
   if (pwd && ACCESSI[pwd]) {
     document.getElementById('gate-pwd').value = pwd;
     checkGate();
   }
-});
-
-// Carica automaticamente all'avvio
-document.addEventListener('DOMContentLoaded', () => {
-  if (document.getElementById('scenario').value === 'centrale') {
+  // Carica sondaggi live
+  if (document.getElementById('scenario') && 
+      document.getElementById('scenario').value === 'centrale') {
     caricaSondaggiPolitPro();
   }
 });
