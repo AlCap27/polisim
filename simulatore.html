@@ -491,6 +491,16 @@ async function caricaSondaggiPolitPro() {
   }
 }
 
+// Auto-login da parametro URL (?pwd=...) — evita doppia autenticazione
+window.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  const pwd = params.get('pwd');
+  if (pwd && ACCESSI[pwd]) {
+    document.getElementById('gate-pwd').value = pwd;
+    checkGate();
+  }
+});
+
 // Carica automaticamente all'avvio
 document.addEventListener('DOMContentLoaded', () => {
   if (document.getElementById('scenario').value === 'centrale') {
@@ -550,12 +560,16 @@ async function esegui() {
       const bacino = document.getElementById('p-bacino').value.trim();
       const asse  = parseInt(document.getElementById('p-asse').value)||5;
       if (!nome) { throw new Error('Inserisci il nome del partito'); }
+      const presetKey2 = document.getElementById('profilo-preset')?.value || '';
+      const presetDatiNow = PRESET_DATA[presetKey2] || {};
       body.profilo_custom = {
         nome, descrizione: desc||nome,
         temi: temi ? temi.split(',').map(t=>t.trim()).filter(Boolean) : [],
         bacino_target: bacino ? bacino.split(',').map(t=>t.trim()).filter(Boolean) : [],
         posizionamento: {sinistra_destra: asse, libertario_autoritario: 5,
-          europeista_sovranista: asse>6?7:3, pacifista_atlantista: 5, verde_produttivista: 5}
+          europeista_sovranista: asse>6?7:3, pacifista_atlantista: 5, verde_produttivista: 5},
+        quota_attuale: presetDatiNow.quota_attuale || null,
+        coalizione: presetDatiNow.coalizione || null
       };
       setStatus('◆  Stima con Claude...','');
     }
