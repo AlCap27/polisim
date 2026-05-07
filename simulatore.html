@@ -192,6 +192,8 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:10
 .qm-label{font-family:var(--mono);font-size:8px;letter-spacing:1px;color:var(--light);text-transform:uppercase;margin-top:4px}
 .qm-delta{font-family:var(--mono);font-size:11px;font-weight:500;margin-top:4px}
 .qm-delta.up{color:#2a7a3a}.qm-delta.down{color:#b05040}
+
+@keyframes sim-progress{0%{width:0%;margin-left:0}50%{width:60%;margin-left:20%}100%{width:0%;margin-left:100%}}
 </style>
 </head>
 <body>
@@ -526,6 +528,8 @@ function aggiornaTot() {
 
 function setBusy(busy) {
   document.getElementById('run-btn').disabled = busy;
+  const loadBar = document.getElementById('sim-loading-bar');
+  if (loadBar) loadBar.style.display = busy ? 'flex' : 'none';
   document.getElementById('btn-label').style.display = busy?'none':'flex';
   document.getElementById('btn-loading').style.display = busy?'flex':'none';
 }
@@ -663,20 +667,33 @@ function renderResults(data) {
 
 // Aggiorna box confronto quota dopo renderA
 function aggiornaBoxConfronto(pct) {
-  const box = document.getElementById('quota-confronto-box');
+  const box = document.getElementById('qb-inner-confronto');
   if (!box) return;
   const base = window._quotaBasePartito;
-  if (!base || Math.abs(pct - base) < 0.1) { box.innerHTML = ''; return; }
+  if (!base) {
+    // Mostra solo quota stimata
+    box.innerHTML = '<div style="text-align:center;margin-bottom:12px">' +
+      '<div class="quota-pct">' + pct.toFixed(1) + '%</div>' +
+      '<div class="quota-label">Quota con questo messaggio</div></div>';
+    return;
+  }
   const delta = parseFloat((pct - base).toFixed(1));
   const cls = delta >= 0 ? 'up' : 'down';
   const sign = delta >= 0 ? '+' : '';
-  box.innerHTML = '<div class="quota-messaggio">' +
-    '<div class="qm-base"><div class="qm-pct">' + base.toFixed(1) + '%</div>' +
-    '<div class="qm-label">Quota sondaggio</div></div>' +
-    '<div class="qm-arrow">→</div>' +
-    '<div class="qm-stima"><div class="qm-pct ' + cls + '">' + pct.toFixed(1) + '%</div>' +
-    '<div class="qm-label">Con questo messaggio</div>' +
-    '<div class="qm-delta ' + cls + '">' + sign + delta + 'pp</div></div></div>';
+  // Mostra confronto completo: sondaggio → con messaggio
+  box.innerHTML =
+    '<div class="quota-messaggio">' +
+      '<div class="qm-base">' +
+        '<div class="qm-pct">' + base.toFixed(1) + '%</div>' +
+        '<div class="qm-label">Sondaggio attuale</div>' +
+      '</div>' +
+      '<div class="qm-arrow">→</div>' +
+      '<div class="qm-stima">' +
+        '<div class="qm-pct ' + cls + '">' + pct.toFixed(1) + '%</div>' +
+        '<div class="qm-label">Con questo messaggio</div>' +
+        '<div class="qm-delta ' + cls + '">' + sign + delta + 'pp</div>' +
+      '</div>' +
+    '</div>';
 }
 
 function renderB(el, data) {
@@ -817,15 +834,12 @@ function renderA(el, data) {
     </div>
 
     <div class="quota-box">
-      <div class="quota-pct">${pct.toFixed(1)}%</div>
-      <div class="quota-label">Quota nazionale stimata</div>
+      <div id="qb-inner-confronto"></div>
       <div class="quota-range">Intervallo: ${data.range_pessimistico_pct.toFixed(1)}% — ${data.range_ottimistico_pct.toFixed(1)}%</div>
       <div class="quota-soglia ${sogliaClass}">${sogliaIcon} ${sogliaMsg}</div>
     </div>
 
     ${data.note_strategiche?`<div class="note-strat">${data.note_strategiche}</div>`:''}
-
-    <div id="quota-confronto-box"></div>
 
     <div class="section-label" style="margin-bottom:12px">Da dove vengono i voti</div>
     <div class="erosione-grid">${erosHtml}</div>
