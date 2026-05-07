@@ -113,6 +113,16 @@ const ACCESSI = {
 
 let profiloSel = "pol";
 
+// Preseleziona profilo da parametro URL (?profilo=ong/civic/pol)
+window.addEventListener('DOMContentLoaded', () => {
+  const p = new URLSearchParams(window.location.search);
+  const profilo = p.get('profilo');
+  if (profilo && ['pol','ong','civic'].includes(profilo)) {
+    selProfilo(profilo);
+    document.getElementById('gate-pwd').focus();
+  }
+});
+
 function selProfilo(p) {
   profiloSel = p;
   document.querySelectorAll(".profile-card").forEach(c => c.classList.remove("active"));
@@ -129,7 +139,6 @@ function checkGate() {
     return;
   }
   // Redirect alla destinazione corretta
-  <!-- v2 -->
   window.location.href = acc.dest + (acc.dest.includes("?") ? "&" : "?") + "pwd=" + encodeURIComponent(pwd);
 }
 </script>
