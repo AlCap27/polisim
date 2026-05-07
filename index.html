@@ -99,6 +99,13 @@ body { background: var(--bg); color: var(--black); font-family: var(--font-sans)
 .nav-links a:hover { color: var(--black); }
 .nav-btn { font-family: var(--font-mono); font-size: 11px; letter-spacing: 2px; color: var(--bg); background: var(--black); padding: 8px 20px; text-decoration: none; text-transform: uppercase; transition: opacity .2s; }
 .nav-btn:hover { opacity: 0.75; }
+.nav-dropdown { position:relative; }
+.nav-dropdown-toggle { font-size:12px; letter-spacing:1px; color:var(--gray-mid); text-decoration:none; text-transform:uppercase; cursor:pointer; }
+.nav-dropdown-toggle:hover { color:var(--black); }
+.nav-dropdown-menu { display:none; position:absolute; top:100%; left:0; background:var(--bg); border:1px solid var(--border); min-width:220px; z-index:200; padding:8px 0; box-shadow:0 8px 24px rgba(0,0,0,0.08); }
+.nav-dropdown:hover .nav-dropdown-menu { display:block; }
+.nav-dropdown-menu a { display:block; padding:10px 16px; font-size:11px; letter-spacing:1px; color:var(--gray-mid); text-decoration:none; text-transform:uppercase; transition:color .15s; }
+.nav-dropdown-menu a:hover { color:var(--black); background:#f5f2ec; }
 
 /* TICKER */
 .ticker-wrap { background: var(--black); color: #aaa; overflow: hidden; border-bottom: 1px solid #222; height: 36px; display: flex; align-items: center; margin-top: 60px; }
@@ -260,12 +267,19 @@ footer { border-top: 1px solid var(--border); padding: 40px; max-width: 1200px; 
   <div class="nav-inner">
     <a class="nav-logo" href="/">POLISIM</a>
     <div class="nav-links">
-      <a href="/come-funziona.html">Come funziona</a>
       <a href="/metodologia.html">Metodologia</a>
       <a href="/validazione.html">Validazione</a>
       <a href="/fonti.html">Fonti</a>
+      <a href="/per-chi.html">Per chi</a>
+      <span class="nav-dropdown">
+        <a href="#" class="nav-dropdown-toggle" onclick="return false">Tools ▾</a>
+        <div class="nav-dropdown-menu">
+          <a href="/anonimizza.html">Data Shield Anonimizzatore</a>
+          <a href="https://watchdog.polisim.dev" target="_blank">Watchdog Trump ↗</a>
+        </div>
+      </span>
       <a href="/en.html">EN</a>
-      <a class="nav-btn" href="/tool">Usa il tool →</a>
+      <a class="nav-btn" href="/accesso.html">Accedi →</a>
     </div>
   </div>
 </nav>
@@ -282,8 +296,7 @@ footer { border-top: 1px solid var(--border); padding: 40px; max-width: 1200px; 
     <h1 class="hero-title">Comunicazione civica<br><em>trasparente</em> su dati pubblici</h1>
     <p class="hero-sub">PoliSim collega census data aperti (ISTAT, Eurostat), principi verificabili (statuti, carte dei valori) e AI con limitazioni dichiarate per aiutare organizzazioni civiche a comunicare in modo coerente e misurabile.</p>
     <div class="hero-ctas">
-      <a class="btn-primary" href="/tool">Simulatore elettorale →</a>
-      <a class="btn-secondary" href="/tool#messaggi">Message Optimizer →</a>
+
     </div>
     <div class="hero-stats">
       <div class="hero-stat"><span class="hero-stat-n">4.696</span><span class="hero-stat-l">Rispondenti ITANES 2022</span></div>
@@ -294,96 +307,72 @@ footer { border-top: 1px solid var(--border); padding: 40px; max-width: 1200px; 
   <div>
     <div class="hero-quote">
       <p class="hero-quote-text">La coerenza tra principi dichiarati e messaggi reali è il fattore più predittivo della fiducia istituzionale nelle organizzazioni civiche.</p>
-      <p class="hero-quote-source">PoliSim usa dati pubblici (ISTAT, Eligendo) e AI trasparente per aiutare sindacati, comuni e ONG a mantenere questa coerenza in modo verificabile. <a href="/metodologia.html" style="color:var(--blue-light);text-decoration:none;">Metodologia →</a></p>
+      <p class="hero-quote-source">PoliSim usa dati pubblici (ISTAT, Eligendo) e AI trasparente per aiutare enti civici, comuni e ONG a mantenere questa coerenza in modo verificabile. <a href="/metodologia.html" style="color:var(--blue-light);text-decoration:none;">Metodologia →</a></p>
     </div>
   </div>
 </section>
 
 <hr class="section-divider">
 
-<!-- SEGMENTI ITANES -->
+
+
+<!-- PER CHI — tripartita con hover -->
 <section class="section">
-  <p class="section-kicker">Segmentazione empirica · ITANES 2022</p>
-  <h2 class="section-title">Cinque segmenti reali dell'elettorato italiano</h2>
-  <p class="section-sub">I profili non sono derivati da ipotesi teoriche: sono estratti dal dataset ITANES 2022 (N=4.696, panel ponderato). Ogni segmento ha una distribuzione valoriale, un profilo di fiducia istituzionale e trigger comunicativi misurati.</p>
+  <p class="section-kicker">Tre verticali · Una piattaforma</p>
+  <h2 class="section-title">Il messaggio giusto.<br><em style="font-style:italic;color:var(--blue-light);">Per il segmento giusto.</em></h2>
+  <p class="section-sub">Stessi dati, stessa metodologia. Profili calibrati sul tuo contesto.</p>
 
-  <div class="segmenti-grid">
+  <div class="tri-grid">
 
-    <div class="seg-card">
-      <span class="seg-pct">30.7%</span>
-      <span class="seg-name">progressisti_attivisti</span>
-      <div class="seg-label">Progressisti e attivisti</div>
-      <ul class="seg-data">
-        <li>Sx-dx media <span>2.86/10</span></li>
-        <li>Laureati <span>19.8%</span></li>
-        <li>Fiducia scienziati <span>93.5%</span></li>
-        <li>Fiducia magistratura <span>67.4%</span></li>
-        <li>Usa social <span>4.6 gg/sett</span></li>
+    <div class="tri-card tri-ong" id="ong">
+      <div class="tri-accent tri-accent-o"></div>
+      <span class="tri-kicker tri-k-o">ONG &amp; advocacy</span>
+      <div class="tri-title">Comunicazione<br>d'impatto</div>
+      <p class="tri-desc">Testa il framing della tua campagna su donatori, volontari e pubblico generale prima di investire in comunicazione. Segmenti granulari su base ISTAT.</p>
+      <ul class="tri-feats">
+        <li>Metriche calibrate sul tuo obiettivo</li>
+        <li>Lasciti, corporate, advocacy — profili distinti</li>
+        <li>4 framings alternativi per tema</li>
+        <li>Risk score: probabilità rigetto per segmento</li>
       </ul>
-      <p class="seg-source">ITANES 2022 · N=1.444</p>
+      <a class="tri-cta tri-cta-o" href="/accesso.html">Accedi →</a>
     </div>
 
-    <div class="seg-card">
-      <span class="seg-pct">34.7%</span>
-      <span class="seg-name">centrodestra</span>
-      <div class="seg-label">Elettorato centrodestra</div>
-      <ul class="seg-data">
-        <li>Sx-dx media <span>8.72/10</span></li>
-        <li>Leader forte <span>alta priorità</span></li>
-        <li>Fiducia governo <span>variabile</span></li>
-        <li>Trigger sicurezza <span>principale</span></li>
-        <li>TV e radio <span>canale primario</span></li>
+    <div class="tri-card tri-brand" id="civici">
+      <div class="tri-accent tri-accent-b"></div>
+      <span class="tri-kicker tri-k-b">Enti civici</span>
+      <div class="tri-title">Comunicazione<br>istituzionale</div>
+      <p class="tri-desc">Testa i tuoi messaggi su vertenze, campagne sociali e comunicazione pubblica. Valutazione coerenza con statuto e valori dell'organizzazione.</p>
+      <ul class="tri-feats">
+        <li>Analisi framing Entman — 4 dimensioni</li>
+        <li>Score coerenza valoriale dichiarata</li>
+        <li>Varianti ottimizzate per segmento</li>
+        <li>Dati ISTAT 2021 per territorio</li>
       </ul>
-      <p class="seg-source">ITANES 2022 · N=1.628</p>
+      <a class="tri-cta tri-cta-b" href="/accesso.html">Accedi →</a>
     </div>
 
-    <div class="seg-card">
-      <span class="seg-pct">19.6%</span>
-      <span class="seg-name">qualunquisti</span>
-      <div class="seg-label">Qualunquisti</div>
-      <ul class="seg-data">
-        <li>Sx-dx media <span>5.16/10</span></li>
-        <li>Fiducia partiti <span>molto bassa</span></li>
-        <li>Trigger anti-casta <span>principale</span></li>
-        <li>Astensione latente <span>alta</span></li>
-        <li>Responsabilità P9 <span>leva chiave</span></li>
+    <div class="tri-card tri-partiti" id="partiti">
+      <div class="tri-accent tri-accent-p"></div>
+      <span class="tri-kicker tri-k-p">Partiti &amp; consulenti politici</span>
+      <div class="tri-title">Intelligenza<br>elettorale</div>
+      <p class="tri-desc">Simula Camera e Senato, identifica i collegi contendibili, ottimizza il messaggio per il segmento target. Powered da MRP bayesiano — il gold standard della sondaggistica elettorale.</p>
+      <ul class="tri-feats">
+        <li>Swing model 147 collegi Camera + 74 Senato</li>
+        <li>Doppia maggioranza verificata</li>
+        <li>Override euristico — il tuo "naso politico" sul modello</li>
+        <li>Valutazione coerenza messaggio-territorio per collegio</li>
+        <li>Alert critico su messaggi incoerenti col bacino</li>
       </ul>
-      <p class="seg-source">ITANES 2022 · N=922</p>
-    </div>
-
-    <div class="seg-card">
-      <span class="seg-pct">11.5%</span>
-      <span class="seg-name">delusi_m5s</span>
-      <div class="seg-label">Ex M5S delusi</div>
-      <ul class="seg-data">
-        <li>Sx-dx media <span>4.96/10</span></li>
-        <li>Anti-establishment <span>residuo</span></li>
-        <li>Trasparenza <span>priorità alta</span></li>
-        <li>Segmento più fluido <span>↔</span></li>
-        <li>Digitale nativo <span>sì</span></li>
-      </ul>
-      <p class="seg-source">ITANES 2022 · N=541</p>
-    </div>
-
-    <div class="seg-card">
-      <span class="seg-pct">3.4%</span>
-      <span class="seg-name">giovani_astensionisti</span>
-      <div class="seg-label">Giovani astensionisti</div>
-      <ul class="seg-data">
-        <li>Sx-dx media <span>5.84/10</span></li>
-        <li>Età <span>&lt; 30 anni</span></li>
-        <li>Fiducia istituzioni <span>bassa</span></li>
-        <li>Trigger pace/clima <span>principale</span></li>
-        <li>Social nativo <span>Instagram/TikTok</span></li>
-      </ul>
-      <p class="seg-source">ITANES 2022 · N=161</p>
+      <a class="tri-cta tri-cta-p" href="/accesso.html">Accedi →</a>
     </div>
 
   </div>
 
-  <p style="font-family:var(--font-mono);font-size:10px;color:var(--gray-light);margin-top:14px;letter-spacing:1px;">
-    Fonte: Vezzoni et al. (2023), ITANES Panel 2022, DOI: 10.13130/RD_UNIMI/JV77WR · Distribuzione ponderata sul campione totale (N=4.696).
-  </p>
+  <div class="tri-footer">
+    <p class="tri-footer-main">Base dati comune · ISTAT Censimento Permanente 2021 · Eligendo OpenData · ITANES 2022<sup>*</sup></p>
+    <p class="tri-footer-note"><sup>*</sup> ITANES (Italian National Election Studies) — panel elettorale italiano, consorzio universitario. N=4.696 rispondenti, 326 variabili. DOI: 10.13130/RD_UNIMI/JV77WR</p>
+  </div>
 </section>
 
 <hr class="section-divider">
@@ -462,70 +451,30 @@ footer { border-top: 1px solid var(--border); padding: 40px; max-width: 1200px; 
       <p class="roadmap-desc">Implementazione shapefile per swing model a livello di singolo collegio uninominale. Upload di dataset proprietari (sondaggi interni, exit poll) con anonimizzazione GDPR integrata.</p>
       <p class="roadmap-tech">CAMERA_CollegiUNINOMINALI_2020.shp · GDPR Art. 4.5</p>
     </div>
+    <div class="roadmap-item">
+      <span class="roadmap-badge badge-planned">◌ Pianificato</span>
+      <div class="roadmap-title">LightRAG · Memoria istituzionale persistente</div>
+      <p class="roadmap-desc">Memoria istituzionale dell'organizzazione: documenti, statuti, campagne passate indicizzati con LightRAG. Il modello impara dal corpus valoriale dell'utente invece di ragionare solo sul prompt.</p>
+      <p class="roadmap-tech">LightRAG · vettorizzazione documenti · contesto persistente</p>
+    </div>
+    <div class="roadmap-item">
+      <span class="roadmap-badge badge-planned">◌ Pianificato</span>
+      <div class="roadmap-title">Social listening · Calibrazione segmenti</div>
+      <p class="roadmap-desc">Integrazione ascolto social per calibrare i pesi dei segmenti in tempo reale. Segnali da X/Twitter, Telegram pubblici e Reddit per misurare sentiment per tema e territorio.</p>
+      <p class="roadmap-tech">Apify · sentiment analysis · calibrazione bayesiana</p>
+    </div>
+    <div class="roadmap-item">
+      <span class="roadmap-badge badge-planned">◌ Pianificato</span>
+      <div class="roadmap-title">A/B testing messaggi · Polling aggregator</div>
+      <p class="roadmap-desc">Test ante-campagna su varianti di messaggio con scoring comparativo. Integrazione aggregatore sondaggi pubblici per confronto diretto con output MRP e calibrazione del prior bayesiano.</p>
+      <p class="roadmap-tech">scoring comparativo · ISTAT 2023 update · Brevo email</p>
+    </div>
   </div>
 </section>
 
 <hr class="section-divider">
 
-<!-- PER CHI — tripartita con hover -->
-<section class="section">
-  <p class="section-kicker">Tre verticali · Una piattaforma</p>
-  <h2 class="section-title">Il messaggio giusto.<br><em style="font-style:italic;color:var(--blue-light);">Per il segmento giusto.</em></h2>
-  <p class="section-sub">Stessi dati, stessa metodologia. Profili calibrati sul tuo contesto.</p>
 
-  <div class="tri-grid">
-
-    <div class="tri-card tri-ong" id="ong">
-      <div class="tri-accent tri-accent-o"></div>
-      <span class="tri-kicker tri-k-o">ONG &amp; advocacy</span>
-      <div class="tri-title">Comunicazione<br>d'impatto</div>
-      <p class="tri-desc">Testa il framing della tua campagna su donatori, volontari e pubblico generale prima di investire in comunicazione.</p>
-      <ul class="tri-feats">
-        <li>Metriche calibrate sul tuo obiettivo</li>
-        <li>Lasciti, corporate, advocacy — profili distinti</li>
-        <li>4 framings alternativi per tema</li>
-        <li>Risk score: probabilità rigetto per segmento</li>
-      </ul>
-      <a class="tri-cta tri-cta-o" href="/per-chi.html#ong">Scopri per le ONG →</a>
-    </div>
-
-    <div class="tri-card tri-brand" id="partners">
-      <div class="tri-accent tri-accent-b"></div>
-      <span class="tri-kicker tri-k-b">Pilot Partners</span>
-      <div class="tri-title">Infrastruttura<br>civica</div>
-      <p class="tri-desc">PoliSim è open-source e cerca istituzioni pilota per validare il sistema su contesti reali — comuni, ONG, movimenti civici.</p>
-      <ul class="tri-feats">
-        <li>Deploy gratuito durante la fase beta</li>
-        <li>Co-sviluppo funzionalità su misura</li>
-        <li>Documentazione caso d'uso pubblicata</li>
-        <li>Dati aperti · GDPR by design · No vendor lock-in</li>
-      </ul>
-      <a class="tri-cta tri-cta-b" href="/per-chi.html#partners">Diventa pilot partner →</a>
-    </div>
-
-    <div class="tri-card tri-partiti" id="partiti">
-      <div class="tri-accent tri-accent-p"></div>
-      <span class="tri-kicker tri-k-p">Partiti &amp; consulenti politici</span>
-      <div class="tri-title">Intelligenza<br>elettorale</div>
-      <p class="tri-desc">Simula Camera e Senato, identifica i collegi contendibili, ottimizza il messaggio per il segmento target.</p>
-      <ul class="tri-feats">
-        <li>Swing model 147 collegi Camera + 74 Senato</li>
-        <li>Doppia maggioranza verificata</li>
-        <li>Framing per 5 segmenti psicografici</li>
-        <li>A/B test messaggi ante-campagna</li>
-      </ul>
-      <a class="tri-cta tri-cta-p" href="/per-chi.html#partiti">Scopri per i partiti →</a>
-    </div>
-
-  </div>
-
-  <div class="tri-footer">
-    <p class="tri-footer-main">Base dati comune · ISTAT Censimento Permanente 2021 · Eligendo OpenData · ITANES 2022<sup>*</sup></p>
-    <p class="tri-footer-note"><sup>*</sup> ITANES (Italian National Election Studies) — panel elettorale italiano, consorzio universitario. N=4.696 rispondenti, 326 variabili. DOI: 10.13130/RD_UNIMI/JV77WR</p>
-  </div>
-</section>
-
-<hr class="section-divider">
 
 <!-- LIMITAZIONI -->
 <section class="section">
