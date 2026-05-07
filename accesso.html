@@ -34,12 +34,11 @@ body{background:var(--bg);color:var(--black);font-family:var(--font-sans);min-he
 
 /* Profili */
 .profiles{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:0.5px solid var(--line);margin-bottom:28px}
-.profile-card{background:var(--bg);padding:20px 16px;cursor:pointer;transition:background .15s;text-align:center;border:2px solid transparent}
+.profile-card{background:var(--bg);padding:28px 20px;cursor:pointer;transition:background .15s;text-align:center;border:2px solid transparent}
 .profile-card:hover{background:#f0ede8}
 .profile-card.active{background:#fff;border-color:var(--black)}
-.profile-icon{font-size:22px;margin-bottom:8px}
-.profile-label{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:var(--mid);text-transform:uppercase;line-height:1.4}
-.profile-card.active .profile-label{color:var(--black)}
+.profile-label{font-family:"Cormorant Garamond",Georgia,serif;font-size:22px;font-weight:300;color:var(--mid);letter-spacing:1px;line-height:1.3}
+.profile-card.active .profile-label{color:var(--black);font-weight:400}
 .profile-desc{font-size:11px;color:#999;margin-top:4px;line-height:1.4}
 .profile-card.active .profile-desc{color:var(--mid)}
 
@@ -73,17 +72,14 @@ body{background:var(--bg);color:var(--black);font-family:var(--font-sans);min-he
 
     <div class="profiles">
       <div class="profile-card active" id="p-pol" onclick="selProfilo('pol')">
-        <div class="profile-icon">🏛</div>
         <div class="profile-label">Consulente<br>politico</div>
         <div class="profile-desc">Simulatore elettorale + Message Optimizer</div>
       </div>
       <div class="profile-card" id="p-ong" onclick="selProfilo('ong')">
-        <div class="profile-icon">🤝</div>
         <div class="profile-label">ONG /<br>Advocacy</div>
         <div class="profile-desc">Message Optimizer + analisi Entman</div>
       </div>
       <div class="profile-card" id="p-civic" onclick="selProfilo('civic')">
-        <div class="profile-icon">✊</div>
         <div class="profile-label">Sindacato /<br>Ente civico</div>
         <div class="profile-desc">Message Optimizer + analisi Entman</div>
       </div>
@@ -138,7 +134,12 @@ function checkGate() {
     setTimeout(() => document.getElementById("gate-err").textContent = "", 2500);
     return;
   }
-  // Redirect alla destinazione corretta
+  // Verifica che la password corrisponda al profilo selezionato
+  if (acc.profilo !== profiloSel) {
+    document.getElementById("gate-err").textContent = "Codice non valido per questo profilo";
+    setTimeout(() => document.getElementById("gate-err").textContent = "", 2500);
+    return;
+  }
   window.location.href = acc.dest + (acc.dest.includes("?") ? "&" : "?") + "pwd=" + encodeURIComponent(pwd);
 }
 </script>
