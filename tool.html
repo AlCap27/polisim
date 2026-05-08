@@ -321,6 +321,11 @@ body { background: var(--bg); color: var(--text); font-family: var(--font-sans);
       </div>
 
     </div>
+    <div id="download-bar" style="display:none;margin-top:12px">
+      <button onclick="downloadAnalisiTool()" style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;background:none;border:0.5px solid var(--border2);color:var(--text-mid);padding:10px 20px;cursor:pointer">
+        &#8595; Scarica analisi collegio (TXT)
+      </button>
+    </div>
   </div>
 </div>
 
@@ -526,6 +531,7 @@ async function runPrediction() {
 
   // UI state
   document.getElementById('result-empty').style.display = 'none';
+  window._lastMrpData = null;
   document.getElementById('result-card').classList.remove('visible');
   document.getElementById('error-msg').classList.remove('visible');
   document.getElementById('loading').classList.add('visible');
@@ -637,7 +643,9 @@ function renderResult(data, fromOverride = false) {
       </div>`;
   });
 
+  window._lastMrpData = data;
   document.getElementById('result-card').classList.add('visible');
+  document.getElementById('download-bar').style.display = 'block';
 
   // Se c'è un profilo da Step 1, mostra stima impatto nel collegio
   if (window._profiloStep1 && !fromOverride) {
@@ -661,6 +669,79 @@ function inserisciBoxImpatto(html) {
   } else {
     card.appendChild(div);
   }
+}
+
+function downloadAnalisiTool() {
+  const p = window._profiloStep1;
+  const mrp = window._lastMrpData;
+  if (!mrp && !p) { alert('Nessuna analisi da scaricare.'); return; }
+  
+  const NL = String.fromCharCode(10);
+  const SEP = '='.repeat(50);
+  const sep = '-'.repeat(30);
+  const ts = new Date().toLocaleDateString('it-IT');
+  const nome = p ? (p.nome || 'Partito') : 'Analisi';
+  const collegio = mrp ? (mrp.collegio || '') : '';
+  
+  let lines = [
+    'POLISIM.DEV — ANALISI SIMULATORE ELETTORALE',
+    SEP,
+    'Data: ' + ts,
+    'Partito: ' + nome,
+    'Collegio: ' + collegio,
+    ''
+  ];
+  
+  if (p) {
+    lines.push('PROFILO STEP 1', sep);
+    if (p.temi) lines.push('Messaggio testato: ' + p.temi);
+    if (p.bacino) lines.push('Bacino target: ' + p.bacino);
+    if (p.quota_naz) lines.push('Quota nazionale: ' + p.quota_naz + '%');
+    if (p.asse) lines.push('Posizionamento: ' + p.asse + '/10');
+    lines.push('');
+  }
+  
+  if (mrp) {
+    lines.push('RISULTATO MRP — ' + collegio, sep);
+    const winner = mrp.winner || '';
+    const winnerLabel = winner === 'CDX' ? 'Centro-Destra' : winner === 'CSX' ? 'Centro-Sinistra' : winner;
+    lines.push('Vincitore previsto: ' + winnerLabel);
+    const prob = document.getElementById('winner-prob')?.textContent || '';
+    if (prob) lines.push('P(vittoria): ' + prob);
+    lines.push('');
+    
+    lines.push('Forza coalizioni (mediana IC 90%)', sep);
+    ['CDX','CSX','M5S','TERZO POLO'].forEach(coal => {
+      const m = mrp[coal];
+      if (m && m.mediana) {
+        lines.push(coal + ': ' + m.mediana.toFixed(1) + '% [' + (m.p05||0).toFixed(1) + '% — ' + (m.p95||0).toFixed(1) + '%]');
+      }
+    });
+    lines.push('');
+  }
+  
+  const impBox = document.getElementById('impatto-step1');
+  if (impBox) {
+    const testo = impBox.innerText || impBox.textContent || '';
+    if (testo.trim()) {
+      lines.push('ANALISI IMPATTO MESSAGGIO', sep);
+      lines.push(testo.replace(/\t/g, ' ').trim());
+      lines.push('');
+    }
+  }
+  
+  lines.push(SEP);
+  lines.push('Modello: MRP Dirichlet-Multinomial · PyMC 5.28.4 · RMSE 4.3pp out-of-sample');
+  lines.push('Analisi esplorativa — Metodologia: polisim.dev/metodologia.html');
+  
+  const txt = lines.join(NL);
+  const blob = new Blob([txt], {type: 'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'polisim_' + nome.split(' ').join('_').toLowerCase() + '_' + collegio.split(' ').join('_').toLowerCase() + '_' + ts.split('/').join('-') + '.txt';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 async function mostraImpatto(mrpData) {
