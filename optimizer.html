@@ -538,6 +538,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-sans);font-siz
       <!-- Varianti -->
       <div class="varianti-title">Varianti ottimizzate</div>
       <div id="varianti-container"></div>
+      <div id="raccomandazione-box"></div>
 
       <div class="disclaimer">
         Analisi esplorativa basata su: Entman 1993 · ISTAT 2021 Censimento Permanente · Eligendo OpenData<br>
@@ -810,19 +811,46 @@ function renderResults(d) {
     </div>`;
   }).join('');
 
-  // Varianti
+  // Varianti con metriche dettagliate
   const varianti = d.varianti || [];
+  const metriche = d.metriche || [];
+  const labelScore = d.label_score || 'Score';
+
   document.getElementById('varianti-container').innerHTML = varianti.length
-    ? varianti.map(v => `
-      <div class="variante">
-        <div class="variante-header">
-          <span class="variante-tipo">${v.tipo || 'Variante'}</span>
-          <span class="variante-pct">Score ${Math.round((v.score||0)*100)}%</span>
-        </div>
-        <div class="variante-testo">${v.testo}</div>
-        <div class="variante-note">${v.note || ''}</div>
-      </div>`).join('')
+    ? varianti.map(v => {
+        const md = v.metriche_dettaglio || {};
+        const scoreBar = metriche.map(m => {
+          const val = md[m] || 0;
+          const pct = val * 10;
+          return '<div style="margin-bottom:6px">' +
+            '<div style="display:flex;justify-content:space-between;margin-bottom:3px">' +
+            '<span style="font-family:var(--font-mono);font-size:8px;letter-spacing:1px;color:var(--light);text-transform:uppercase">' + m.replace(/_/g,' ') + '</span>' +
+            '<span style="font-family:var(--font-mono);font-size:9px;color:var(--ink);font-weight:500">' + val + '/10</span></div>' +
+            '<div style="height:2px;background:var(--border2);width:100%">' +
+            '<div style="height:2px;background:var(--black);width:' + pct + '%"></div></div></div>';
+        }).join('');
+        return '<div class="variante">' +
+          '<div class="variante-header">' +
+          '<span class="variante-tipo">' + (v.tipo || 'Variante') + '</span>' +
+          '<span class="variante-pct">' + labelScore + ' ' + Math.round((v.score||0)*100) + '%</span></div>' +
+          '<div class="variante-testo">' + v.testo + '</div>' +
+          (v.note ? '<div class="variante-note">' + v.note + '</div>' : '') +
+          (metriche.length ? '<div style="margin-top:14px;padding-top:12px;border-top:0.5px solid var(--border)">' + scoreBar + '</div>' : '') +
+          '</div>';
+      }).join('')
     : '<p style="font-family:var(--font-mono);font-size:11px;color:var(--ghost)">Nessuna variante generata — riprova con un messaggio più specifico.</p>';
+
+  // Raccomandazione finale
+  console.log('raccomandazione:', d.raccomandazione, '| avvertenza:', d.avvertenza);
+  const recBox = document.getElementById('raccomandazione-box');
+  if (recBox) {
+    const rec = d.raccomandazione || '';
+    const avv = d.avvertenza || '';
+    recBox.innerHTML = (rec || avv) ? (
+      (rec ? '<div class="alert green"><div class="alert-title green">Raccomandazione</div><div class="alert-text">' + rec + '</div></div>' : '') +
+      (avv ? '<div class="alert amber"><div class="alert-title amber">⚠ Cosa evitare con questo segmento</div><div class="alert-text">' + avv + '</div></div>' : '')
+    ) : '';
+  }
 
   document.getElementById('results').style.display = 'block';
   document.getElementById('results').scrollIntoView({behavior:'smooth'});
