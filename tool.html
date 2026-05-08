@@ -474,10 +474,14 @@ async function init() {
     const collegi = data.collegi || data;
 
     sel.innerHTML = '<option value="">— Seleziona un collegio —</option>';
+    // Costruisci mappa da codice collegio a nome completo ISTAT
+    const istatKeys = Object.keys(ISTAT_COLLEGI);
     collegi.sort().forEach(c => {
       const opt = document.createElement('option');
       opt.value = c;
-      opt.textContent = c;
+      // Cerca nome completo con città nell'ISTAT_COLLEGI
+      const fullName = istatKeys.find(k => k.startsWith(c + ' (') || k === c);
+      opt.textContent = fullName || c;
       sel.appendChild(opt);
     });
     btn.disabled = false;
