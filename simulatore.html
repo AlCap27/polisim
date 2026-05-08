@@ -467,7 +467,7 @@ document.getElementById('scenario').addEventListener('change', function() {
 async function caricaSondaggiPolitPro() {
   const nota = document.getElementById('nota-fonte-sondaggi');
   try {
-    const r = await fetch('https://api2.polisim.dev/api/sondaggi?t=' + Date.now());
+    const r = await fetch('https://api.polisim.dev/api/sondaggi?t=' + Date.now());
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const dati = await r.json();
     const p = dati.partiti || {};
