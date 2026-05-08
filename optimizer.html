@@ -540,6 +540,12 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-sans);font-siz
       <div id="varianti-container"></div>
       <div id="raccomandazione-box"></div>
 
+      <div style="margin-bottom:20px">
+        <button onclick="downloadAnalisi()" style="font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;background:none;border:0.5px solid var(--border2);color:var(--mid);padding:10px 20px;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--black)';this.style.color='var(--black)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--mid)'">
+          ↓ Scarica analisi (TXT)
+        </button>
+      </div>
+
       <div class="disclaimer">
         Analisi esplorativa basata su: Entman 1993 · ISTAT 2021 Censimento Permanente · Eligendo OpenData<br>
         Non validata su campagne reali · Limitazioni dichiarate: polisim.dev/metodologia.html<br>
@@ -608,12 +614,23 @@ function setTipo(t) {
 
 function aggiornaTipoCampagna() {
   const val = document.getElementById('f-tipo-campagna').value;
-  tipoCorrente = val;
+  // Mappa tipi campagna ai backend types supportati
+  const tipoMap = {
+    'ong_lasciti': 'ong_lasciti',
+    'ong_corporate': 'ong_corporate',
+    'advocacy': 'ong_lasciti',
+    'fundraising': 'ong_lasciti',
+  };
+  tipoCorrente = tipoMap[val] || 'ong_lasciti';
 }
 
 function aggiornaVisibilitaTipoCampagna() {
   const wrap = document.getElementById('tipo-campagna-wrap');
-  if (wrap) wrap.style.display = tipoCorrente.startsWith('ong') ? 'block' : 'none';
+  // Mostra il select tipo campagna solo per ONG, non per ente civico
+  if (wrap) {
+    const isOng = tipoCorrente === 'ong_lasciti' || tipoCorrente === 'ong_corporate';
+    wrap.style.display = isOng ? 'block' : 'none';
+  }
 }
 
 function setTab(t) {
@@ -717,6 +734,119 @@ async function analizza() {
     document.getElementById('btn-analizza').disabled = false;
     document.getElementById('loading').style.display = 'none';
   }
+}
+
+function downloadAnalisi() {
+  const nome = document.getElementById('f-nome')?.value || 'Organizzazione';
+  const messaggio = document.getElementById('f-messaggio')?.value || '';
+  const data = window._lastAnalisiData;
+  if (!data) { alert('Nessuna analisi da scaricare — esegui prima una analisi.'); return; }
+  
+  const score = Math.round((data.score_coerenza||0)*100);
+  const rischio = (data.rischio_rigetto||'').toUpperCase();
+  const impatto = data.impatto_pp || 0;
+  const entman = data.entman || {};
+  const varianti = data.varianti || [];
+  const rec = data.raccomandazione || '';
+  const avv = data.avvertenza || '';
+  const ts = new Date().toLocaleDateString('it-IT');
+  
+  const dimLabels = {'problema':'Definizione del problema','causa':'Diagnosi delle cause','valutazione':'Valutazione morale','soluzione':'Soluzione proposta'};
+  const forzaStars = {'forte':'★★★','neutro':'★★☆','debole':'★☆☆'};
+  
+  let txt = '';
+  txt += 'POLISIM.DEV — ANALISI MESSAGE OPTIMIZER
+';
+  txt += '='.repeat(50) + '
+';
+  txt += 'Data: ' + ts + '
+';
+  txt += 'Organizzazione: ' + nome + '
+';
+  txt += 'Messaggio testato: ' + messaggio + '
+
+';
+  
+  txt += 'RISULTATI SINTETICI
+' + '-'.repeat(30) + '
+';
+  txt += 'Coerenza valoriale: ' + score + '%
+';
+  txt += 'Rischio rigetto: ' + rischio + '
+';
+  txt += 'Impatto stimato: ' + (impatto >= 0 ? '+' : '') + impatto + 'pp
+
+';
+  
+  if (data.alert) { txt += 'ALERT: ' + data.alert + '
+
+'; }
+  if (data.motivazione) { txt += 'VALUTAZIONE: ' + data.motivazione + '
+
+'; }
+  
+  txt += 'ANALISI ENTMAN — 4 DIMENSIONI
+' + '-'.repeat(30) + '
+';
+  ['problema','causa','valutazione','soluzione'].forEach((k,i) => {
+    const v = entman[k] || {};
+    const stars = forzaStars[v.forza||'neutro'] || '★★☆';
+    txt += (i+1) + '. ' + (dimLabels[k]||k).toUpperCase() + ' ' + stars + '
+';
+    txt += 'Forza: ' + (v.forza||'—') + '
+';
+    txt += 'Analisi: ' + (v.analisi||'—') + '
+';
+    txt += 'Suggerimento: ' + (v.suggerimento||'—') + '
+
+';
+  });
+  
+  txt += 'VARIANTI OTTIMIZZATE
+' + '-'.repeat(30) + '
+';
+  varianti.forEach((v,i) => {
+    txt += (i+1) + '. ' + (v.tipo||'Variante') + ' — Score ' + Math.round((v.score||0)*100) + '%
+';
+    txt += '"' + (v.testo||'') + '"
+';
+    if (v.note) txt += v.note + '
+';
+    if (v.metriche_dettaglio) {
+      Object.entries(v.metriche_dettaglio).forEach(([m,val]) => {
+        txt += '  ' + m.replace(/_/g,' ') + ': ' + val + '/10
+';
+      });
+    }
+    txt += '
+';
+  });
+  
+  if (rec) { txt += 'RACCOMANDAZIONE
+' + '-'.repeat(30) + '
+' + rec + '
+
+'; }
+  if (avv) { txt += 'COSA EVITARE
+' + '-'.repeat(30) + '
+' + avv + '
+
+'; }
+  
+  txt += '-'.repeat(50) + '
+';
+  txt += 'Analisi esplorativa — Non validata su campagne reali
+';
+  txt += 'Metodologia: polisim.dev/metodologia.html
+';
+  
+  const blob = new Blob([txt], {type: 'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'polisim_analisi_' + nome.replace(/\s+/g,'_').toLowerCase() + '_' + ts.replace(/\//g,'-') + '.txt';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function scoreClass(v) {
@@ -852,6 +982,8 @@ function renderResults(d) {
     ) : '';
   }
 
+  // Salva dati per download
+  window._lastAnalisiData = d;
   document.getElementById('results').style.display = 'block';
   document.getElementById('results').scrollIntoView({behavior:'smooth'});
 }
