@@ -490,6 +490,20 @@ async function caricaSondaggiPolitPro() {
 
     aggiornaTot();
 
+    // Aggiorna quote_attuale nei preset partiti con dati live PolitPro
+    const presetMap = {
+      'FDI': 'fdi', 'PD': 'pd', 'M5S': 'm5s',
+      'FI': 'fi', 'LEGA': 'lega', 'AVS': 'avs', 'FN': 'fn'
+    };
+    Object.entries(presetMap).forEach(([pk, presetKey]) => {
+      if (PRESET_DATA[presetKey] && p[pk] !== undefined) {
+        PRESET_DATA[presetKey].quota_attuale = p[pk];
+      }
+    });
+    if (PRESET_DATA['az_iv']) {
+      PRESET_DATA['az_iv'].quota_attuale = Math.round(((p['AZ']||0) + (p['IV']||0)) * 10) / 10;
+    }
+
     // Aggiorna nota fonte con data
     if (nota) {
       const data = dati.aggiornato ? dati.aggiornato.substring(0,10) : '—';
