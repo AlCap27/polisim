@@ -1,24 +1,91 @@
 {
   "version": 2,
   "builds": [
-    { "src": "**/*.html", "use": "@vercel/static" },
-    { "src": "**/*.json", "use": "@vercel/static" },
-    { "src": "**/*.txt", "use": "@vercel/static" }
+    {
+      "src": "**/*.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "**/*.json",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "**/*.txt",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "**/*.pdf",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "**/*.csv",
+      "use": "@vercel/static"
+    }
   ],
   "routes": [
-    { "src": "/tool", "dest": "/simulatore.html" },
-    { "src": "/simulatore", "dest": "/simulatore.html" },
-    { "src": "/previsioni", "dest": "/tool.html" },
-    { "src": "/validazione", "dest": "/validazione.html" },
-    { "src": "/metodologia", "dest": "/metodologia.html" },
-    { "src": "/fonti", "dest": "/fonti.html" },
-    { "src": "/gdpr", "dest": "/gdpr.html" },
-    { "src": "/anonimizza", "dest": "/anonimizza.html" },
-    { "src": "/collegi", "dest": "/collegi.html" },
-    { "src": "/per-chi", "dest": "/per-chi.html" },
-    { "src": "/sitemap.xml", "dest": "/sitemap.xml" },
-    { "src": "/robots.txt", "dest": "/robots.txt" },
-    { "src": "/(.*\\.html)", "dest": "/$1" },
-    { "src": "/", "dest": "/index.html" }
+    {
+      "src": "/tool",
+      "dest": "/simulatore.html"
+    },
+    {
+      "src": "/simulatore",
+      "dest": "/simulatore.html"
+    },
+    {
+      "src": "/previsioni",
+      "dest": "/tool.html"
+    },
+    {
+      "src": "/validazione",
+      "dest": "/validazione.html"
+    },
+    {
+      "src": "/metodologia",
+      "dest": "/metodologia.html"
+    },
+    {
+      "src": "/fonti",
+      "dest": "/fonti.html"
+    },
+    {
+      "src": "/gdpr",
+      "dest": "/gdpr.html"
+    },
+    {
+      "src": "/anonimizza",
+      "dest": "/anonimizza.html"
+    },
+    {
+      "src": "/collegi",
+      "dest": "/collegi.html"
+    },
+    {
+      "src": "/per-chi",
+      "dest": "/per-chi.html"
+    },
+    {
+      "src": "/sitemap.xml",
+      "dest": "/sitemap.xml"
+    },
+    {
+      "src": "/robots.txt",
+      "dest": "/robots.txt"
+    },
+    {
+      "src": "/(.*\\.html)",
+      "dest": "/$1"
+    },
+    {
+      "src": "/(.*\\.pdf)",
+      "dest": "/$1"
+    },
+    {
+      "src": "/(.*\\.csv)",
+      "dest": "/$1"
+    },
+    {
+      "src": "/",
+      "dest": "/index.html"
+    }
   ]
 }
