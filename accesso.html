@@ -79,6 +79,10 @@ body{background:var(--bg);color:var(--black);font-family:var(--font-sans);min-he
         <div class="profile-label">ONG /<br>Advocacy</div>
         <div class="profile-desc">Message Optimizer + analisi Entman</div>
       </div>
+      <div class="profile-card" id="p-prop" onclick="selProfilo('prop')">
+        <div class="profile-label">ONG /<br>Propensione</div>
+        <div class="profile-desc">Modulo Propensione · analisi donatori RFML</div>
+      </div>
       <div class="profile-card" id="p-civic" onclick="selProfilo('civic')">
         <div class="profile-label">Sindacato /<br>Ente civico</div>
         <div class="profile-desc">Message Optimizer + analisi Entman</div>
@@ -103,6 +107,7 @@ body{background:var(--bg);color:var(--black);font-family:var(--font-sans);min-he
 const ACCESSI = {
   "pol2026test":        {profilo:"pol",  dest:"/simulatore.html"},
   "ong2026test":        {profilo:"ong",  dest:"/optimizer.html?tipo=ong"},
+  "prop2026test":       {profilo:"prop", dest:"/polisim_mapping_wizard.html"},
   "civic2026test":      {profilo:"civic",dest:"/optimizer.html?tipo=civic"},
   "admin-polisim-2026": {profilo:"pol",  dest:"/simulatore.html"},
 };
@@ -113,10 +118,7 @@ let profiloSel = "pol";
 window.addEventListener('DOMContentLoaded', () => {
   const p = new URLSearchParams(window.location.search);
   const profilo = p.get('profilo');
-  if (profilo && ['pol','ong','civic'].includes(profilo)) {
-    selProfilo(profilo);
-    document.getElementById('gate-pwd').focus();
-  }
+  if (profilo && ['pol','ong','prop','civic'].includes(profilo)) {
 });
 
 function selProfilo(p) {
