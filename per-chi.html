@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PoliSim — Per partiti, ONG, sindacati e pilot partners</title>
 <meta property="og:title" content="PoliSim — Per partiti, ONG e pilot partners">
-<meta property="og:description" content="PoliSim per partiti: simulazione elettorale Camera+Senato. Per ONG: framing campagne su dati reali. Per brand: risonanza per segmento ISTAT/ITANES.">
+<meta property="og:description" content="PoliSim per partiti: simulazione elettorale Camera+Senato. Per ONG: framing campagne su dati reali. Per brand: risonanza per segmento ISTAT/ITANES/ESS/TRIPOL.">
 <meta name="description" content="PoliSim per partiti, ONG, sindacati e pilot partners. Simulazione elettorale multistep, valutazione coerenza messaggio-territorio, MRP per collegio con IC 90% bayesiani. Dati ISTAT 2021, Eligendo, PolitPro live.">
 <link rel="canonical" href="https://polisim.dev/per-chi.html">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -34,10 +34,10 @@
     },
     {
       "@type": "Question",
-      "name": "Cosa sono i dati ISTAT e ITANES usati da PoliSim?",
+      "name": "Cosa sono i dati ISTAT, ITANES, ESS e TRIPOL usati da PoliSim?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "ISTAT Censimento Permanente 2021 fornisce i dati demografici per collegio (istruzione, occupazione, stranieri, struttura familiare). ITANES 2022 è il panel elettorale italiano (N=4.696 rispondenti, DOI 10.13130/RD_UNIMI/JV77WR) che fornisce i profili psicografici dei segmenti: scala valoriale, fiducia istituzionale, trigger comunicativi."
+        "text": "ISTAT Censimento Permanente 2021 fornisce i dati demografici per collegio (istruzione, occupazione, stranieri, struttura familiare). ITANES 2022 (N=4.696, DOI 10.13130/RD_UNIMI/JV77WR) fornisce i profili psicografici di base: scala valoriale, fiducia istituzionale, trigger comunicativi. ESS Round 11 (N=2.865 IT, 2023-24) integra i profili con dati aggiornati su immigrazione e soddisfazione democratica. TRIPOL IT (N=1.231) calibra il risk score di rigetto tramite l'indice di polarizzazione affettiva WAPSV."
       }
     }
   ]
@@ -66,13 +66,22 @@
 html { scroll-behavior: smooth; }
 body { background: var(--bg); color: var(--black); font-family: var(--font-sans); overflow-x: hidden; line-height: 1.6; }
 
+/* NAV */
 .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(250,249,247,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
 .nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 40px; height: 60px; display: flex; align-items: center; justify-content: space-between; }
 .nav-logo { font-family: var(--font-mono); font-size: 13px; letter-spacing: 3px; font-weight: 500; color: var(--black); text-decoration: none; }
 .nav-links { display: flex; gap: 28px; align-items: center; }
 .nav-links a { font-size: 12px; letter-spacing: 1px; color: var(--gray-mid); text-decoration: none; text-transform: uppercase; transition: color .2s; }
 .nav-links a:hover { color: var(--black); }
-.nav-btn { font-family: var(--font-mono); font-size: 11px; letter-spacing: 2px; color: var(--bg); background: var(--black); padding: 8px 20px; text-decoration: none; text-transform: uppercase; }
+.nav-btn { font-family: var(--font-mono); font-size: 11px; letter-spacing: 2px; color: var(--bg); background: var(--black); padding: 8px 20px; text-decoration: none; text-transform: uppercase; transition: opacity .2s; }
+.nav-btn:hover { opacity: 0.75; }
+.nav-dropdown { position: relative; }
+.nav-dropdown-toggle { font-size: 12px; letter-spacing: 1px; color: var(--gray-mid); text-decoration: none; text-transform: uppercase; cursor: pointer; }
+.nav-dropdown-toggle:hover { color: var(--black); }
+.nav-dropdown-menu { display: none; position: absolute; top: 100%; left: 0; background: var(--bg); border: 1px solid var(--border); min-width: 220px; z-index: 200; padding: 8px 0; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+.nav-dropdown:hover .nav-dropdown-menu { display: block; }
+.nav-dropdown-menu a { display: block; padding: 10px 16px; font-size: 11px; letter-spacing: 1px; color: var(--gray-mid); text-decoration: none; text-transform: uppercase; transition: color .15s; }
+.nav-dropdown-menu a:hover { color: var(--black); background: #f5f2ec; }
 
 /* HERO PAGINA */
 .page-hero { max-width: 1200px; margin: 0 auto; padding: 100px 40px 56px; }
@@ -145,11 +154,13 @@ hr.div { border: none; border-top: 1px solid var(--border); }
 .dati-comuni { max-width: 1200px; margin: 0 auto; padding: 0 40px 64px; }
 .dati-box { background: #f0ede8; border: 1px solid var(--border); padding: 28px 32px; }
 .dati-title { font-family: var(--font-mono); font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--gray-mid); margin-bottom: 16px; }
-.dati-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 16px; }
+.dati-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-bottom: 16px; }
 .dati-source { }
 .ds-name { font-size: 13px; font-weight: 500; color: var(--black); margin-bottom: 4px; }
 .ds-desc { font-size: 11px; color: var(--gray-mid); line-height: 1.6; }
-.dati-note { font-size: 11px; color: var(--gray-light); line-height: 1.6; padding-top: 14px; border-top: 1px solid var(--border); }
+.dati-note { font-size: 11px; color: var(--gray-light); line-height: 1.8; padding-top: 14px; border-top: 1px solid var(--border); }
+.dati-note a { color: var(--gray-light); text-decoration: none; }
+.dati-note a:hover { color: var(--black); }
 
 footer { border-top: 1px solid var(--border); padding: 32px 40px; max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
 .foot-logo { font-family: var(--font-mono); font-size: 11px; letter-spacing: 3px; color: var(--gray-light); }
@@ -165,19 +176,36 @@ footer { border-top: 1px solid var(--border); padding: 32px 40px; max-width: 120
   .anchor-nav { flex-direction: column; }
   .anchor-nav a { border-right: none; border-bottom: 1px solid var(--border); }
 }
+@media (max-width: 640px) {
+  .nav-inner { padding: 0 20px; }
+  .page-hero { padding-left: 20px; padding-right: 20px; }
+  .verticale { padding-left: 20px; padding-right: 20px; }
+  .dati-comuni { padding-left: 20px; padding-right: 20px; }
+  footer { padding-left: 20px; padding-right: 20px; flex-direction: column; text-align: center; }
+}
 </style>
 </head>
 <body>
 
+<!-- NAV -->
 <nav class="nav">
   <div class="nav-inner">
     <a class="nav-logo" href="/">POLISIM</a>
     <div class="nav-links">
-      <a href="/come-funziona.html">Come funziona</a>
       <a href="/metodologia.html">Metodologia</a>
+      <a href="/validazione.html">Validazione</a>
       <a href="/fonti.html">Fonti</a>
+      <a href="/per-chi.html">Per chi</a>
+      <span class="nav-dropdown">
+        <a href="#" class="nav-dropdown-toggle" onclick="return false">Tools ▾</a>
+        <div class="nav-dropdown-menu">
+          <a href="/propensione.html">Modulo Propensione NGO</a>
+          <a href="/anonimizza.html">Data Shield Anonimizzatore</a>
+          <a href="https://watchdog.polisim.dev" target="_blank">Watchdog Trump ↗</a>
+        </div>
+      </span>
       <a href="/en.html">EN</a>
-      <a class="nav-btn" href="/tool">Usa il tool →</a>
+      <a class="nav-btn" href="/accesso.html">Accedi →</a>
     </div>
   </div>
 </nav>
@@ -185,7 +213,7 @@ footer { border-top: 1px solid var(--border); padding: 32px 40px; max-width: 120
 <div class="page-hero">
   <p class="page-kicker">Tre verticali · Una piattaforma</p>
   <h1 class="page-title">Il messaggio giusto.<br><em>Per il segmento giusto.</em></h1>
-  <p class="page-sub">Stessi dati, stessa metodologia. I profili ISTAT e ITANES sono il motore comune — il contesto d'uso cambia in base a chi sei e cosa vuoi misurare.</p>
+  <p class="page-sub">Stessi dati, stessa metodologia. I profili ISTAT, ITANES, ESS e TRIPOL sono il motore comune — il contesto d'uso cambia in base a chi sei e cosa vuoi misurare.</p>
 </div>
 
 <div class="anchor-nav">
@@ -203,7 +231,7 @@ footer { border-top: 1px solid var(--border); padding: 32px 40px; max-width: 120
       <span class="vert-kicker kp">Partiti &amp; consulenti politici</span>
       <h2 class="vert-title">Intelligenza<br>elettorale</h2>
       <p class="vert-desc">PoliSim simula Camera e Senato simultaneamente, verifica la doppia maggioranza e ottimizza il messaggio per i 5 segmenti psicografici dell'elettorato italiano. Dalla mappa dei collegi contendibili all'A/B test del framing, in un unico strumento.</p>
-      <a class="vert-cta cta-p" href="/tool">Prova il simulatore →</a>
+      <a class="vert-cta cta-p" href="/accesso.html?profilo=pol">Prova il simulatore →</a>
     </div>
     <div class="vert-quote qp">
       <p class="vert-quote-text">Ogni partito segmenta già l'elettorato. L'AI abbassa il costo di farlo con rigore.</p>
@@ -225,7 +253,7 @@ footer { border-top: 1px solid var(--border); padding: 32px 40px; max-width: 120
     <div class="feat-item">
       <div class="feat-n np">5</div>
       <div class="feat-title">Segmenti psicografici empirici</div>
-      <p class="feat-desc">Progressisti, CDX, qualunquisti, ex-M5S delusi, giovani astensionisti. Derivati da ITANES 2022, non da ipotesi teoriche.</p>
+      <p class="feat-desc">Progressisti, CDX, qualunquisti, ex-M5S delusi, giovani astensionisti. Derivati da ITANES 2022, ESS Round 11 e TRIPOL IT — non da ipotesi teoriche.</p>
     </div>
     <div class="feat-item">
       <div class="feat-n np">4</div>
@@ -243,8 +271,11 @@ footer { border-top: 1px solid var(--border); padding: 32px 40px; max-width: 120
     <div>
       <span class="vert-kicker ko">ONG &amp; advocacy</span>
       <h2 class="vert-title">Comunicazione<br>d'impatto</h2>
-      <p class="vert-desc">Testa il framing della tua campagna su donatori, volontari e pubblico generale prima di investire in comunicazione. PoliSim produce profili distinti per lasciti, corporate e advocacy — con metriche calibrate sul tuo obiettivo specifico, non su quelli di un partito politico.</p>
-      <a class="vert-cta cta-o" href="/tool#messaggi">Testa un messaggio →</a>
+      <p class="vert-desc">Testa il framing della tua campagna su donatori, volontari e pubblico generale prima di investire in comunicazione. PoliSim produce profili distinti per lasciti, corporate e advocacy — con metriche calibrate sul tuo obiettivo specifico, non su quelli di un partito politico. Il Modulo Propensione analizza il tuo database donatori e identifica chi contattare per ogni obiettivo di raccolta.</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <a class="vert-cta cta-o" href="/accesso.html?profilo=ong">Testa un messaggio →</a>
+        <a class="vert-cta" style="color:var(--green);background:transparent;border:1px solid var(--green);" href="/propensione.html">Modulo Propensione →</a>
+      </div>
     </div>
     <div class="vert-quote qo">
       <p class="vert-quote-text">Il framing sbagliato su un segmento sensibile non è un errore di comunicazione — è un costo misurabile.</p>
@@ -270,8 +301,8 @@ footer { border-top: 1px solid var(--border); padding: 32px 40px; max-width: 120
     </div>
     <div class="feat-item">
       <div class="feat-n no">5</div>
-      <div class="feat-title">Segmenti demografici reali</div>
-      <p class="feat-desc">Gli stessi profili ISTAT/ITANES usati per i partiti, reinterpretati per donatori, volontari e pubblico corporate.</p>
+      <div class="feat-title">Obiettivi di raccolta modellati</div>
+      <p class="feat-desc">Lascito, upgrade, sostegno continuativo, riattivazione, one-off emergenza. Un punteggio di propensione per obiettivo — non un cluster unico. Lift lasciti misurato: 1.97×.</p>
     </div>
   </div>
 
@@ -320,7 +351,7 @@ footer { border-top: 1px solid var(--border); padding: 32px 40px; max-width: 120
     <div>
       <span class="vert-kicker kb">Pilot Partners</span>
       <h2 class="vert-title">Infrastruttura<br>civica open-source</h2>
-      <p class="vert-desc">PoliSim combina dati pubblici (ISTAT, Eligendo, ITANES) con AI trasparente per comunicazione istituzionale verificabile. Cerchiamo istituzioni che operano su valori espliciti per validare il sistema su contesti reali. I deploy durante la beta sono gratuiti.</p>
+      <p class="vert-desc">PoliSim combina dati pubblici (ISTAT, Eligendo, ITANES, ESS, TRIPOL) con AI trasparente per comunicazione istituzionale verificabile. Cerchiamo istituzioni che operano su valori espliciti per validare il sistema su contesti reali. I deploy durante la beta sono gratuiti.</p>
       <a class="vert-cta cta-b" href="mailto:info@polisim.dev">Contattaci per collaborare &rarr;</a>
     </div>
     <div class="vert-quote qb">
@@ -368,7 +399,7 @@ footer { border-top: 1px solid var(--border); padding: 32px 40px; max-width: 120
       <div class="metr-item">
         <span class="metr-label ml-b">Documentazione</span>
         <div class="metr-name">Caso d'uso pubblico</div>
-        <p class="metr-desc">Il caso d'uso viene documentato e pubblicato come riferimento per la comunità civic tech europea. Visibilita' istituzionale garantita.</p>
+        <p class="metr-desc">Il caso d'uso viene documentato e pubblicato come riferimento per la comunità civic tech europea. Visibilità istituzionale garantita.</p>
       </div>
     </div>
   </div>
@@ -391,10 +422,26 @@ footer { border-top: 1px solid var(--border); padding: 32px 40px; max-width: 120
       </div>
       <div class="dati-source">
         <div class="ds-name">ITANES 2022<sup>*</sup></div>
-        <p class="ds-desc">Panel elettorale italiano post-elezioni 2022. N=4.696 rispondenti ponderati, 326 variabili. Profili psicografici, scale valoriali, fiducia istituzionale.</p>
+        <p class="ds-desc">Panel elettorale italiano post-elezioni 2022. N=4.696 rispondenti ponderati, 326 variabili. Profili psicografici, scale valoriali, fiducia istituzionale. DOI: 10.13130/RD_UNIMI/JV77WR</p>
+      </div>
+      <div class="dati-source">
+        <div class="ds-name">ESS Round 11 (2023–24)<sup>†</sup></div>
+        <p class="ds-desc">European Social Survey — campione italiano N=2.865, interviste face-to-face probabilistiche. Variabili: fiducia istituzionale, scala sinistra-destra, atteggiamenti immigrazione, soddisfazione democratica. Calibrazione profili psicografici su dati post-2022.</p>
+      </div>
+      <div class="dati-source">
+        <div class="ds-name">TRIPOL IT (2021–22)<sup>‡</sup></div>
+        <p class="ds-desc">Studio italiano sulla polarizzazione affettiva. N=1.231 rispondenti, indice WAPSV (valori politici). Misura la distanza affettiva tra elettorati — calibra il risk score di rigetto per segmento nel message optimizer.</p>
+      </div>
+      <div class="dati-source">
+        <div class="ds-name">Meta Ad Library (maggio 2026)</div>
+        <p class="ds-desc">30 annunci analizzati (Save the Children, UNICEF, Emergency). Calibrazione tono e hook per segmento NGO lasciti nel Modulo Propensione.</p>
       </div>
     </div>
-    <p class="dati-note"><sup>*</sup> ITANES (Italian National Election Studies) è il panel elettorale italiano condotto da un consorzio di università italiane. I dati sono pubblicamente disponibili per la ricerca. Vezzoni et al. (2023). DOI: 10.13130/RD_UNIMI/JV77WR</p>
+    <p class="dati-note">
+      <sup>*</sup> ITANES (Italian National Election Studies) — consorzio universitario italiano. Vezzoni et al. (2023). <a href="https://doi.org/10.13130/RD_UNIMI/JV77WR" target="_blank">DOI: 10.13130/RD_UNIMI/JV77WR</a><br>
+      <sup>†</sup> ESS Round 11 — European Social Survey ERIC. Dati pubblici per ricerca accademica. <a href="https://www.europeansocialsurvey.org" target="_blank">europeansocialsurvey.org</a><br>
+      <sup>‡</sup> TRIPOL IT — studio sulla polarizzazione affettiva italiana. Indice WAPSV (World Attitudes and Political Stability Values).
+    </p>
   </div>
 </div>
 
@@ -404,7 +451,8 @@ footer { border-top: 1px solid var(--border); padding: 32px 40px; max-width: 120
     <a href="/">Home</a>
     <a href="/metodologia.html">Metodologia</a>
     <a href="/fonti.html">Fonti</a>
-    <a href="/tools/anonimizza.html">Data Shield</a>
+    <a href="/propensione.html">Propensione NGO</a>
+    <a href="/anonimizza.html">Data Shield</a>
     <a href="/en.html">English</a>
   </div>
 </footer>
