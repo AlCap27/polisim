@@ -26,18 +26,18 @@ body{background:var(--bg);color:var(--black);font-family:var(--font-sans);min-he
 
 /* Gate */
 .gate-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:48px 24px}
-.gate-box{max-width:480px;width:100%}
+.gate-box{max-width:520px;width:100%}
 .gate-eyebrow{font-family:var(--font-mono);font-size:9px;letter-spacing:4px;color:var(--blue-light);text-transform:uppercase;margin-bottom:16px}
 .gate-title{font-family:var(--font-serif);font-size:clamp(36px,5vw,52px);font-weight:300;line-height:1.1;color:var(--black);margin-bottom:8px}
 .gate-title em{font-style:italic;color:var(--blue)}
 .gate-sub{font-size:13px;color:var(--mid);margin-bottom:40px;line-height:1.6}
 
-/* Profili */
-.profiles{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:0.5px solid var(--line);margin-bottom:28px}
-.profile-card{background:var(--bg);padding:28px 20px;cursor:pointer;transition:background .15s;text-align:center;border:2px solid transparent}
+/* Profili — griglia 2x2 con 4 card */
+.profiles{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);border:0.5px solid var(--line);margin-bottom:28px}
+.profile-card{background:var(--bg);padding:24px 20px;cursor:pointer;transition:background .15s;text-align:center;border:2px solid transparent}
 .profile-card:hover{background:#f0ede8}
 .profile-card.active{background:#fff;border-color:var(--black)}
-.profile-label{font-family:"Cormorant Garamond",Georgia,serif;font-size:22px;font-weight:300;color:var(--mid);letter-spacing:1px;line-height:1.3}
+.profile-label{font-family:"Cormorant Garamond",Georgia,serif;font-size:20px;font-weight:300;color:var(--mid);letter-spacing:1px;line-height:1.3}
 .profile-card.active .profile-label{color:var(--black);font-weight:400}
 .profile-desc{font-size:11px;color:#999;margin-top:4px;line-height:1.4}
 .profile-card.active .profile-desc{color:var(--mid)}
@@ -114,11 +114,13 @@ const ACCESSI = {
 
 let profiloSel = "pol";
 
-// Preseleziona profilo da parametro URL (?profilo=ong/civic/pol)
 window.addEventListener('DOMContentLoaded', () => {
   const p = new URLSearchParams(window.location.search);
   const profilo = p.get('profilo');
   if (profilo && ['pol','ong','prop','civic'].includes(profilo)) {
+    selProfilo(profilo);
+    document.getElementById('gate-pwd').focus();
+  }
 });
 
 function selProfilo(p) {
@@ -136,7 +138,6 @@ function checkGate() {
     setTimeout(() => document.getElementById("gate-err").textContent = "", 2500);
     return;
   }
-  // Verifica che la password corrisponda al profilo selezionato
   if (acc.profilo !== profiloSel) {
     document.getElementById("gate-err").textContent = "Codice non valido per questo profilo";
     setTimeout(() => document.getElementById("gate-err").textContent = "", 2500);
