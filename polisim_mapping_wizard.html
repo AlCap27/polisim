@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PoliSim — Import Wizard</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg:       #07090f;
+  --bg2:      #0d1117;
+  --bg3:      #131820;
+  --bg4:      #1a2230;
+  --border:   #1e2632;
+  --border2:  #2a3544;
+  --border3:  #3a4860;
+  --accent:   #60a5fa;
+  --accent2:  #3b82f6;
+  --accent-d: rgba(96,165,250,0.10);
+  --accent-g: rgba(96,165,250,0.05);
+  --text:     #e2e8f0;
+  --text2:    #94a3b8;
+  --text3:    #475569;
+  --text4:    #2d3f55;
+  --green:    #34d399;
+  --green-d:  rgba(52,211,153,0.10);
+  --yellow:   #fbbf24;
+  --yellow-d: rgba(251,191,36,0.08);
+  --red:      #f87171;
+  --red-d:    rgba(248,113,113,0.10);
+  --mono:     'JetBrains Mono', monospace;
+  --sans:     'DM Sans', sans-serif;
+  --radius:   6px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ── HEADER ── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 32px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+  position: sticky; top: 0; z-index: 50;
+}
+.logo { font-family: var(--mono); font-size: 13px; color: var(--accent); letter-spacing: .06em; }
+.logo em { color: var(--text3); font-style: normal; }
+.badge {
+  font-family: var(--mono); font-size: 10px;
+  padding: 3px 10px;
+  border: 1px solid rgba(96,165,250,.25);
+  background: var(--accent-d);
+  color: var(--accent);
+  border-radius: 3px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+/* ── STEP PROGRESS ── */
+.progress-wrap {
+  padding: 28px 32px 0;
+  max-width: 860px;
+  margin: 0 auto;
+}
+.steps {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 32px;
+}
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+.step-item:last-child { flex: 0; }
+.step-num {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 11px;
+  color: var(--text3);
+  flex-shrink: 0;
+  transition: all .25s;
+}
+.step-num.done   { border-color: var(--green); background: var(--green-d); color: var(--green); }
+.step-num.active { border-color: var(--accent); background: var(--accent-d); color: var(--accent); }
+.step-label {
+  font-size: 12px; color: var(--text3);
+  font-family: var(--mono);
+  white-space: nowrap;
+  transition: color .25s;
+}
+.step-label.active { color: var(--text2); }
+.step-label.done   { color: var(--green); }
+.step-connector {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+  margin: 0 12px;
+  transition: background .25s;
+}
+.step-connector.done { background: var(--green); opacity: .4; }
+
+/* ── MAIN PANEL ── */
+.main {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 32px 60px;
+}
+
+.panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: none;
+}
+.panel.active { display: block; }
+
+.panel-head {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.panel-title {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.panel-sub { font-size: 12px; color: var(--text3); }
+.step-counter {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+  white-space: nowrap;
+}
+
+.panel-body { padding: 24px; }
+
+/* ── DROP ZONE ── */
+.dropzone {
+  border: 1.5px dashed var(--border2);
+  border-radius: var(--radius);
+  padding: 40px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .2s;
+  position: relative;
+}
+.dropzone:hover, .dropzone.drag { border-color: var(--accent2); background: var(--accent-g); }
+.dropzone input[type=file] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+}
+.dz-icon { font-size: 32px; margin-bottom: 12px; }
+.dz-title { font-family: var(--mono); font-size: 13px; color: var(--text2); margin-bottom: 6px; }
+.dz-sub   { font-size: 12px; color: var(--text3); }
+.dz-loaded {
+  border-color: var(--green);
+  background: var(--green-d);
+}
+.dz-loaded .dz-icon { filter: none; }
+.dz-filename { font-family: var(--mono); font-size: 12px; color: var(--green); margin-top: 8px; }
+
+/* ── PREVIEW TABLE ── */
+.preview-wrap {
+  margin-top: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.preview-label {
+  font-family: var(--mono); font-size: 10px;
+  color: var(--text3); text-transform: uppercase; letter-spacing: .1em;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg3);
+}
+.preview-scroll { overflow-x: auto; }
+.preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  font-family: var(--mono);
+}
+.preview-table th {
+  padding: 7px 12px;
+  background: var(--bg3);
+  color: var(--text3);
+  text-align: left;
+  white-space: nowrap;
+  font-weight: 500;
+  border-right: 1px solid var(--border);
+}
+.preview-table td {
+  padding: 6px 12px;
+  color: var(--text2);
+  border-right: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+  white-space: nowrap;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.preview-table tr:hover td { background: var(--bg3); }
+
+/* ── MAPPING ── */
+.mapping-section { margin-top: 24px; }
+.mapping-title {
+  font-family: var(--mono); font-size: 11px;
+  color: var(--text3); text-transform: uppercase; letter-spacing: .1em;
+  margin-bottom: 14px;
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+@media (max-width: 640px) { .field-grid { grid-template-columns: 1fr; } }
+
+.field-row {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  transition: border-color .15s;
+}
+.field-row.mapped    { border-color: rgba(52,211,153,.3); }
+.field-row.skipped   { border-color: var(--border); opacity: .6; }
+
+.field-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.field-name {
+  font-family: var(--mono); font-size: 11px;
+  color: var(--text);
+  display: flex; align-items: center; gap: 6px;
+}
+.req-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--red);
+  flex-shrink: 0;
+}
+.opt-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--text4);
+  flex-shrink: 0;
+}
+.field-desc { font-size: 11px; color: var(--text3); margin-bottom: 8px; line-height: 1.4; }
+
+.field-status {
+  font-family: var(--mono); font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 2px;
+}
+.field-status.ok   { background: var(--green-d); color: var(--green); }
+.field-status.miss { background: var(--red-d);   color: var(--red);   }
+.field-status.opt  { background: var(--bg4);      color: var(--text3); }
+
+select.col-select {
+  width: 100%;
+  background: var(--bg4);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  color: var(--text2);
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 6px 10px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color .15s;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23475569' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+}
+select.col-select:focus { border-color: var(--accent2); }
+select.col-select.mapped { border-color: rgba(52,211,153,.4); color: var(--green); }
+
+.impute-note {
+  margin-top: 6px;
+  font-size: 10px;
+  color: var(--text3);
+  font-family: var(--mono);
+  font-style: italic;
+}
+
+/* ── RIEPILOGO ── */
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.sum-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+.sum-card-label { font-family: var(--mono); font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 8px; }
+.sum-field-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.sum-field-row:last-child { border-bottom: none; }
+.sum-field-name { font-family: var(--mono); font-size: 11px; color: var(--text2); }
+.sum-field-val  { font-family: var(--mono); font-size: 11px; color: var(--text3); max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sum-field-val.ok     { color: var(--green); }
+.sum-field-val.miss   { color: var(--red); }
+.sum-field-val.impute { color: var(--yellow); }
+
+.warning-box {
+  border: 1px solid rgba(251,191,36,.2);
+  background: var(--yellow-d);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+.warning-box b { color: var(--yellow); }
+
+.ok-box {
+  border: 1px solid rgba(52,211,153,.2);
+  background: var(--green-d);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+.ok-box b { color: var(--green); }
+
+/* ── BUTTONS ── */
+.btn-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  background: var(--bg3);
+}
+.btn {
+  padding: 9px 22px;
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 12px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all .15s;
+  display: flex; align-items: center; gap: 8px;
+}
+.btn-ghost {
+  background: transparent;
+  border-color: var(--border2);
+  color: var(--text2);
+}
+.btn-ghost:hover { border-color: var(--border3); color: var(--text); }
+.btn-primary {
+  background: var(--accent2);
+  color: #fff;
+  border-color: var(--accent2);
+}
+.btn-primary:hover { background: var(--accent); border-color: var(--accent); }
+.btn-primary:disabled { opacity: .35; cursor: not-allowed; }
+.btn-green {
+  background: rgba(52,211,153,.15);
+  border-color: rgba(52,211,153,.4);
+  color: var(--green);
+}
+.btn-green:hover { background: rgba(52,211,153,.25); }
+
+/* ── EXPORT PANEL ── */
+.export-block {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.export-title { font-family: var(--mono); font-size: 12px; color: var(--text2); margin-bottom: 6px; }
+.export-desc  { font-size: 12px; color: var(--text3); margin-bottom: 14px; line-height: 1.5; }
+.export-meta  { font-family: var(--mono); font-size: 10px; color: var(--text3); margin-top: 10px; }
+
+.tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.tag {
+  font-family: var(--mono); font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 2px;
+  background: var(--bg4);
+  border: 1px solid var(--border);
+  color: var(--text3);
+}
+.tag.green { background: var(--green-d); border-color: rgba(52,211,153,.3); color: var(--green); }
+.tag.yellow { background: var(--yellow-d); border-color: rgba(251,191,36,.3); color: var(--yellow); }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">POLISIM<em>/</em>IMPORT <em style="margin-left:8px">·</em> <span style="color:var(--text3);font-size:11px">Modulo Propensione NGO</span></div>
+  <span class="badge">mapping wizard</span>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="steps">
+    <div class="step-item">
+      <div class="step-num active" id="sn1">1</div>
+      <div class="step-label active" id="sl1">Anagrafica</div>
+    </div>
+    <div class="step-connector" id="sc1"></div>
+    <div class="step-item">
+      <div class="step-num" id="sn2">2</div>
+      <div class="step-label" id="sl2">Transazioni</div>
+    </div>
+    <div class="step-connector" id="sc2"></div>
+    <div class="step-item">
+      <div class="step-num" id="sn3">3</div>
+      <div class="step-label" id="sl3">Verifica</div>
+    </div>
+    <div class="step-connector" id="sc3"></div>
+    <div class="step-item" style="flex:0">
+      <div class="step-num" id="sn4">4</div>
+      <div class="step-label" id="sl4">Export</div>
+    </div>
+  </div>
+</div>
+
+<!-- PANELS -->
+<div class="main">
+
+  <!-- ─ STEP 1: ANAGRAFICA ─ -->
+  <div class="panel active" id="panel1">
+    <div class="panel-head">
+      <div>
+        <div class="panel-title">Carica file anagrafica donatori</div>
+        <div class="panel-sub">Export dal CRM con un record per donatore. Anonimizza prima con Data Shield.</div>
+      </div>
+      <div class="step-counter">step 1 / 4</div>
+    </div>
+    <div class="panel-body">
+      <div class="dropzone" id="dz1" onclick="document.getElementById('f1').click()">
+        <input type="file" id="f1" accept=".csv" onchange="loadFile(1,this)">
+        <div class="dz-icon">📂</div>
+        <div class="dz-title">Trascina il CSV anagrafica o clicca per sfogliare</div>
+        <div class="dz-sub">Formato: CSV UTF-8 · max 50MB</div>
+      </div>
+
+      <div id="preview1" style="display:none">
+        <div class="preview-wrap">
+          <div class="preview-label">Anteprima — prime 3 righe</div>
+          <div class="preview-scroll"><table class="preview-table" id="pt1"></table></div>
+        </div>
+
+        <div class="mapping-section">
+          <div class="mapping-title">Associa le tue colonne ai campi del modello</div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:16px;display:flex;align-items:center;gap:16px">
+            <span><span style="color:var(--red)">●</span> obbligatorio</span>
+            <span><span style="color:var(--text4)">●</span> facoltativo (imputato se assente)</span>
+          </div>
+          <div class="field-grid" id="map1"></div>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <div style="font-size:11px;color:var(--text3);font-family:var(--mono)">I dati non lasciano mai il browser</div>
+      <button class="btn btn-primary" id="btn1" disabled onclick="goStep(2)">Continua →</button>
+    </div>
+  </div>
+
+  <!-- ─ STEP 2: TRANSAZIONI ─ -->
+  <div class="panel" id="panel2">
+    <div class="panel-head">
+      <div>
+        <div class="panel-title">Carica file transazioni (gift history)</div>
+        <div class="panel-sub">Una riga per donazione. Serve almeno 3 anni di storico per calcolare F e M-trend.</div>
+      </div>
+      <div class="step-counter">step 2 / 4</div>
+    </div>
+    <div class="panel-body">
+      <div class="dropzone" id="dz2" onclick="document.getElementById('f2').click()">
+        <input type="file" id="f2" accept=".csv" onchange="loadFile(2,this)">
+        <div class="dz-icon">📂</div>
+        <div class="dz-title">Trascina il CSV transazioni o clicca per sfogliare</div>
+        <div class="dz-sub">Formato: CSV UTF-8 · max 100MB</div>
+      </div>
+
+      <div id="preview2" style="display:none">
+        <div class="preview-wrap">
+          <div class="preview-label">Anteprima — prime 3 righe</div>
+          <div class="preview-scroll"><table class="preview-table" id="pt2"></table></div>
+        </div>
+
+        <div class="mapping-section">
+          <div class="mapping-title">Associa le tue colonne ai campi del modello</div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:16px;display:flex;align-items:center;gap:16px">
+            <span><span style="color:var(--red)">●</span> obbligatorio</span>
+            <span><span style="color:var(--text4)">●</span> facoltativo</span>
+          </div>
+          <div class="field-grid" id="map2"></div>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goStep(1)">← Indietro</button>
+      <button class="btn btn-primary" id="btn2" disabled onclick="goStep(3)">Continua →</button>
+    </div>
+  </div>
+
+  <!-- ─ STEP 3: VERIFICA ─ -->
+  <div class="panel" id="panel3">
+    <div class="panel-head">
+      <div>
+        <div class="panel-title">Verifica mapping e qualità dati</div>
+        <div class="panel-sub">Controlla cosa il modello userà e come gestirà i campi mancanti.</div>
+      </div>
+      <div class="step-counter">step 3 / 4</div>
+    </div>
+    <div class="panel-body" id="summary-body"></div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goStep(2)">← Modifica mapping</button>
+      <button class="btn btn-primary" onclick="goStep(4)">Conferma ed esporta →</button>
+    </div>
+  </div>
+
+  <!-- ─ STEP 4: EXPORT ─ -->
+  <div class="panel" id="panel4">
+    <div class="panel-head">
+      <div>
+        <div class="panel-title">Export pronto</div>
+        <div class="panel-sub">I file sono già nel formato atteso da <span style="font-family:var(--mono);color:var(--accent)">polisim_propensione.py</span></div>
+      </div>
+      <div class="step-counter">step 4 / 4</div>
+    </div>
+    <div class="panel-body">
+      <div class="ok-box">
+        <b>✓ Mapping completato.</b> I tuoi dati sono stati rinominati e normalizzati nel formato del modello. Niente è stato inviato a server esterni — tutto elaborato nel browser.
+      </div>
+
+      <div class="export-block">
+        <div class="export-title">donors_anagrafica_mapped.csv</div>
+        <div class="export-desc">Anagrafica con colonne rinominate nel formato del modello. Campi mancanti imputati o esclusi come indicato nella verifica.</div>
+        <button class="btn btn-green" onclick="downloadMapped(1)">⬇ Scarica anagrafica</button>
+        <div class="export-meta" id="meta1"></div>
+      </div>
+
+      <div class="export-block">
+        <div class="export-title">donors_transazioni_mapped.csv</div>
+        <div class="export-desc">Storico transazioni con colonne rinominate. Pronto per il calcolo dei segnali R, F, M.</div>
+        <button class="btn btn-green" onclick="downloadMapped(2)">⬇ Scarica transazioni</button>
+        <div class="export-meta" id="meta2"></div>
+      </div>
+
+      <div class="export-block" style="border-color:var(--border)">
+        <div class="export-title" style="color:var(--text3)">mapping_config.json</div>
+        <div class="export-desc" style="color:var(--text3)">Configurazione del mapping salvata. Ricaricala la prossima volta per non rifare il wizard da zero.</div>
+        <button class="btn btn-ghost" onclick="downloadConfig()">⬇ Scarica configurazione</button>
+      </div>
+
+      <div class="warning-box" style="margin-top:0">
+        <b>Passo successivo:</b> esegui <span style="font-family:var(--mono)">polisim_propensione.py --anagrafica donors_anagrafica_mapped.csv --transazioni donors_transazioni_mapped.csv</span>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goStep(1); resetAll()">↺ Nuovo import</button>
+      <div style="font-size:11px;color:var(--text3);font-family:var(--mono)">tutti i dati restano nel browser</div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+// ══════════════════════════════════════════════════════════
+// DEFINIZIONE CAMPI RFML
+// ══════════════════════════════════════════════════════════
+const ANA_FIELDS = [
+  {
+    key: 'donor_id',
+    label: 'ID donatore',
+    req: true,
+    desc: 'Identificatore unico per donatore. Può essere un hash SHA-256.',
+    impute: null,
+  },
+  {
+    key: 'fascia_eta',
+    label: 'Fascia età / anno nascita',
+    req: true,
+    desc: 'Fascia (35-44, 45-54…) o anno di nascita. Predittore principale lasciti.',
+    impute: null,
+  },
+  {
+    key: 'anno_primo_contatto',
+    label: 'Anno primo contatto',
+    req: false,
+    desc: 'Anno del primo contatto con la ONG (non necessariamente la prima donazione).',
+    impute: 'Imputato dalla prima transazione nel file storico.',
+  },
+  {
+    key: 'metodo_pagamento_prevalente',
+    label: 'Metodo pagamento',
+    req: false,
+    desc: 'RID_SEPA / bonifico_ricorrente → bonus regolarità nel segnale F.',
+    impute: 'Imputato come "non_ricorrente" (nessun bonus).',
+  },
+  {
+    key: 'tipo_sostegno_prevalente',
+    label: 'Tipo sostegno prevalente',
+    req: false,
+    desc: 'Donazione ricorrente, singola, adozione distanza, misto.',
+    impute: 'Imputato come "sconosciuto" — non influenza il modello quantitativo.',
+  },
+  {
+    key: 'canale_acquisizione',
+    label: 'Canale acquisizione',
+    req: false,
+    desc: 'web, direct_mail, eventi, passaparola, telefono, agenzia.',
+    impute: 'Usato solo per Matrice di Contesto (non entra nei punteggi RFML).',
+  },
+  {
+    key: 'volontariato',
+    label: 'Volontariato (0/1)',
+    req: false,
+    desc: 'Il donatore fa anche volontariato? Flag binario.',
+    impute: 'Imputato come 0. Usato solo per Matrice di Contesto.',
+  },
+  {
+    key: 'eventi_partecipati',
+    label: 'Partecipazione eventi (0/1)',
+    req: false,
+    desc: 'Ha partecipato a eventi dell\'organizzazione? Flag binario.',
+    impute: 'Imputato come 0. Usato solo per Matrice di Contesto.',
+  },
+  {
+    key: 'lascito_dichiarato',
+    label: 'Lascito dichiarato (0/1)',
+    req: false,
+    desc: 'VARIABILE-ESITO: non entra nel modello. Usata solo per misurare il lift.',
+    impute: 'Se assente, il lift non può essere calcolato (solo output di propensione).',
+  },
+];
+
+const TX_FIELDS = [
+  {
+    key: 'donor_id',
+    label: 'ID donatore',
+    req: true,
+    desc: 'Deve corrispondere all\'ID nell\'anagrafica.',
+    impute: null,
+  },
+  {
+    key: 'data_donazione',
+    label: 'Data donazione',
+    req: true,
+    desc: 'Formato YYYY-MM-DD o DD/MM/YYYY. Serve per calcolare R (recency) e M-trend.',
+    impute: null,
+  },
+  {
+    key: 'importo_eur',
+    label: 'Importo (EUR)',
+    req: true,
+    desc: 'Importo numerico. Usato per M-livello (media) e M-trend (pendenza nel tempo).',
+    impute: null,
+  },
+  {
+    key: 'metodo_pagamento',
+    label: 'Metodo pagamento (per transazione)',
+    req: false,
+    desc: 'Se presente sovrascrive il metodo prevalente dell\'anagrafica per calcolare F.',
+    impute: 'Usa il metodo dall\'anagrafica se disponibile.',
+  },
+  {
+    key: 'tipo_donazione',
+    label: 'Tipo donazione',
+    req: false,
+    desc: 'Ricorrente, singola, ecc. Usato per tag di contesto.',
+    impute: 'Imputato come "sconosciuto".',
+  },
+  {
+    key: 'campagna',
+    label: 'Campagna / causale',
+    req: false,
+    desc: 'Nome della campagna. Usato per tag di contesto e futuro social listening.',
+    impute: 'Imputato come "standard".',
+  },
+];
+
+// ══════════════════════════════════════════════════════════
+// STATO
+// ══════════════════════════════════════════════════════════
+const state = {
+  csv: [null, null],      // [anagrafica, transazioni]: { headers, rows, raw }
+  mapping: [{}, {}],      // mapping[0/1][fieldKey] = colName | '__skip__'
+};
+
+// ══════════════════════════════════════════════════════════
+// NAVIGAZIONE STEP
+// ══════════════════════════════════════════════════════════
+let currentStep = 1;
+
+function goStep(n) {
+  document.getElementById('panel' + currentStep).classList.remove('active');
+  document.getElementById('panel' + n).classList.add('active');
+  currentStep = n;
+  updateProgress();
+  if (n === 3) buildSummary();
+  if (n === 4) buildExportMeta();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateProgress() {
+  [1,2,3,4].forEach(i => {
+    const sn = document.getElementById('sn'+i);
+    const sl = document.getElementById('sl'+i);
+    sn.className = 'step-num ' + (i < currentStep ? 'done' : i === currentStep ? 'active' : '');
+    sl.className = 'step-label ' + (i < currentStep ? 'done' : i === currentStep ? 'active' : '');
+    if (i < 4) {
+      const sc = document.getElementById('sc'+i);
+      sc.className = 'step-connector ' + (i < currentStep ? 'done' : '');
+    }
+    if (i < currentStep) sn.textContent = '✓';
+    else sn.textContent = i;
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+// CARICAMENTO CSV
+// ══════════════════════════════════════════════════════════
+function loadFile(idx, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const raw = e.target.result;
+    const parsed = parseCSV(raw);
+    state.csv[idx-1] = { headers: parsed.headers, rows: parsed.rows, raw, filename: file.name };
+
+    // update dropzone
+    const dz = document.getElementById('dz'+idx);
+    dz.classList.add('dz-loaded');
+    dz.querySelector('.dz-icon').textContent = '✅';
+    dz.querySelector('.dz-title').textContent = file.name;
+    dz.querySelector('.dz-sub').textContent = `${parsed.rows.length.toLocaleString()} righe · ${parsed.headers.length} colonne`;
+
+    // show preview
+    document.getElementById('preview'+idx).style.display = 'block';
+    buildPreview(idx, parsed);
+    buildMapping(idx, parsed.headers);
+    checkStep(idx);
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function parseCSV(text) {
+  // rimuove BOM
+  text = text.replace(/^\uFEFF/, '');
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  // rileva delimitatore
+  const first = lines[0];
+  const delim = (first.split(';').length > first.split(',').length) ? ';' : ',';
+
+  function parseLine(line) {
+    const res = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') { inQ = !inQ; continue; }
+      if (c === delim && !inQ) { res.push(cur.trim()); cur = ''; continue; }
+      cur += c;
+    }
+    res.push(cur.trim());
+    return res;
+  }
+
+  const headers = parseLine(lines[0]);
+  const rows = lines.slice(1, 4).map(parseLine);
+  return { headers, rows };
+}
+
+// ══════════════════════════════════════════════════════════
+// PREVIEW
+// ══════════════════════════════════════════════════════════
+function buildPreview(idx, parsed) {
+  const tbl = document.getElementById('pt'+idx);
+  const heads = parsed.headers.map(h => `<th>${esc(h)}</th>`).join('');
+  const bodyRows = parsed.rows.map(r =>
+    '<tr>' + r.map(c => `<td>${esc(c)}</td>`).join('') + '</tr>'
+  ).join('');
+  tbl.innerHTML = `<thead><tr>${heads}</tr></thead><tbody>${bodyRows}</tbody>`;
+}
+
+// ══════════════════════════════════════════════════════════
+// MAPPING DROPDOWNS
+// ══════════════════════════════════════════════════════════
+function buildMapping(idx, headers) {
+  const fields = idx === 1 ? ANA_FIELDS : TX_FIELDS;
+  const container = document.getElementById('map'+idx);
+  const mi = idx - 1;
+
+  const opts = ['<option value="__skip__">— non disponibile —</option>']
+    .concat(headers.map(h => `<option value="${esc(h)}">${esc(h)}</option>`))
+    .join('');
+
+  container.innerHTML = fields.map(f => `
+    <div class="field-row" id="fr_${mi}_${f.key}">
+      <div class="field-header">
+        <div class="field-name">
+          <span class="${f.req ? 'req-dot' : 'opt-dot'}"></span>
+          ${esc(f.label)}
+        </div>
+        <span class="field-status ${f.req ? 'miss' : 'opt'}" id="fs_${mi}_${f.key}">
+          ${f.req ? 'mancante' : 'facoltativo'}
+        </span>
+      </div>
+      <div class="field-desc">${esc(f.desc)}</div>
+      <select class="col-select" id="sel_${mi}_${f.key}"
+        onchange="onMapChange(${mi},'${f.key}',this)">
+        ${opts}
+      </select>
+      ${f.impute ? `<div class="impute-note">↳ se assente: ${esc(f.impute)}</div>` : ''}
+    </div>
+  `).join('');
+
+  // auto-match: cerca corrispondenze per nome simile
+  fields.forEach(f => {
+    const match = headers.find(h =>
+      h.toLowerCase().replace(/[\s_\/\-\.]/g,'').includes(
+        f.key.toLowerCase().replace(/[\s_\/\-\.]/g,'').slice(0,6)
+      )
+    );
+    if (match) {
+      const sel = document.getElementById(`sel_${mi}_${f.key}`);
+      sel.value = match;
+      onMapChange(mi, f.key, sel);
+    }
+  });
+}
+
+function onMapChange(mi, key, sel) {
+  const val = sel.value;
+  state.mapping[mi][key] = val;
+  const fields = mi === 0 ? ANA_FIELDS : TX_FIELDS;
+  const f = fields.find(x => x.key === key);
+  const row  = document.getElementById(`fr_${mi}_${key}`);
+  const stat = document.getElementById(`fs_${mi}_${key}`);
+
+  if (val === '__skip__') {
+    sel.classList.remove('mapped');
+    row.classList.remove('mapped'); row.classList.add('skipped');
+    stat.textContent = f.req ? 'mancante' : 'non mappato';
+    stat.className   = `field-status ${f.req ? 'miss' : 'opt'}`;
+  } else {
+    sel.classList.add('mapped');
+    row.classList.add('mapped'); row.classList.remove('skipped');
+    stat.textContent = 'mappato';
+    stat.className   = 'field-status ok';
+  }
+  checkStep(mi + 1);
+}
+
+function checkStep(idx) {
+  const mi = idx - 1;
+  const fields = mi === 0 ? ANA_FIELDS : TX_FIELDS;
+  const allReqMapped = fields
+    .filter(f => f.req)
+    .every(f => state.mapping[mi][f.key] && state.mapping[mi][f.key] !== '__skip__');
+  document.getElementById('btn'+idx).disabled = !allReqMapped;
+}
+
+// ══════════════════════════════════════════════════════════
+// SUMMARY
+// ══════════════════════════════════════════════════════════
+function buildSummary() {
+  const body = document.getElementById('summary-body');
+  const allFields = [
+    { title: 'Anagrafica', fields: ANA_FIELDS, mi: 0 },
+    { title: 'Transazioni', fields: TX_FIELDS, mi: 1 },
+  ];
+
+  let warnings = [];
+  let html = '<div class="summary-grid">';
+
+  allFields.forEach(({ title, fields, mi }) => {
+    html += `<div class="sum-card">
+      <div class="sum-card-label">${title}</div>`;
+    fields.forEach(f => {
+      const mapped = state.mapping[mi][f.key];
+      const ok = mapped && mapped !== '__skip__';
+      let cls = ok ? 'ok' : (f.req ? 'miss' : 'impute');
+      let val = ok ? mapped : (f.impute ? 'imputato' : 'mancante');
+      if (!ok && f.req) warnings.push(`${title}: campo "${f.label}" obbligatorio mancante`);
+      html += `<div class="sum-field-row">
+        <span class="sum-field-name">${esc(f.label)}</span>
+        <span class="sum-field-val ${cls}" title="${esc(val)}">${esc(val)}</span>
+      </div>`;
+    });
+    html += '</div>';
+  });
+  html += '</div>';
+
+  if (warnings.length) {
+    html += `<div class="warning-box"><b>⚠ Attenzione:</b> ${warnings.map(esc).join('; ')}.</div>`;
+  } else {
+    html += `<div class="ok-box"><b>✓ Mapping completo.</b> Tutti i campi obbligatori sono mappati. I campi facoltativi mancanti saranno imputati come indicato.</div>`;
+  }
+
+  // note modello
+  html += `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;font-size:12px;color:var(--text3);line-height:1.7">
+    <div style="font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;color:var(--text4)">Nota metodologica</div>
+    I pesi RFML sono <b style="color:var(--yellow)">expert-calibrated</b> (Sargeant adattato), non validati su A/B test propri.
+    Il modello produce 5 punteggi di propensione (lascito, upgrade, sostegno continuativo, riattivazione, one-off emergenza).
+    Il lift lascito può essere misurato solo se il campo <span style="font-family:var(--mono)">lascito_dichiarato</span> è mappato.
+  </div>`;
+
+  body.innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════════════
+// EXPORT
+// ══════════════════════════════════════════════════════════
+function buildExportMeta() {
+  const allFields = [
+    { mi: 0, fields: ANA_FIELDS, id: 'meta1' },
+    { mi: 1, fields: TX_FIELDS,  id: 'meta2' },
+  ];
+  allFields.forEach(({ mi, fields, id }) => {
+    const mapped = fields.filter(f => state.mapping[mi][f.key] && state.mapping[mi][f.key] !== '__skip__').length;
+    const tot = fields.length;
+    document.getElementById(id).textContent = `${mapped}/${tot} campi mappati`;
+  });
+}
+
+function downloadMapped(idx) {
+  const mi = idx - 1;
+  const fields = mi === 0 ? ANA_FIELDS : TX_FIELDS;
+  const csv = state.csv[mi];
+  if (!csv) return;
+
+  // ri-parsa il file completo (non solo le prime 3 righe)
+  const raw = csv.raw.replace(/^\uFEFF/, '');
+  const lines = raw.split(/\r?\n/).filter(l => l.trim());
+  const firstLine = lines[0];
+  const delim = (firstLine.split(';').length > firstLine.split(',').length) ? ';' : ',';
+
+  function parseLine(line) {
+    const res = []; let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') { inQ = !inQ; continue; }
+      if (c === delim && !inQ) { res.push(cur.trim()); cur = ''; continue; }
+      cur += c;
+    }
+    res.push(cur.trim()); return res;
+  }
+
+  const headers = parseLine(lines[0]);
+  const rows = lines.slice(1).map(parseLine);
+
+  // costruisce nuovo CSV con solo le colonne mappate, rinominate
+  const outFields = fields.filter(f => state.mapping[mi][f.key] && state.mapping[mi][f.key] !== '__skip__');
+  const outHeaders = outFields.map(f => f.key);
+  const srcCols    = outFields.map(f => headers.indexOf(state.mapping[mi][f.key]));
+
+  const outLines = [outHeaders.join(',')];
+  rows.forEach(row => {
+    const vals = srcCols.map(ci => {
+      const v = ci >= 0 ? (row[ci] || '') : '';
+      return v.includes(',') || v.includes('"') ? `"${v.replace(/"/g,'""')}"` : v;
+    });
+    outLines.push(vals.join(','));
+  });
+
+  const blob = new Blob(['\uFEFF' + outLines.join('\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = mi === 0 ? 'donors_anagrafica_mapped.csv' : 'donors_transazioni_mapped.csv';
+  a.click();
+}
+
+function downloadConfig() {
+  const cfg = {
+    version: '1.0',
+    created: new Date().toISOString(),
+    anagrafica: state.mapping[0],
+    transazioni: state.mapping[1],
+  };
+  const blob = new Blob([JSON.stringify(cfg, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'polisim_mapping_config.json';
+  a.click();
+}
+
+// ══════════════════════════════════════════════════════════
+// UTILITY
+// ══════════════════════════════════════════════════════════
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function resetAll() {
+  state.csv = [null, null];
+  state.mapping = [{}, {}];
+  [1,2].forEach(i => {
+    document.getElementById('preview'+i).style.display = 'none';
+    const dz = document.getElementById('dz'+i);
+    dz.classList.remove('dz-loaded');
+    dz.querySelector('.dz-icon').textContent = '📂';
+    dz.querySelector('.dz-title').textContent = i===1 ? 'Trascina il CSV anagrafica o clicca per sfogliare' : 'Trascina il CSV transazioni o clicca per sfogliare';
+    dz.querySelector('.dz-sub').textContent = 'Formato: CSV UTF-8 · max ' + (i===1?'50':'100') + 'MB';
+    document.getElementById('btn'+i).disabled = true;
+  });
+  updateProgress();
+}
+
+// drag & drop
+[1,2].forEach(i => {
+  const dz = document.getElementById('dz'+i);
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.classList.remove('drag');
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      const input = document.getElementById('f'+i);
+      const dt = new DataTransfer(); dt.items.add(file);
+      input.files = dt.files;
+      loadFile(i, input);
+    }
+  });
+});
+</script>
+</body>
+</html>
