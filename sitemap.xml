@@ -7,4 +7,5 @@
   <url><loc>https://polisim.dev/fonti.html</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://polisim.dev/gdpr.html</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
   <url><loc>https://polisim.dev/anonimizza.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://polisim.dev/propensione.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
 </urlset>
