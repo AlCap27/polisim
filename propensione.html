@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modulo Propensione — PoliSim · Analisi donatori per ONG</title>
+<meta name="description" content="Il Modulo Propensione di PoliSim analizza il tuo database donatori e risponde alla domanda: chi raggiungere, con quale obiettivo e come. Lasciti, upgrade, riattivazione, sostegno continuativo, emergenze. Lift 1.97× su dati reali.">
+<meta property="og:title" content="Modulo Propensione PoliSim — Analisi donatori NGO">
+<meta property="og:description" content="Analisi RFML multi-obiettivo per ONG. Chi contattare per lasciti, upgrade, riattivazione, sostegno continuativo. Lift misurato 1.97×.">
+<link rel="canonical" href="https://polisim.dev/propensione.html">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Cos'è il Modulo Propensione di PoliSim?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Il Modulo Propensione analizza il database donatori di una ONG e calcola, per ogni donatore, la propensione a rispondere positivamente a cinque obiettivi di raccolta fondi: lascito testamentario, upgrade dell'importo, conversione a sostegno continuativo, riattivazione dopo inattività, risposta a campagne one-off. Non è un RFM generico: i pesi variano per obiettivo e includono un modello RFML (Recency, Frequency, Monetary, Longevity) calibrato su letteratura scientifica (Sargeant 2007)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Che dati servono per usare il Modulo Propensione?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Servono due file CSV: anagrafica donatori (ID anonimo, fascia età, anno primo contatto, metodo pagamento, tipo sostegno) e storico transazioni degli ultimi 3-7 anni (data, importo, metodo, campagna). I dati vengono anonimizzati browser-side con Data Shield prima del caricamento. Nessun dato personale transita sui server PoliSim."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Qual è il lift misurato del modello propensione lasciti?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Su dataset sintetico strutturato (600 donatori, 106 lasciti dichiarati), il top 20% per score lascito contiene il 29.2% dei lasciti dichiarati contro il 14.8% nel resto: lift 1.97×. I pesi sono expert-calibrated (Sargeant 2007 adattato), non ancora validati su A/B test propri. Il lift sarà aggiornato con i dati delle prime campagne reali."
+      }
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#faf9f7;--bg2:#f0ede8;--bg3:#e8e4de;
+  --black:#0d0d0d;--ink:#1a1a1a;--gray:#3a3a3a;
+  --gray-mid:#666;--gray-light:#999;--ghost:#bbb;
+  --border:#e0ddd8;--border2:#d0cbc4;
+  --blue:#1e3a5f;--blue-light:#4a7eb5;--blue-dim:#e8f0f8;
+  --green:#1a4a2a;--green-light:#2a7a3a;--green-dim:#e8f4ec;
+  --red:#7b1a1a;--red-light:#c0392b;
+  --font-serif:"Cormorant Garamond",Georgia,serif;
+  --font-sans:"DM Sans",system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",monospace;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-sans);font-size:15px;line-height:1.7;overflow-x:hidden}
+
+/* ── NAV (identica a index.html) ── */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(250,249,247,0.92);backdrop-filter:blur(12px);border-bottom:0.5px solid var(--border)}
+.nav-inner{max-width:1200px;margin:0 auto;padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-family:var(--font-mono);font-size:13px;letter-spacing:3px;font-weight:500;color:var(--black);text-decoration:none}
+.nav-links{display:flex;gap:28px;align-items:center}
+.nav-links a{font-size:12px;letter-spacing:1px;color:var(--gray-mid);text-decoration:none;text-transform:uppercase;transition:color .2s}
+.nav-links a:hover,.nav-links a.active{color:var(--black)}
+.nav-btn{font-family:var(--font-mono);font-size:11px;letter-spacing:2px;color:var(--bg);background:var(--black);padding:8px 20px;text-decoration:none;text-transform:uppercase;transition:opacity .2s}
+.nav-btn:hover{opacity:.75}
+.nav-dropdown{position:relative}
+.nav-dropdown-toggle{font-size:12px;letter-spacing:1px;color:var(--gray-mid);text-decoration:none;text-transform:uppercase;cursor:pointer}
+.nav-dropdown-toggle:hover{color:var(--black)}
+.nav-dropdown-menu{display:none;position:absolute;top:100%;left:0;background:var(--bg);border:1px solid var(--border);min-width:220px;z-index:200;padding:8px 0;box-shadow:0 8px 24px rgba(0,0,0,.08)}
+.nav-dropdown:hover .nav-dropdown-menu{display:block}
+.nav-dropdown-menu a{display:block;padding:10px 16px;font-size:11px;letter-spacing:1px;color:var(--gray-mid);text-decoration:none;text-transform:uppercase;transition:color .15s}
+.nav-dropdown-menu a:hover{color:var(--black);background:#f5f2ec}
+.nav-dropdown-menu a.active{color:var(--blue)}
+
+/* ── TICKER ── */
+.ticker-wrap{background:var(--black);color:#aaa;overflow:hidden;border-bottom:1px solid #222;height:36px;display:flex;align-items:center}
+.ticker-track{display:flex;white-space:nowrap;animation:ticker 40s linear infinite}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.ticker-item{font-family:var(--font-mono);font-size:10px;letter-spacing:1px;padding:0 32px;color:#666}
+.ticker-item span{color:#aaa}
+
+/* ── PAGE HERO ── */
+.page-hero{max-width:1200px;margin:0 auto;padding:100px 40px 64px}
+.page-kicker{font-family:var(--font-mono);font-size:10px;letter-spacing:4px;color:var(--blue-light);text-transform:uppercase;margin-bottom:16px}
+.page-title{font-family:var(--font-serif);font-size:clamp(48px,5.5vw,80px);font-weight:300;line-height:1.05;margin-bottom:20px}
+.page-title em{font-style:italic;color:var(--blue)}
+.page-sub{font-size:16px;color:var(--gray);max-width:620px;line-height:1.7;margin-bottom:40px}
+
+/* hero stat row */
+.hero-stats{display:flex;gap:48px;flex-wrap:wrap;padding:32px 0;border-top:0.5px solid var(--border);border-bottom:0.5px solid var(--border);margin-bottom:48px}
+.hero-stat{}
+.hero-stat-n{display:block;font-family:var(--font-serif);font-size:40px;font-weight:300;line-height:1;color:var(--blue);margin-bottom:4px}
+.hero-stat-l{font-family:var(--font-mono);font-size:10px;letter-spacing:1px;color:var(--gray-light);text-transform:uppercase}
+
+/* beta notice */
+.beta-notice{display:inline-flex;align-items:center;gap:10px;background:var(--blue-dim);border:1px solid rgba(74,126,181,.3);padding:10px 18px;font-family:var(--font-mono);font-size:11px;color:var(--blue);letter-spacing:.5px;margin-bottom:40px}
+.beta-dot{width:7px;height:7px;border-radius:50%;background:var(--blue-light);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ── SECTION UTILITIES ── */
+.section{max-width:1200px;margin:0 auto;padding:64px 40px}
+.section-kicker{font-family:var(--font-mono);font-size:10px;letter-spacing:4px;color:var(--blue-light);text-transform:uppercase;margin-bottom:12px}
+.section-title{font-family:var(--font-serif);font-size:clamp(32px,3.5vw,52px);font-weight:300;line-height:1.1;margin-bottom:16px}
+.section-title em{font-style:italic;color:var(--blue)}
+.section-sub{font-size:15px;color:var(--gray);max-width:640px;line-height:1.7;margin-bottom:40px}
+hr.div{border:none;border-top:0.5px solid var(--border);margin:0}
+
+/* ── IL PROBLEMA ── */
+.problema-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:48px}
+.problema-cell{background:var(--bg);padding:32px}
+.problema-cell.dark{background:var(--black);color:#f5f3ef}
+.prob-label{font-family:var(--font-mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;display:block}
+.prob-label.bad{color:#c0392b}
+.prob-label.good{color:var(--green-light)}
+.prob-title{font-family:var(--font-serif);font-size:26px;font-weight:300;line-height:1.2;margin-bottom:12px}
+.prob-desc{font-size:13px;line-height:1.7;color:var(--gray-mid)}
+.prob-cell.dark .prob-desc{color:rgba(245,243,239,.6)}
+
+/* ── 5 OBIETTIVI ── */
+.obiettivi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:12px}
+.ob-card{background:var(--bg);padding:24px 20px;border-top:3px solid transparent;transition:background .15s}
+.ob-card:hover{background:#f5f2ec}
+.ob-lascito{border-color:#7c3aed}
+.ob-upgrade{border-color:var(--blue-light)}
+.ob-continuativo{border-color:var(--green-light)}
+.ob-riattivazione{border-color:#d97706}
+.ob-oneoff{border-color:var(--red-light)}
+.ob-label{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;display:block}
+.ob-lascito .ob-label{color:#7c3aed}
+.ob-upgrade .ob-label{color:var(--blue-light)}
+.ob-continuativo .ob-label{color:var(--green-light)}
+.ob-riattivazione .ob-label{color:#d97706}
+.ob-oneoff .ob-label{color:var(--red-light)}
+.ob-title{font-size:14px;font-weight:500;color:var(--black);margin-bottom:8px;line-height:1.3}
+.ob-desc{font-size:12px;color:var(--gray-mid);line-height:1.5}
+.ob-note{font-size:11px;color:var(--gray-light);margin-top:12px;font-family:var(--font-mono);font-style:italic;line-height:1.4}
+
+/* ── RFML ── */
+.rfml-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:32px}
+.rfml-cell{background:var(--bg);padding:28px 24px}
+.rfml-letter{font-family:var(--font-serif);font-size:56px;font-weight:300;line-height:1;color:var(--blue);margin-bottom:8px}
+.rfml-name{font-size:13px;font-weight:500;color:var(--black);margin-bottom:6px}
+.rfml-desc{font-size:12px;color:var(--gray-mid);line-height:1.5}
+.rfml-note{font-size:11px;color:var(--gray-light);margin-top:8px;font-style:italic}
+
+/* pesi table */
+.pesi-wrap{border:1px solid var(--border);overflow-x:auto;margin-bottom:12px}
+.pesi-table{width:100%;border-collapse:collapse;font-size:12px}
+.pesi-table th{background:var(--bg2);font-family:var(--font-mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gray-light);padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.pesi-table td{padding:10px 14px;border-bottom:0.5px solid var(--border);font-family:var(--font-mono);font-size:11px;color:var(--gray)}
+.pesi-table tr:last-child td{border-bottom:none}
+.pesi-table tr:hover td{background:#f5f2ec}
+.pesi-table td:first-child{color:var(--black);font-weight:500}
+.w-high{color:var(--blue)!important;font-weight:500}
+.w-med{color:var(--gray)!important}
+.w-low{color:var(--ghost)!important}
+.disclaimer-box{background:var(--bg2);border:1px solid var(--border2);border-left:3px solid #d97706;padding:14px 18px;font-size:12px;color:var(--gray-mid);line-height:1.6}
+.disclaimer-box strong{color:#d97706}
+
+/* ── FLUSSO ── */
+.flow-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--border);background:var(--border)}
+.flow-step{background:var(--bg);padding:28px 24px;position:relative}
+.flow-step:last-child::after{display:none}
+.flow-n{font-family:var(--font-serif);font-size:48px;font-weight:300;line-height:1;color:var(--border2);margin-bottom:12px}
+.flow-title{font-size:13px;font-weight:500;color:var(--black);margin-bottom:6px}
+.flow-desc{font-size:12px;color:var(--gray-mid);line-height:1.5}
+.flow-tag{display:inline-block;margin-top:10px;font-family:var(--font-mono);font-size:9px;letter-spacing:1px;padding:3px 8px;background:var(--blue-dim);color:var(--blue);border:1px solid rgba(74,126,181,.2)}
+
+/* ── LIFT ── */
+.lift-block{border:1px solid var(--border);padding:40px;display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;margin-bottom:32px}
+.lift-number{font-family:var(--font-serif);font-size:96px;font-weight:300;line-height:1;color:var(--blue)}
+.lift-label{font-family:var(--font-mono);font-size:11px;letter-spacing:1px;color:var(--blue-light);text-transform:uppercase;margin-bottom:8px}
+.lift-desc{font-size:14px;color:var(--gray);line-height:1.7}
+.lift-detail{font-family:var(--font-mono);font-size:11px;color:var(--gray-light);margin-top:12px;line-height:1.6}
+
+/* barre distribuzione */
+.dist-wrap{margin-top:24px}
+.dist-label{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;color:var(--gray-light);text-transform:uppercase;margin-bottom:12px}
+.dist-row{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.dist-segment{font-family:var(--font-mono);font-size:10px;color:var(--gray-mid);min-width:80px}
+.dist-bar-bg{flex:1;height:8px;background:var(--bg2);border-radius:2px;overflow:hidden}
+.dist-bar-fill{height:100%;border-radius:2px}
+.dist-pct{font-family:var(--font-mono);font-size:11px;min-width:36px;text-align:right}
+
+/* ── VERTICALI COMING SOON ── */
+.verticali-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border)}
+.vert-card{background:var(--bg);padding:32px}
+.vert-card.coming{opacity:.55}
+.vert-badge{display:inline-block;font-family:var(--font-mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:3px 9px;margin-bottom:14px}
+.badge-active{background:var(--green-dim);color:var(--green-light);border:1px solid rgba(42,122,58,.2)}
+.badge-soon{background:var(--bg2);color:var(--gray-light);border:1px solid var(--border)}
+.vert-title{font-family:var(--font-serif);font-size:24px;font-weight:300;margin-bottom:10px}
+.vert-desc{font-size:13px;color:var(--gray-mid);line-height:1.6;margin-bottom:16px}
+.vert-feats{list-style:none;margin-bottom:20px}
+.vert-feats li{font-size:12px;color:var(--gray-mid);padding:4px 0;border-bottom:0.5px solid var(--border);display:flex;align-items:baseline;gap:8px}
+.vert-feats li::before{content:"—";color:var(--gray-light);flex-shrink:0}
+.vert-cta{display:inline-block;font-family:var(--font-mono);font-size:11px;letter-spacing:1px;color:var(--blue);text-decoration:none;text-transform:uppercase;border-bottom:1px solid rgba(74,126,181,.4);padding-bottom:2px;transition:border-color .2s}
+.vert-cta:hover{border-color:var(--blue)}
+.vert-soon-label{font-family:var(--font-mono);font-size:11px;color:var(--gray-light);letter-spacing:1px}
+
+/* form interesse */
+.interesse-form{background:var(--bg2);border:1px solid var(--border);padding:28px 32px;margin-top:32px}
+.interesse-title{font-family:var(--font-mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--gray-mid);margin-bottom:16px}
+.interesse-row{display:flex;gap:12px;flex-wrap:wrap}
+.interesse-input{flex:1;min-width:200px;border:0.5px solid var(--border2);background:#fff;color:var(--black);padding:10px 14px;font-family:var(--font-mono);font-size:12px;outline:none;transition:border-color .15s}
+.interesse-input:focus{border-color:var(--black)}
+.interesse-select{flex:0 0 180px;border:0.5px solid var(--border2);background:#fff;color:var(--gray-mid);padding:10px 14px;font-family:var(--font-mono);font-size:12px;outline:none;appearance:none;cursor:pointer}
+.interesse-btn{background:var(--black);color:var(--bg);border:none;padding:10px 24px;font-family:var(--font-mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;white-space:nowrap;transition:opacity .2s}
+.interesse-btn:hover{opacity:.8}
+.interesse-ok{display:none;font-family:var(--font-mono);font-size:11px;color:var(--green-light);margin-top:10px;letter-spacing:1px}
+
+/* ── DB SECTION ── */
+.db-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-bottom:32px}
+.db-card{border:1px solid var(--border);padding:28px}
+.db-title{font-family:var(--font-mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--blue);margin-bottom:16px}
+.db-fields{list-style:none}
+.db-field{display:flex;align-items:baseline;gap:10px;padding:7px 0;border-bottom:0.5px solid var(--border)}
+.db-field:last-child{border-bottom:none}
+.db-req{font-family:var(--font-mono);font-size:9px;color:var(--gray-light);min-width:64px}
+.db-req.obbligatorio{color:var(--blue)}
+.db-fname{font-size:13px;color:var(--black)}
+.db-fnote{font-size:11px;color:var(--gray-light);margin-top:2px}
+
+/* ── CTA FINALE ── */
+.cta-section{background:var(--black);padding:80px 40px;text-align:center;margin-top:0}
+.cta-kicker{font-family:var(--font-mono);font-size:10px;letter-spacing:4px;color:#666;text-transform:uppercase;margin-bottom:20px}
+.cta-title{font-family:var(--font-serif);font-size:clamp(40px,5vw,72px);font-weight:300;line-height:1.05;color:#f5f3ef;margin-bottom:16px}
+.cta-title em{font-style:italic;color:var(--blue-light)}
+.cta-sub{font-size:14px;color:#666;max-width:520px;margin:0 auto 40px;line-height:1.7}
+.cta-buttons{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.btn-primary-inv{background:var(--blue);color:#fff;font-family:var(--font-mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:14px 32px;text-decoration:none;transition:opacity .2s}
+.btn-primary-inv:hover{opacity:.85}
+.btn-ghost-inv{background:transparent;color:#aaa;font-family:var(--font-mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:14px 32px;text-decoration:none;border:0.5px solid #333;transition:border-color .2s}
+.btn-ghost-inv:hover{border-color:#666;color:#ccc}
+
+/* ── FOOTER ── */
+footer{border-top:0.5px solid var(--border);padding:32px 40px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;max-width:100%}
+.foot-logo{font-family:var(--font-mono);font-size:11px;letter-spacing:3px;color:var(--gray-light);text-transform:uppercase}
+.foot-links{display:flex;gap:24px;flex-wrap:wrap}
+.foot-links a{font-size:12px;color:var(--gray-light);text-decoration:none;transition:color .2s}
+.foot-links a:hover{color:var(--black)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .obiettivi-grid{grid-template-columns:1fr 1fr}
+  .rfml-grid{grid-template-columns:1fr 1fr}
+  .flow-steps{grid-template-columns:1fr 1fr}
+  .lift-block{grid-template-columns:1fr}
+  .verticali-grid{grid-template-columns:1fr}
+  .db-grid{grid-template-columns:1fr}
+  .problema-grid{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+  .nav-inner{padding:0 20px}
+  .nav-links{gap:16px}
+  .section,.page-hero{padding-left:20px;padding-right:20px}
+  .obiettivi-grid{grid-template-columns:1fr}
+  .rfml-grid{grid-template-columns:1fr}
+  .flow-steps{grid-template-columns:1fr}
+  .hero-stats{gap:24px}
+  footer{padding:24px 20px;flex-direction:column;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="nav-logo" href="/">POLISIM</a>
+    <div class="nav-links">
+      <a href="/metodologia.html">Metodologia</a>
+      <a href="/validazione.html">Validazione</a>
+      <a href="/fonti.html">Fonti</a>
+      <a href="/per-chi.html">Per chi</a>
+      <span class="nav-dropdown">
+        <a href="#" class="nav-dropdown-toggle" onclick="return false">Tools ▾</a>
+        <div class="nav-dropdown-menu">
+          <a href="/propensione.html" class="active">Modulo Propensione NGO</a>
+          <a href="/anonimizza.html">Data Shield Anonimizzatore</a>
+          <a href="https://watchdog.polisim.dev" target="_blank">Watchdog Trump ↗</a>
+        </div>
+      </span>
+      <a href="/en.html">EN</a>
+      <a class="nav-btn" href="/accesso.html">Accedi →</a>
+    </div>
+  </div>
+</nav>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker-track" id="tickerTrack"></div>
+</div>
+
+<!-- HERO -->
+<div class="page-hero">
+  <p class="page-kicker">Modulo Propensione · ONG · Fundraising</p>
+  <h1 class="page-title">Non chi dona di più.<br><em>Chi risponderà</em> al tuo prossimo obiettivo.</h1>
+  <p class="page-sub">Il Modulo Propensione analizza il tuo database donatori e calcola la probabilità di risposta positiva per cinque obiettivi distinti: lascito, upgrade, sostegno continuativo, riattivazione, campagna emergenza. Un punteggio per obiettivo, non un cluster unico.</p>
+
+  <div class="beta-notice">
+    <span class="beta-dot"></span>
+    Beta · Verticale NGO attivo · Sindacato e municipalità in sviluppo
+  </div>
+
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <span class="hero-stat-n">1.97×</span>
+      <span class="hero-stat-l">Lift lasciti — top 20% score</span>
+    </div>
+    <div class="hero-stat">
+      <span class="hero-stat-n">5</span>
+      <span class="hero-stat-l">Obiettivi di raccolta modellati</span>
+    </div>
+    <div class="hero-stat">
+      <span class="hero-stat-n">RFML</span>
+      <span class="hero-stat-l">Recency · Frequency · Monetary · Longevity</span>
+    </div>
+    <div class="hero-stat">
+      <span class="hero-stat-n">GDPR</span>
+      <span class="hero-stat-l">Anonimizzazione browser-side · nessun dato sui server</span>
+    </div>
+  </div>
+</div>
+
+<hr class="div">
+
+<!-- IL PROBLEMA -->
+<section class="section">
+  <p class="section-kicker">Il problema</p>
+  <h2 class="section-title">Il tuo CRM classifica i donatori.<br><em>Non predice</em> il prossimo lascito.</h2>
+  <p class="section-sub">Un donatore 5-5-5 RFM è il tuo migliore contatto di quest'anno. Non necessariamente il tuo prossimo legacy prospect.</p>
+
+  <div class="problema-grid">
+    <div class="problema-cell">
+      <span class="prob-label bad">RFM standard — cosa sbaglia</span>
+      <div class="prob-title">Il trentenne entusiasta vince sempre.</div>
+      <p class="prob-desc">L'RFM puro massimizza il valore transazionale corrente. Premia chi ha donato di recente, spesso e molto. Penalizza l'over-70 fedele da 15 anni con donazioni modeste e costanti — che è esattamente il profilo del legacy prospect reale.</p>
+    </div>
+    <div class="problema-cell" style="background:var(--bg2)">
+      <span class="prob-label good">Modulo Propensione — cosa fa diversamente</span>
+      <div class="prob-title">Pesi diversi per obiettivi diversi.</div>
+      <p class="prob-desc">Quattro segnali calcolati una volta (R, F, M, L). Cinque matrici di pesi applicate sopra — una per obiettivo. Lo stesso donatore ha propensioni diverse per lascito, upgrade, riattivazione. Il modello li separa. Longevity pesa 0.45 sul lascito, 0.05 sull'emergenza.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- 5 OBIETTIVI -->
+<section class="section">
+  <p class="section-kicker">Cinque obiettivi · Un'analisi</p>
+  <h2 class="section-title">La domanda giusta<br><em>per ogni campagna.</em></h2>
+  <p class="section-sub">Non "chi vale di più" in assoluto. "Chi ha la più alta probabilità di rispondere positivamente a questo specifico obiettivo."</p>
+
+  <div class="obiettivi-grid">
+    <div class="ob-card ob-lascito">
+      <span class="ob-label">Lascito</span>
+      <div class="ob-title">Legacy prospect non identificati</div>
+      <p class="ob-desc">Donatori fedeli da anni, importi modesti, over 65. Il CRM li classifica come "medi". Il modello li separa dal resto con lift 1.97×.</p>
+      <p class="ob-note">Pesi: L=0.45 · F=0.30 · M-trend=0.15 · R=0.05</p>
+    </div>
+    <div class="ob-card ob-upgrade">
+      <span class="ob-label">Upgrade</span>
+      <div class="ob-title">Chi è pronto a dare di più</div>
+      <p class="ob-desc">Donatori con trend monetario positivo e capacità non saturata. L'upgrade si chiede al momento giusto, non a tutti.</p>
+      <p class="ob-note">Pesi: M-trend=0.35 · R=0.20 · F=0.20 · M-liv=0.15</p>
+    </div>
+    <div class="ob-card ob-continuativo">
+      <span class="ob-label">Sostegno continuativo</span>
+      <div class="ob-title">Da one-off a RID</div>
+      <p class="ob-desc">Donatori regolari senza automatismo. La conversione a RID/SDD si propone a chi è già costante — non a chi è sporadico.</p>
+      <p class="ob-note">Pesi: F=0.35 · R=0.30 · L=0.15 · M-liv=0.10</p>
+    </div>
+    <div class="ob-card ob-riattivazione">
+      <span class="ob-label">Riattivazione</span>
+      <div class="ob-title">Fedeli inattivi — non persi</div>
+      <p class="ob-desc">Alta distanza dall'ultima donazione ma lunga storia con l'organizzazione. Il messaggio di riattivazione parla alla storia condivisa, non alla causa generica.</p>
+      <p class="ob-note">Pesi: R-distanza=0.45 · F=0.25 · L=0.20 · M=0.10</p>
+    </div>
+    <div class="ob-card ob-oneoff">
+      <span class="ob-label">One-off / Emergenza</span>
+      <div class="ob-title">Chi risponde agli appelli</div>
+      <p class="ob-desc">Reattività recente e storico di risposta a campagne contingenti. Tempismo e urgenza del messaggio battono la fedeltà storica.</p>
+      <p class="ob-note">Pesi: R=0.45 · F=0.30 · M-liv=0.15 · L=0.05</p>
+    </div>
+  </div>
+  <p style="font-size:11px;color:var(--gray-light);font-family:var(--font-mono);margin-top:8px">Pesi expert-calibrated (Sargeant 2007 adattato) · non ancora validati su A/B test propri · aggiornati dopo le prime campagne reali</p>
+</section>
+
+<hr class="div">
+
+<!-- RFML + PESI -->
+<section class="section">
+  <p class="section-kicker">Metodologia · RFML</p>
+  <h2 class="section-title">Quattro segnali.<br><em>Calcolati una volta.</em></h2>
+  <p class="section-sub">I segnali RFML sono obiettivo-agnostici: vengono calcolati una sola volta per donatore, poi la matrice pesi li combina in modo diverso per ogni obiettivo.</p>
+
+  <div class="rfml-grid">
+    <div class="rfml-cell">
+      <div class="rfml-letter">R</div>
+      <div class="rfml-name">Recency</div>
+      <p class="rfml-desc">Giorni dall'ultima donazione, invertiti. Peso basso per lasciti (l'over-70 fedele può non donare da 18 mesi), alto per emergenze.</p>
+      <p class="rfml-note">Per riattivazione: R entra come target, non come malus.</p>
+    </div>
+    <div class="rfml-cell">
+      <div class="rfml-letter">F</div>
+      <div class="rfml-name">Frequency / Costanza</div>
+      <p class="rfml-desc">Non il conteggio grezzo delle donazioni: la regolarità degli intervalli (inverso del CV dei gap) più un bonus per metodi ricorrenti (RID/SEPA, bonifico automatico).</p>
+      <p class="rfml-note">Un RID mensile da 10 anni vale più di 12 donazioni spot in un anno.</p>
+    </div>
+    <div class="rfml-cell">
+      <div class="rfml-letter">M</div>
+      <div class="rfml-name">Monetary</div>
+      <p class="rfml-desc">Due dimensioni tenute separate: livello (importo medio per donazione, mai il totale storico) e trend (pendenza dell'importo nel tempo via regressione lineare).</p>
+      <p class="rfml-note">Stabilità nel tempo &gt; picco occasionale.</p>
+    </div>
+    <div class="rfml-cell">
+      <div class="rfml-letter">L</div>
+      <div class="rfml-name">Longevity</div>
+      <p class="rfml-desc">Anni di relazione con l'organizzazione dall'anno del primo contatto (non dalla prima transazione). Saturazione logaritmica oltre i 20 anni.</p>
+      <p class="rfml-note">Predittore principale per lasciti (peso 0.45). Irrilevante per emergenze (0.05).</p>
+    </div>
+  </div>
+
+  <h3 style="font-family:var(--font-mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gray-light);margin-bottom:14px">Matrice pesi per obiettivo</h3>
+  <div class="pesi-wrap">
+    <table class="pesi-table">
+      <thead>
+        <tr>
+          <th>Obiettivo</th>
+          <th>R</th>
+          <th>F</th>
+          <th>M-livello</th>
+          <th>M-trend</th>
+          <th>L</th>
+          <th>Bonus demografico</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Lascito</td>
+          <td class="w-low">0.05</td>
+          <td class="w-med">0.30</td>
+          <td class="w-low">0.05</td>
+          <td class="w-med">0.15</td>
+          <td class="w-high">0.45</td>
+          <td class="w-med">+12 pt per 65-74 / 75+</td>
+        </tr>
+        <tr>
+          <td>Upgrade</td>
+          <td class="w-med">0.20</td>
+          <td class="w-med">0.20</td>
+          <td class="w-med">0.15</td>
+          <td class="w-high">0.35</td>
+          <td class="w-low">0.10</td>
+          <td class="w-low">—</td>
+        </tr>
+        <tr>
+          <td>Sostegno continuativo</td>
+          <td class="w-med">0.30</td>
+          <td class="w-high">0.35</td>
+          <td class="w-low">0.10</td>
+          <td class="w-low">0.10</td>
+          <td class="w-med">0.15</td>
+          <td class="w-low">—</td>
+        </tr>
+        <tr>
+          <td>Riattivazione</td>
+          <td class="w-high">0.45*</td>
+          <td class="w-med">0.25</td>
+          <td class="w-low">0.05</td>
+          <td class="w-low">0.05</td>
+          <td class="w-med">0.20</td>
+          <td class="w-low">—</td>
+        </tr>
+        <tr>
+          <td>One-off / Emergenza</td>
+          <td class="w-high">0.45</td>
+          <td class="w-med">0.30</td>
+          <td class="w-med">0.15</td>
+          <td class="w-low">0.05</td>
+          <td class="w-low">0.05</td>
+          <td class="w-low">—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="disclaimer-box">
+    <strong>⚠ Expert-calibrated, non validato.</strong> I pesi derivano da Sargeant (2007) adattato al contesto italiano e calibrato sui tassi di risposta misurati sui dati. Non sono ancora stati validati su A/B test propri. Il lift lascito (1.97×) è misurato su dataset sintetico strutturato, non su campagne reali. I pesi saranno aggiornati automaticamente dopo le prime 20 campagne con esito misurato — questo è il feedback loop che trasforma il modello euristico in modello validato.
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- LIFT -->
+<section class="section">
+  <p class="section-kicker">Validazione · Lift misurato</p>
+  <h2 class="section-title">Il top 20% contiene<br><em>quasi il doppio</em> dei legacy prospect.</h2>
+
+  <div class="lift-block">
+    <div>
+      <div class="lift-label">Lift lasciti — top 20% per score</div>
+      <div class="lift-number">1.97×</div>
+      <p class="lift-desc">Il 20% dei donatori con il punteggio lascito più alto contiene il 29.2% dei lasciti dichiarati, contro il 14.8% nel resto del database.</p>
+      <p class="lift-detail">
+        N=600 donatori · 106 lasciti dichiarati (17.7%)<br>
+        Dataset sintetico con struttura causale reale<br>
+        Segnali usati: RFML + fascia età · nessuna colonna-esito come input
+      </p>
+    </div>
+    <div>
+      <div class="dist-wrap">
+        <div class="dist-label">Tasso lasciti per fascia score</div>
+        <div class="dist-row">
+          <span class="dist-segment">Score 80+</span>
+          <div class="dist-bar-bg"><div class="dist-bar-fill" style="width:88%;background:#7c3aed;opacity:.85"></div></div>
+          <span class="dist-pct" style="color:#7c3aed">30.9%</span>
+        </div>
+        <div class="dist-row">
+          <span class="dist-segment">Score 65-79</span>
+          <div class="dist-bar-bg"><div class="dist-bar-fill" style="width:56%;background:#7c3aed;opacity:.5"></div></div>
+          <span class="dist-pct" style="color:#7c3aed">19.0%</span>
+        </div>
+        <div class="dist-row">
+          <span class="dist-segment">Score 50-64</span>
+          <div class="dist-bar-bg"><div class="dist-bar-fill" style="width:22%;background:var(--border2)"></div></div>
+          <span class="dist-pct" style="color:var(--gray-light)">7.6%</span>
+        </div>
+        <div class="dist-row">
+          <span class="dist-segment">Score &lt;50</span>
+          <div class="dist-bar-bg"><div class="dist-bar-fill" style="width:12%;background:var(--border2)"></div></div>
+          <span class="dist-pct" style="color:var(--gray-light)">4.1%</span>
+        </div>
+        <p style="font-size:11px;color:var(--gray-light);font-family:var(--font-mono);margin-top:14px">Media dataset: 7.2% · Il disclaimer metodologico è dichiarato nel codice e nell'output.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- FLUSSO OPERATIVO -->
+<section class="section">
+  <p class="section-kicker">Come funziona</p>
+  <h2 class="section-title">Dal CSV al punteggio<br><em>in quattro passi.</em></h2>
+  <p class="section-sub">Nessuna migrazione CRM. Nessun setup tecnico. Bastano due export CSV dal tuo sistema esistente.</p>
+
+  <div class="flow-steps">
+    <div class="flow-step">
+      <div class="flow-n">01</div>
+      <div class="flow-title">Esporta i tuoi dati</div>
+      <p class="flow-desc">Due file CSV dal tuo CRM: anagrafica donatori e storico transazioni. Raiser's Edge, Salesforce NPSP, qualsiasi sistema. Servono 3-7 anni di storico per calcolare i segnali M-trend e Longevity in modo affidabile.</p>
+      <span class="flow-tag">Raiser's Edge · Salesforce NPSP · qualsiasi CRM</span>
+    </div>
+    <div class="flow-step">
+      <div class="flow-n">02</div>
+      <div class="flow-title">Anonimizza con Data Shield</div>
+      <p class="flow-desc">Carica i CSV nel Data Shield — browser-only, nessun dato trasmesso. SHA-256 per gli ID, rimozione nome/cognome/indirizzo, conservazione dei campi analitici. Conforme GDPR Art. 4.5 e Art. 89.</p>
+      <span class="flow-tag">Browser-side · GDPR Art. 4.5 · Art. 89</span>
+    </div>
+    <div class="flow-step">
+      <div class="flow-n">03</div>
+      <div class="flow-title">Mappa le colonne</div>
+      <p class="flow-desc">Il wizard di mapping mostra le prime 3 righe del tuo CSV e chiede di associare ogni colonna al campo RFML corrispondente via dropdown. Auto-matching sui nomi simili. Template salvabile per i prossimi import.</p>
+      <span class="flow-tag">Wizard 4-step · auto-mapping · config JSON</span>
+    </div>
+    <div class="flow-step">
+      <div class="flow-n">04</div>
+      <div class="flow-title">Ottieni i punteggi</div>
+      <p class="flow-desc">Output CSV con cinque punteggi di propensione (0-100) per ogni donatore, obiettivo dominante, Matrice di Contesto per lo Stage 3. Dashboard interattivo per esplorazione e filtro. Pronto per il message optimizer.</p>
+      <span class="flow-tag">5 punteggi · dashboard · aggancio Stage 3</span>
+    </div>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- DB RICHIESTO -->
+<section class="section">
+  <p class="section-kicker">Cosa serve · Formato dati</p>
+  <h2 class="section-title">Due CSV.<br><em>Niente di più.</em></h2>
+  <p class="section-sub">Il modello lavora sul minimo indispensabile. I campi facoltativi migliorano la precisione ma la loro assenza non blocca l'analisi — vengono imputati con regole dichiarate.</p>
+
+  <div class="db-grid">
+    <div class="db-card">
+      <div class="db-title">File 1 — Anagrafica donatori</div>
+      <ul class="db-fields">
+        <li class="db-field">
+          <span class="db-req obbligatorio">obbligatorio</span>
+          <div><div class="db-fname">ID donatore (anonimizzato)</div><div class="db-fnote">Hash SHA-256 o qualsiasi identificatore anonimo</div></div>
+        </li>
+        <li class="db-field">
+          <span class="db-req obbligatorio">obbligatorio</span>
+          <div><div class="db-fname">Fascia età / anno nascita</div><div class="db-fnote">Predittore principale per lasciti. Anche per fasce (35-44, ecc.)</div></div>
+        </li>
+        <li class="db-field">
+          <span class="db-req">facoltativo</span>
+          <div><div class="db-fname">Anno primo contatto</div><div class="db-fnote">Se assente: imputato dalla prima transazione nel file storico</div></div>
+        </li>
+        <li class="db-field">
+          <span class="db-req">facoltativo</span>
+          <div><div class="db-fname">Metodo pagamento prevalente</div><div class="db-fnote">RID/SEPA e bonifico ricorrente ricevono bonus nel segnale F</div></div>
+        </li>
+        <li class="db-field">
+          <span class="db-req">facoltativo</span>
+          <div><div class="db-fname">Canale acquisizione</div><div class="db-fnote">Usato solo per Matrice di Contesto — non entra nei punteggi</div></div>
+        </li>
+        <li class="db-field">
+          <span class="db-req">validazione</span>
+          <div><div class="db-fname">Lascito dichiarato (0/1)</div><div class="db-fnote">Non entra nel modello. Misura il lift: quanti lasciti reali sono nel top 20%?</div></div>
+        </li>
+      </ul>
+    </div>
+    <div class="db-card">
+      <div class="db-title">File 2 — Storico transazioni</div>
+      <ul class="db-fields">
+        <li class="db-field">
+          <span class="db-req obbligatorio">obbligatorio</span>
+          <div><div class="db-fname">ID donatore</div><div class="db-fnote">Deve corrispondere all'ID nell'anagrafica</div></div>
+        </li>
+        <li class="db-field">
+          <span class="db-req obbligatorio">obbligatorio</span>
+          <div><div class="db-fname">Data donazione</div><div class="db-fnote">YYYY-MM-DD o DD/MM/YYYY. Usata per R (recency) e M-trend</div></div>
+        </li>
+        <li class="db-field">
+          <span class="db-req obbligatorio">obbligatorio</span>
+          <div><div class="db-fname">Importo (EUR)</div><div class="db-fnote">Usato per M-livello (media) e M-trend (pendenza). Mai il totale storico</div></div>
+        </li>
+        <li class="db-field">
+          <span class="db-req">facoltativo</span>
+          <div><div class="db-fname">Metodo pagamento per transazione</div><div class="db-fnote">Sovrascrive il metodo prevalente dell'anagrafica se presente</div></div>
+        </li>
+        <li class="db-field">
+          <span class="db-req">facoltativo</span>
+          <div><div class="db-fname">Campagna / causale</div><div class="db-fnote">Natale, emergenza, lasciti, 5x1000 ecc. Usato per Matrice di Contesto</div></div>
+        </li>
+        <li class="db-field">
+          <span class="db-req">nota</span>
+          <div><div class="db-fname">Copertura temporale</div><div class="db-fnote">Minimo 3 anni. Ideale 5-7 anni per calcolare M-trend e Longevity in modo affidabile</div></div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- VERTICALI -->
+<section class="section">
+  <p class="section-kicker">Verticali · Roadmap</p>
+  <h2 class="section-title">NGO oggi.<br><em>Sindacato e municipalità</em> in arrivo.</h2>
+  <p class="section-sub">Il modello è parametrizzato per verticale. Il verticale NGO è l'unico calibrato su dati reali. Gli altri sono predisposti — verranno rilasciati quando saranno validati, non prima.</p>
+
+  <div class="verticali-grid">
+    <div class="vert-card">
+      <span class="vert-badge badge-active">● Attivo — Beta</span>
+      <div class="vert-title">ONG &amp; Fundraising</div>
+      <p class="vert-desc">Lasciti, upgrade, sostegno continuativo, riattivazione, emergenze. Matrice pesi calibrata su Sargeant 2007. Integrazione diretta con Data Shield e Stage 3 message optimizer.</p>
+      <ul class="vert-feats">
+        <li>5 obiettivi di raccolta modellati</li>
+        <li>Lift lasciti misurato: 1.97×</li>
+        <li>Wizard mapping CSV 4-step</li>
+        <li>Dashboard interattivo per esplorazione</li>
+        <li>Bonus demografico per fascia età (lasciti)</li>
+      </ul>
+      <a class="vert-cta" href="/accesso.html">Richiedi accesso beta →</a>
+    </div>
+    <div class="vert-card coming">
+      <span class="vert-badge badge-soon">In sviluppo</span>
+      <div class="vert-title">Sindacato</div>
+      <p class="vert-desc">Modello RPL (Recency, Participation, Longevity). Monetary sostituito da Participation — eventi, assemblee, deleghe. Obiettivi: iscrizione, rinnovo, attivismo, lascito sindacale.</p>
+      <ul class="vert-feats">
+        <li>Participation sostituisce Monetary</li>
+        <li>Obiettivi: iscrizione, rinnovo, attivismo</li>
+        <li>Integrazione registro deleghe</li>
+        <li>Pesi calibrati su letteratura sindacale</li>
+      </ul>
+      <div class="interesse-form">
+        <div class="interesse-title">Notificami al rilascio</div>
+        <div class="interesse-row">
+          <input class="interesse-input" type="email" placeholder="email@organizzazione.it" id="email-sind">
+          <button class="interesse-btn" onclick="submitInteresse('sind')">Avvisami →</button>
+        </div>
+        <div class="interesse-ok" id="ok-sind">✓ Registrato. Ti avvisiamo al rilascio.</div>
+      </div>
+    </div>
+    <div class="vert-card coming">
+      <span class="vert-badge badge-soon">In sviluppo</span>
+      <div class="vert-title">Municipalità &amp; Enti civici</div>
+      <p class="vert-desc">Utilizzo servizi come proxy di partecipazione. Recency = ultimo accesso ai servizi. Frequency = frequenza di utilizzo. Obiettivi: engagement civico, consulta, volontariato, eventi.</p>
+      <ul class="vert-feats">
+        <li>Utilizzo servizi come segnale partecipazione</li>
+        <li>Obiettivi: civic engagement, volontariato</li>
+        <li>Integrazione con Open Data comunali</li>
+        <li>No dati monetari richiesti</li>
+      </ul>
+      <div class="interesse-form">
+        <div class="interesse-title">Notificami al rilascio</div>
+        <div class="interesse-row">
+          <input class="interesse-input" type="email" placeholder="email@comune.it" id="email-mun">
+          <button class="interesse-btn" onclick="submitInteresse('mun')">Avvisami →</button>
+        </div>
+        <div class="interesse-ok" id="ok-mun">✓ Registrato. Ti avvisiamo al rilascio.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-section">
+  <div class="cta-kicker">Modulo Propensione · Beta</div>
+  <h2 class="cta-title">Il tuo prossimo<br><em>legacy prospect</em><br>è già nel tuo CRM.</h2>
+  <p class="cta-sub">Non lo vedi perché il tuo sistema lo classifica come "donatore medio". Il Modulo Propensione lo separa dal resto con dati che hai già.</p>
+  <div class="cta-buttons">
+    <a class="btn-primary-inv" href="/accesso.html">Richiedi accesso beta →</a>
+    <a class="btn-ghost-inv" href="/anonimizza.html">Data Shield — anonimizza prima →</a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-logo">POLISIM.DEV</div>
+  <div class="foot-links">
+    <a href="/">Home</a>
+    <a href="/metodologia.html">Metodologia</a>
+    <a href="/fonti.html">Fonti</a>
+    <a href="/per-chi.html">Per chi</a>
+    <a href="/anonimizza.html">Data Shield</a>
+    <a href="/en.html">English</a>
+  </div>
+</footer>
+
+<script>
+// Ticker
+const TICKER_ITEMS = [
+  {label:'Sargeant A. (2007)', desc:'Charitable Giving — Major Donors and Gift Aid'},
+  {label:'Wang et al. (2015)', desc:'MRP Electoral Forecasting · Journal of the American Statistical Association'},
+  {label:'ESS Round 11 (2023-24)', desc:'European Social Survey · N=2.865 IT · fiducia istituzionale, scala sx-dx'},
+  {label:'TRIPOL IT (2021-22)', desc:'Polarizzazione affettiva italiana · N=1.231 · WAPSV score'},
+  {label:'ITANES 2022', desc:'Italian National Election Studies · N=4.696 · DOI 10.13130/RD_UNIMI/JV77WR'},
+  {label:'ISTAT Censimento 2021', desc:'493.942 sezioni · istruzione, occupazione, stranieri, struttura familiare'},
+  {label:'Entman R. (1993)', desc:'Framing: Toward Clarification of a Fractured Paradigm · Journal of Communication'},
+  {label:'Meta Ad Library (2026)', desc:'30 ads analizzati · STC, UNICEF, Emergency · calibrazione tono/hook NGO'},
+];
+const track = document.getElementById('tickerTrack');
+if(track){
+  const all = [...TICKER_ITEMS,...TICKER_ITEMS];
+  track.innerHTML = all.map(i=>`<span class="ticker-item"><span>${i.label}</span> — ${i.desc}</span>`).join('');
+}
+
+// Form interesse
+function submitInteresse(vert){
+  const input = document.getElementById('email-'+vert);
+  const ok = document.getElementById('ok-'+vert);
+  if(input && input.value.includes('@')){
+    input.style.display='none';
+    input.closest('.interesse-row').querySelector('.interesse-btn').style.display='none';
+    ok.style.display='block';
+  }
+}
+</script>
+</body>
+</html>
