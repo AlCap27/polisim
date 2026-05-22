@@ -1,0 +1,19 @@
+# Core
+fastapi>=0.110.0
+uvicorn>=0.29.0
+pydantic>=2.7.0
+
+# Data Science
+numpy>=1.26.0
+pandas>=2.2.0
+pymc>=5.14.0
+arviz>=0.18.0
+
+# AI Providers
+anthropic>=0.25.0
+mistralai>=0.1.8
+ollama>=0.1.0
+
+# Utils
+python-dotenv>=1.0.0
+requests>=2.31.0
