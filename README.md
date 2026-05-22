@@ -230,7 +230,7 @@ Q-Italia (qitalia.org) uses PoliSim as its live proof-of-concept: all content is
 **Current Status:** Self-funded development (October 2025 - May 2026)
 
 **Applied Funding:**
-- [NGI Zero Commons Fund](https://nlnet.nl/commonsfund/) — Application code 2026-06-180 (€35,000, pending review)
+- [NGI Zero Commons Fund](https://nlnet.nl/commonsfund/) — Application code 2026-06-238 
 
 **Sustainability Model:**
 Post-grant, PoliSim will remain fully open-source (MIT License). The core infrastructure — MRP model, API, documentation — will always be free for self-hosting.
