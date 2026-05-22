@@ -52,7 +52,7 @@ Three methodological caveats published openly:
 **Deployment:** api2.polisim.dev (live since April 2026)  
 **User Verticals:** 3 active (political movement, trade union, international NGO)  
 **Validation:** Field testing in progress (May 2026)  
-**Funding:** Applicant to [NGI Zero Commons Fund](https://nlnet.nl/commonsfund/) (code 2026-06-180)
+**Funding:** Applicant to [NGI Zero Commons Fund](https://nlnet.nl/commonsfund/) (code 2026-06-238)
 
 **Proof of Concept Evolution:**
 - PoC 1 (March 2026): OLS regression, 11 Lazio constituencies, RMSE 3.9pp
