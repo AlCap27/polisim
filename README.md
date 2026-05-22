@@ -82,6 +82,9 @@ Three methodological caveats published openly:
 - Practitioner contributor to mySociety/SITRA TICTeC Research (April-May 2026)
 - Three technical reports submitted documenting PoC evolution and field validation
 
+**Data Access:**
+- Meta Content Library — Approved researcher access via CASD/IDAN (May 2026)
+
 **Institutional Validation:**
 - Field testing partnerships: Trade union confederation + International NGO (May 2026)
 - Beta deployment in three user verticals (political movement, labor organization, nonprofit)
