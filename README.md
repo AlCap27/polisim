@@ -2,6 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Civic Tech Guide](https://img.shields.io/badge/Civic%20Tech-Guide-blue)](https://civictech.guide/)
 
 Production-grade civic infrastructure for values-based communication on open public data.
 
@@ -10,12 +11,14 @@ Production-grade civic infrastructure for values-based communication on open pub
 PoliSim connects:
 - **Open census data** (ISTAT 2021, 71M observations across 139 constituencies)
 - **Electoral records** (Italian Ministry of Interior Eligendo OpenData)
+- **Psychographic segmentation** (ITANES, ESS, Tripol)
 - **AI with declared limitations** (substitutable by design)
 
 To help civic organisations (NGOs, trade unions, municipalities) test whether their messages are coherent with their stated values and appropriate for the demographic reality of their target territory.
 
 **Live production system:** [api2.polisim.dev](https://api2.polisim.dev)  
-**Documentation:** [polisim.dev/metodologia.html](https://polisim.dev/metodologia.html)
+**Documentation:** [polisim.dev/metodologia.html](https://polisim.dev/metodologia.html)  
+**Civic Tech Directory:** [civictech.guide](https://civictech.guide/)
 
 ---
 
@@ -32,10 +35,19 @@ Tests whether a message is coherent with an organisation's stated principles and
 ### 🔄 AI Provider Substitutability
 **Claude** / **Mistral** / **LLaMA** / **Phi** / **Ollama** — swap in minutes, zero infrastructure changes.
 
-### 📊 100% Open Public Data
-- ISTAT Permanent Census 2021
-- Ministry of Interior Eligendo OpenData
-- ITANES 2022 empirical segments
+### 📊 Open Public Data Sources
+
+**Italian Electoral & Census Data:**
+- ISTAT Permanent Census 2021 (71M observations, 139 constituencies)
+- Ministry of Interior Eligendo OpenData (electoral results 2018-2025)
+- ITANES 2022 empirical voter segmentation (DOI: 10.13130/RD_UNIMI/JV77WR)
+
+**European Psychographic Data:**
+- European Social Survey (ESS) — Cross-national attitudinal data
+- Tripol dataset — Political psychology and value orientations
+
+**Scalability:**
+- Architecture designed for Eurostat integration (France, Germany, Spain)
 - No proprietary data sources
 - GDPR-compliant by design
 
@@ -61,7 +73,26 @@ Three methodological caveats published openly:
 
 ---
 
+## Recognition & Validation
+
+**Civic Tech Directory:**
+- Listed in [Civic Tech Guide](https://civictech.guide/) — Curated directory of recognized civic technology projects
+
+**Research Network:**
+- Practitioner contributor to mySociety/SITRA TICTeC Research (April-May 2026)
+- Three technical reports submitted documenting PoC evolution and field validation
+
+**Institutional Validation:**
+- Field testing partnerships: Trade union confederation + International NGO (May 2026)
+- Beta deployment in three user verticals (political movement, labor organization, nonprofit)
+
+**Funding Pipeline:**
+- NGI Zero Commons Fund applicant (code 2026-06-238)
+
+---
+
 ## Architecture
+
 ┌──────────────────┐
 │  Census Data     │  ISTAT 2021 (71M observations)
 │  (ISTAT)         │
@@ -72,7 +103,10 @@ Three methodological caveats published openly:
 │  MRP Model       │◄──────│  Electoral Records  │  Eligendo OpenData
 │  (PyMC)          │       │  (Eligendo)         │
 └────────┬─────────┘       └─────────────────────┘
-│
+│                  ┌─────────────────────┐
+├──────────────────│  Psychographic      │  ESS, Tripol, ITANES
+│                  │  Segmentation       │
+│                  └─────────────────────┘
 ▼
 ┌──────────────────┐       ┌─────────────────────┐
 │  API Layer       │◄──────│  AI Provider        │  Claude/Mistral/LLaMA
@@ -82,12 +116,13 @@ Three methodological caveats published openly:
 ▼
 ┌──────────────────┐
 │  Web Interface   │  api2.polisim.dev
-└──────────────────┘
+
 **Tech Stack:**
 - Python 3.11+
 - PyMC (Bayesian inference)
 - FastAPI (REST API)
 - ISTAT OpenData APIs
+- ESS + Tripol datasets
 - Anthropic Claude API (substitutable)
 
 ---
@@ -139,11 +174,11 @@ This architecture ensures **no vendor lock-in** and supports future EU AI Act co
 PoliSim's architecture generalizes to any EU democracy with comparable open data infrastructure.
 
 **Supported (or planned) electoral systems:**
-- 🇮🇹 Italy (production): 220 constituencies, ISTAT + Eligendo
-- 🇫🇷 France (planned): circonscriptions législatives, INSEE data
-- 🇩🇪 Germany (planned): Wahlkreise, Destatis data
-- 🇪🇸 Spain (planned): circunscripciones, INE data
-- 🇬🇧 UK (feasible): FPTP constituencies, ONS + Electoral Commission
+- 🇮🇹 Italy (production): 220 constituencies, ISTAT + Eligendo + ITANES
+- 🇫🇷 France (planned): circonscriptions législatives, INSEE data + ESS
+- 🇩🇪 Germany (planned): Wahlkreise, Destatis data + ESS
+- 🇪🇸 Spain (planned): circunscripciones, INE data + ESS
+- 🇬🇧 UK (feasible): FPTP constituencies, ONS + Electoral Commission + ESS
 
 **Conceptual retraining workflow:**
 
@@ -154,13 +189,17 @@ python scripts/prepare_census.py --input census_FR.csv --country FR
 # 2. Prepare electoral results
 python scripts/prepare_elections.py --input elections_FR.csv --country FR
 
-# 3. Train MRP model
+# 3. Integrate ESS psychographic data
+python scripts/prepare_ess.py --input ess_FR.csv --country FR
+
+# 4. Train MRP model
 python scripts/train_mrp.py \
   --census processed/census_FR.csv \
   --elections processed/elections_FR.csv \
+  --psychographic processed/ess_FR.csv \
   --output models/model_FR.pkl
 
-# 4. Deploy with French model
+# 5. Deploy with French model
 python -m polisim.api --model models/model_FR.pkl --country FR
 ```
 
@@ -206,9 +245,11 @@ Q-Italia (qitalia.org) uses PoliSim as its live proof-of-concept: all content is
 ### ✅ Completed (Q1-Q2 2026)
 - Bayesian MRP production deployment
 - Multi-step coherence evaluation pipeline
+- ESS/Tripol psychographic integration
 - Field validation partnerships (trade union + NGO)
 - GDPR-compliant data anonymization tool (Data Shield)
 - Public methodology documentation with declared limitations
+- Listed in Civic Tech Guide directory
 
 ### 🚧 In Progress (Q2 2026)
 - Open-source repository preparation
@@ -280,7 +321,8 @@ If you reference PoliSim in academic work or policy documents, please cite:
 
 **Web:** [polisim.dev](https://polisim.dev) | [qitalia.org](https://qitalia.org)  
 **Email:** info@polisim.dev  
-**NGI Application:** 2026-06-238
+**NGI Application:** 2026-06-238  
+**Civic Tech Guide:** [civictech.guide](https://civictech.guide/)
 
 **Live Proof-of-Concept:** Q-Italia (qitalia.org) — Political movement with 14 constitutional principles using PoliSim infrastructure for values-anchored communication.
 
@@ -292,9 +334,12 @@ If you reference PoliSim in academic work or policy documents, please cite:
 - ISTAT (Istituto Nazionale di Statistica) — Permanent Census 2021
 - Ministry of Interior — Eligendo OpenData electoral results
 - ITANES 2022 — Empirical voter segmentation (DOI: 10.13130/RD_UNIMI/JV77WR)
+- European Social Survey (ESS) — Cross-national attitudinal data
+- Tripol — Political psychology and value orientations dataset
 
 **Research Network:**
 - mySociety & SITRA — TICTeC civic tech research
+- Civic Tech Guide — Recognized civic technology directory
 - NGI Zero Commons Fund — Applied funding for open-source release
 
 **AI Foundation:**
@@ -303,7 +348,7 @@ If you reference PoliSim in academic work or policy documents, please cite:
 
 ---
 
-**Built with:** Python 3.11+ · PyMC · FastAPI · ISTAT OpenData · Eligendo OpenData · Claude API
+**Built with:** Python 3.11+ · PyMC · FastAPI · ISTAT OpenData · Eligendo OpenData · ESS · Tripol · Claude API
 
 ---
 
