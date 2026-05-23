@@ -477,10 +477,24 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-sans);font-siz
         <label class="field-label">Tipo campagna ONG</label>
         <select class="field-select" id="f-tipo-campagna" onchange="aggiornaTipoCampagna()">
           <option value="ong_lasciti">Lasciti testamentari / donazioni legacy</option>
+          <option value="ong_raccolta_fondi">Raccolta fondi (donazione singola / emergenza)</option>
+          <option value="ong_advocacy">Advocacy / sensibilizzazione pubblica</option>
           <option value="ong_corporate">Partnership corporate / CSR</option>
-          <option value="advocacy">Advocacy / sensibilizzazione pubblica</option>
-          <option value="fundraising">Raccolta fondi generale</option>
+          <option value="ong_fidelizzazione">Fidelizzazione donatori</option>
+          <option value="ong_volontariato">Recruitment volontari / coinvolgimento</option>
         </select>
+      </div>
+      <div class="field-full" id="engagement-wrap" style="display:none">
+        <label class="field-label">Profilo relazionale del destinatario</label>
+        <select class="field-select" id="f-engagement">
+          <option value="">Non specificato</option>
+          <option value="prospect">Prospect — non conosce ancora la nostra causa</option>
+          <option value="sostenitore">Sostenitore attivo — conosce la missione, ha già partecipato</option>
+          <option value="donatore_ricorrente">Donatore ricorrente — ci sostiene economicamente</option>
+          <option value="legacy_prospect">Legacy prospect — relazione lunga, potenziale lascito</option>
+          <option value="a_rischio">Donatore a rischio — ha ridotto o interrotto il supporto</option>
+        </select>
+        <p class="field-hint">Il sistema adatta il tono e il contenuto al livello di relazione già esistente con il destinatario</p>
       </div>
       <div class="field-row">
         <div>
@@ -600,6 +614,8 @@ function checkGate() {
   const hideSolo = tipoCorrente === 'sindacato' ? 't-ong_lasciti' : 't-sindacato';
   document.getElementById(showSolo).classList.add('active');
   document.getElementById(hideSolo).style.display = 'none';
+  // Inizializza visibilità engagement e tipo campagna
+  aggiornaVisibilitaTipoCampagna();
 }
 
 function setTipo(t) {
@@ -614,23 +630,15 @@ function setTipo(t) {
 
 function aggiornaTipoCampagna() {
   const val = document.getElementById('f-tipo-campagna').value;
-  // Mappa tipi campagna ai backend types supportati
-  const tipoMap = {
-    'ong_lasciti': 'ong_lasciti',
-    'ong_corporate': 'ong_corporate',
-    'advocacy': 'ong_lasciti',
-    'fundraising': 'ong_lasciti',
-  };
-  tipoCorrente = tipoMap[val] || 'ong_lasciti';
+  tipoCorrente = val || 'ong_lasciti';
 }
 
 function aggiornaVisibilitaTipoCampagna() {
   const wrap = document.getElementById('tipo-campagna-wrap');
-  // Mostra il select tipo campagna solo per ONG, non per ente civico
-  if (wrap) {
-    const isOng = tipoCorrente === 'ong_lasciti' || tipoCorrente === 'ong_corporate';
-    wrap.style.display = isOng ? 'block' : 'none';
-  }
+  const engWrap = document.getElementById('engagement-wrap');
+  const isOng = tipoCorrente !== 'sindacato';
+  if (wrap) wrap.style.display = isOng ? 'block' : 'none';
+  if (engWrap) engWrap.style.display = isOng ? 'block' : 'none';
 }
 
 function setTab(t) {
@@ -691,6 +699,7 @@ async function analizza() {
   const libero = document.getElementById('f-segmento-libero').value.trim();
   const canale = document.getElementById('f-canale').value;
   const contesto = document.getElementById('f-contesto').value.trim();
+  const engagement_level = document.getElementById('f-engagement') ? document.getElementById('f-engagement').value : '';
 
   // Dati ISTAT del collegio selezionato
   const istatData = collegio ? ISTAT_COLLEGI[collegio] : null;
@@ -721,8 +730,10 @@ async function analizza() {
         valori,
         messaggio,
         target: segmentoDesc,
-        contesto: [canale && `canale: ${canale}`, contesto].filter(Boolean).join(' · '),
+        contesto: contesto,
         tipo: tipoCorrente,
+        canale: canale,
+        engagement_level: engagement_level,
       })
     });
     if (!res.ok) throw new Error('Errore ' + res.status);
