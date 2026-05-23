@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PoliSim — Message Optimizer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#faf9f7; --bg2:#f0ede8; --bg3:#e8e4de;
+  --black:#0a0a0a; --ink:#1a1a1a; --mid:#555; --light:#888; --ghost:#bbb;
+  --blue:#1e3a5f; --blue-light:#4a7eb5; --blue-dim:#e8f0f8;
+  --green:#1a4a2a; --green-light:#4a7b5a; --green-dim:#e8f4ec;
+  --red:#7b1a1a; --red-light:#b05040; --red-dim:#fdf0ee;
+  --amber:#7a4a00; --amber-dim:#fdf5e8;
+  --border:#e0dbd4; --border2:#d0cbc4;
+  --font-serif:"Cormorant Garamond",Georgia,serif;
+  --font-sans:"DM Sans",system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",monospace;
+  --radius:0px;
+}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-sans);font-size:14px;line-height:1.6;min-height:100vh}
+
+/* ── GATE ── */
+#gate{position:fixed;inset:0;background:var(--bg);z-index:1000;display:flex;align-items:center;justify-content:center}
+.gate-inner{max-width:420px;width:100%;padding:0 24px;text-align:center}
+.gate-eyebrow{font-family:var(--font-mono);font-size:9px;letter-spacing:4px;color:var(--blue-light);text-transform:uppercase;margin-bottom:20px}
+.gate-title{font-family:var(--font-serif);font-size:44px;font-weight:300;line-height:1.1;margin-bottom:24px}
+.gate-title em{font-style:italic;color:var(--blue)}
+.gate-input{width:100%;background:#fff;border:0.5px solid var(--border2);color:var(--ink);padding:14px 16px;font-family:var(--font-mono);font-size:13px;letter-spacing:2px;text-align:center;outline:none;margin-bottom:10px;transition:border-color .15s}
+.gate-input:focus{border-color:var(--black)}
+.gate-btn{width:100%;background:var(--black);color:var(--bg);border:none;padding:14px;font-family:var(--font-mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:opacity .2s}
+.gate-btn:hover{opacity:.85}
+.gate-err{font-family:var(--font-mono);font-size:10px;color:var(--red-light);margin-top:8px;min-height:14px;letter-spacing:1px}
+
+/* ── NAV ── */
+#app{display:none}
+.nav{position:sticky;top:0;z-index:100;padding:0 48px;height:60px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:rgba(250,249,247,0.95);backdrop-filter:blur(12px)}
+.nav-logo{font-family:var(--font-mono);font-size:13px;letter-spacing:3px;font-weight:500;color:var(--black);text-decoration:none;text-transform:uppercase}
+.nav-logo span{color:var(--blue)}
+.nav-right{display:flex;align-items:center;gap:20px}
+.nav-tag{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:var(--blue-light);text-transform:uppercase;border:0.5px solid var(--blue-light);padding:4px 10px}
+.nav-user{font-family:var(--font-mono);font-size:10px;color:var(--light);text-transform:uppercase;letter-spacing:1px}
+.nav-back{font-family:var(--font-mono);font-size:10px;color:var(--light);text-decoration:none;text-transform:uppercase;letter-spacing:1px}
+.nav-back:hover{color:var(--black)}
+
+/* ── LAYOUT ── */
+.page{max-width:860px;margin:0 auto;padding:48px 24px 80px}
+.page-eyebrow{font-family:var(--font-mono);font-size:9px;letter-spacing:4px;color:var(--blue-light);text-transform:uppercase;margin-bottom:14px}
+.page-title{font-family:var(--font-serif);font-size:clamp(36px,5vw,52px);font-weight:300;line-height:1.1;margin-bottom:6px}
+.page-title em{font-style:italic;color:var(--blue)}
+.page-sub{font-size:13px;color:var(--mid);margin-bottom:40px;font-family:var(--font-mono);letter-spacing:.5px}
+
+/* ── TIPO ORG ── */
+.tipo-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--border);border:0.5px solid var(--border);margin-bottom:36px}
+.tipo-card{background:var(--bg);padding:28px 20px;cursor:pointer;transition:background .15s;text-align:center;border:2px solid transparent;position:relative}
+.tipo-card:hover{background:var(--bg2)}
+.tipo-card.active{background:#fff;border-color:var(--black)}
+.tipo-card.active::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--black)}
+.tipo-label{font-family:var(--font-serif);font-size:22px;font-weight:300;color:var(--mid);letter-spacing:1px}
+.tipo-card.active .tipo-label{color:var(--black);font-weight:400}
+
+/* ── TABS ── */
+.tabs{display:flex;border-bottom:0.5px solid var(--border);margin-bottom:28px;gap:0}
+.tab-btn{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--light);background:none;border:none;padding:12px 20px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-0.5px;transition:all .15s}
+.tab-btn:hover{color:var(--ink)}
+.tab-btn.active{color:var(--black);border-bottom-color:var(--black)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* ── FORM ── */
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.field-full{margin-bottom:16px}
+.field-label{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:var(--blue-light);text-transform:uppercase;margin-bottom:6px;display:block}
+.field-input,.field-select,.field-textarea{width:100%;background:#fff;border:0.5px solid var(--border2);color:var(--ink);padding:11px 14px;font-family:var(--font-sans);font-size:13px;outline:none;transition:border-color .15s;-webkit-appearance:none}
+.field-input:focus,.field-select:focus,.field-textarea:focus{border-color:var(--black)}
+.field-textarea{min-height:120px;resize:vertical;line-height:1.6}
+.field-textarea.tall{min-height:160px}
+.field-hint{font-size:11px;color:var(--ghost);margin-top:5px;font-family:var(--font-mono);letter-spacing:.5px}
+
+/* ── ISTAT BOX ── */
+.istat-preview{display:none;margin-top:10px;padding:14px 16px;background:var(--blue-dim);border:0.5px solid #c0d4e8}
+.istat-preview.visible{display:block}
+.istat-label{font-family:var(--font-mono);font-size:8px;letter-spacing:3px;color:var(--blue-light);text-transform:uppercase;margin-bottom:10px}
+.istat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.istat-stat{text-align:center}
+.istat-stat-n{font-family:var(--font-serif);font-size:24px;font-weight:300;color:var(--blue);line-height:1}
+.istat-stat-l{font-family:var(--font-mono);font-size:8px;letter-spacing:1px;color:var(--mid);text-transform:uppercase;margin-top:3px}
+
+/* ── RANGE SLIDER ── */
+.range-row{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;margin-bottom:8px}
+.range-input{-webkit-appearance:none;width:100%;height:2px;background:var(--border2);outline:none}
+.range-input::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;background:var(--black);cursor:pointer;border-radius:50%}
+.range-val{font-family:var(--font-mono);font-size:12px;color:var(--black);min-width:36px;text-align:right}
+
+/* ── CTA ── */
+.cta-row{margin-top:32px;display:flex;gap:12px;align-items:center}
+.btn-primary{font-family:var(--font-mono);font-size:11px;letter-spacing:3px;text-transform:uppercase;background:var(--black);color:var(--bg);border:none;padding:16px 36px;cursor:pointer;transition:opacity .2s;flex-shrink:0}
+.btn-primary:hover{opacity:.85}
+.btn-primary:disabled{opacity:.35;cursor:not-allowed}
+.btn-ghost{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;color:var(--light);text-transform:uppercase;cursor:pointer;background:none;border:none;padding:4px 0}
+.loading-text{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;color:var(--light);text-transform:uppercase;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── RISULTATI ── */
+#results{margin-top:48px;display:none;border-top:0.5px solid var(--border);padding-top:40px}
+.res-eyebrow{font-family:var(--font-mono);font-size:9px;letter-spacing:4px;color:var(--blue-light);text-transform:uppercase;margin-bottom:20px}
+
+/* Score row */
+.score-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:0.5px solid var(--border);margin-bottom:28px;grid-auto-rows:auto}
+.score-box{background:var(--bg);padding:24px 20px;text-align:center}
+.score-n{font-family:var(--font-serif);font-size:48px;font-weight:300;line-height:1;margin-bottom:4px}
+.score-l{font-family:var(--font-mono);font-size:8px;letter-spacing:2px;color:var(--light);text-transform:uppercase}
+.score-n.green{color:var(--green-light)}
+.score-n.amber{color:var(--amber)}
+.score-n.red{color:var(--red-light)}
+
+/* Alert */
+.alert{padding:18px 20px;margin-bottom:28px;border-left:3px solid}
+.alert.red{border-color:var(--red-light);background:var(--red-dim)}
+.alert.amber{border-color:var(--amber);background:var(--amber-dim)}
+.alert.green{border-color:var(--green-light);background:var(--green-dim)}
+.alert-title{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.alert.red .alert-title{color:var(--red-light)}
+.alert.amber .alert-title{color:var(--amber)}
+.alert.green .alert-title{color:var(--green-light)}
+.alert-text{font-size:13px;color:var(--mid);line-height:1.7}
+
+/* Entman */
+.entman-section-title{font-family:var(--font-mono);font-size:9px;letter-spacing:3px;color:var(--ink);text-transform:uppercase;margin-bottom:6px}
+.entman-cite{font-size:11px;color:var(--ghost);margin-bottom:20px;font-family:var(--font-mono);letter-spacing:.5px}
+.entman-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:0.5px solid var(--border);margin-bottom:28px}
+.entman-card{background:var(--bg);padding:22px 20px}
+.entman-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.entman-num{font-family:var(--font-mono);font-size:8px;letter-spacing:2px;color:var(--light);text-transform:uppercase}
+.entman-score{font-family:var(--font-mono);font-size:10px;font-weight:500}
+.entman-score.strong{color:var(--green-light)}
+.entman-score.medium{color:var(--amber)}
+.entman-score.weak{color:var(--red-light)}
+.entman-label{font-family:var(--font-serif);font-size:18px;font-weight:400;margin-bottom:8px;line-height:1.2}
+.entman-forza{display:inline-block;font-family:var(--font-mono);font-size:8px;letter-spacing:1px;padding:3px 8px;text-transform:uppercase;margin-bottom:10px}
+.forza-forte{background:var(--green-dim);color:var(--green-light)}
+.forza-debole{background:var(--red-dim);color:var(--red-light)}
+.forza-neutro{background:var(--bg3);color:var(--light)}
+.entman-text{font-size:12px;color:var(--mid);line-height:1.7}
+.entman-suggest{font-size:11px;color:var(--blue-light);margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border);font-family:var(--font-mono);letter-spacing:.5px}
+
+/* Varianti */
+.varianti-title{font-family:var(--font-mono);font-size:9px;letter-spacing:3px;color:var(--ink);text-transform:uppercase;margin-bottom:20px}
+.variante{border:0.5px solid var(--border);background:#fff;padding:22px 20px;margin-bottom:12px;transition:border-color .15s}
+.variante:hover{border-color:var(--black)}
+.variante-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.variante-tipo{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:var(--blue-light);text-transform:uppercase}
+.variante-pct{font-family:var(--font-mono);font-size:11px;color:var(--green-light)}
+.variante-testo{font-family:var(--font-serif);font-size:17px;font-weight:300;line-height:1.6;color:var(--black);font-style:italic;margin-bottom:10px;padding-left:14px;border-left:2px solid var(--border2)}
+.variante-note{font-size:12px;color:var(--light);font-family:var(--font-mono);letter-spacing:.5px}
+
+/* Disclaimer */
+.disclaimer{font-family:var(--font-mono);font-size:9px;color:var(--ghost);margin-top:48px;padding-top:20px;border-top:0.5px solid var(--border);line-height:2;letter-spacing:.5px}
+
+@keyframes opt-progress{0%{width:0%;margin-left:0}50%{width:60%;margin-left:20%}100%{width:0%;margin-left:100%}}
+</style>
+</head>
+<body>
+
+<!-- GATE -->
+<div id="gate">
+  <div class="gate-inner">
+    <div class="gate-eyebrow">PoliSim · Accesso riservato</div>
+    <h1 class="gate-title">Message<br><em>Optimizer.</em></h1>
+    <input class="gate-input" id="gate-pwd" type="password" placeholder="Codice di accesso"
+           onkeydown="if(event.key==='Enter')checkGate()">
+    <button class="gate-btn" onclick="checkGate()">Accedi →</button>
+    <div class="gate-err" id="gate-err"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <nav class="nav">
+    <a class="nav-logo" href="/"><span>POLI</span>SIM.DEV</a>
+    <div class="nav-right">
+      <span class="nav-tag">Message Optimizer</span>
+      <span class="nav-user" id="nav-user"></span>
+      <a class="nav-back" href="/accesso.html">← Cambia profilo</a>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div class="page-eyebrow">Comunicazione basata su dati pubblici</div>
+    <h1 class="page-title">Il messaggio giusto.<br><em>Per il segmento giusto.</em></h1>
+    <p class="page-sub">Valutazione valoriale · Framework Entman 1993 · Dati ISTAT 2021 · 139 collegi</p>
+
+    <!-- TIPO ORGANIZZAZIONE -->
+    <div class="tipo-grid">
+      <div class="tipo-card active" id="t-ong_lasciti" onclick="setTipo('ong_lasciti')">
+        <div class="tipo-label">ONG</div>
+      </div>
+      <div class="tipo-card" id="t-sindacato" onclick="setTipo('sindacato')">
+        <div class="tipo-label">Ente civico</div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="setTab('org')">Organizzazione</button>
+      <button class="tab-btn" onclick="setTab('segmento')">Segmento target</button>
+      <button class="tab-btn" onclick="setTab('messaggio')">Messaggio</button>
+    </div>
+
+    <!-- TAB 1: ORGANIZZAZIONE -->
+    <div class="tab-panel active" id="tab-org">
+      <div class="field-row">
+        <div style="flex:2">
+          <label class="field-label">Nome organizzazione</label>
+          <input class="field-input" id="f-nome" placeholder="es. CGIL Roma, Amnesty International, Comune di Bologna...">
+        </div>
+        <div>
+          <label class="field-label">Quota / reach attuale <span style="font-size:8px;color:var(--ghost)">opzionale</span></label>
+          <input class="field-input" id="f-quota-base" type="number" min="0" max="100" step="0.1" placeholder="es. 22.5">
+          <p class="field-hint">% sondaggio o reach attuale — per il confronto</p>
+        </div>
+      </div>
+      <div class="field-full">
+        <label class="field-label">Valori, missione e statuto</label>
+        <textarea class="field-textarea tall" id="f-valori"
+          placeholder="Incolla qui statuto, carta dei valori, mission statement, principi fondativi. Più dettagliato è il corpus valoriale, più precisa sarà la valutazione di coerenza.&#10;&#10;Esempio: &quot;L'organizzazione si fonda sui principi di solidarietà, tutela del lavoro dignitoso, contrasto alle disuguaglianze...&quot;"></textarea>
+        <p class="field-hint">Opzionale ma raccomandato. Senza corpus valoriale la valutazione usa solo il tipo di organizzazione.</p>
+      </div>
+      <div class="field-full" style="text-align:right">
+        <button class="btn-primary" onclick="setTab('segmento');scrollToTabs()">Segmento target →</button>
+      </div>
+    </div>
+
+    <!-- TAB 2: SEGMENTO TARGET (ISTAT) -->
+    <div class="tab-panel" id="tab-segmento">
+      <div class="field-row">
+        <div>
+          <label class="field-label">Area geografica</label>
+          <select class="field-select" id="f-area">
+            <option value="">Tutto il paese</option>
+            <option value="Nord-Ovest">Nord-Ovest (Piemonte, Liguria, Valle d&apos;Aosta)</option>
+            <option value="Nord-Est">Nord-Est (Veneto, FVG, Trentino, Emilia-R.)</option>
+            <option value="Centro">Centro (Toscana, Lazio, Marche, Umbria)</option>
+            <option value="Sud">Sud (Campania, Puglia, Basilicata, Calabria, Abruzzo, Molise)</option>
+            <option value="Isole">Isole (Sicilia, Sardegna)</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label">Collegio specifico (opzionale)</label>
+          <select class="field-select" id="f-collegio" onchange="aggiornaISTAT(this.value)">
+            <option value="">-- Seleziona collegio --</option>
+<option value="ABRUZZO - U01 (CHIETI)">ABRUZZO - U01 (CHIETI)</option>
+<option value="ABRUZZO - U02 (PESCARA)">ABRUZZO - U02 (PESCARA)</option>
+<option value="ABRUZZO - U03 (L'AQUILA)">ABRUZZO - U03 (L'AQUILA)</option>
+<option value="BASILICATA - U01 (POTENZA)">BASILICATA - U01 (POTENZA)</option>
+<option value="CALABRIA - U01 (CORIGLIANO-ROSSANO)">CALABRIA - U01 (CORIGLIANO-ROSSANO)</option>
+<option value="CALABRIA - U02 (COSENZA)">CALABRIA - U02 (COSENZA)</option>
+<option value="CALABRIA - U03 (CATANZARO)">CALABRIA - U03 (CATANZARO)</option>
+<option value="CALABRIA - U04 (VIBO VALENTIA)">CALABRIA - U04 (VIBO VALENTIA)</option>
+<option value="CALABRIA - U05 (REGGIO DI CALABRIA)">CALABRIA - U05 (REGGIO DI CALABRIA)</option>
+<option value="CAMPANIA 1 - U01 (GIUGLIANO IN CAMPANIA)">CAMPANIA 1 - U01 (GIUGLIANO IN CAMPANIA)</option>
+<option value="CAMPANIA 1 - U03 (NAPOLI: QUARTIERE 7 - SAN CARLO ALL'ARENA)">CAMPANIA 1 - U03 (NAPOLI: QUARTIERE 7 - SAN CARLO ALL'ARENA)</option>
+<option value="CAMPANIA 1 - U04 (CASORIA)">CAMPANIA 1 - U04 (CASORIA)</option>
+<option value="CAMPANIA 1 - U05 (ACERRA)">CAMPANIA 1 - U05 (ACERRA)</option>
+<option value="CAMPANIA 1 - U06 (SOMMA VESUVIANA)">CAMPANIA 1 - U06 (SOMMA VESUVIANA)</option>
+<option value="CAMPANIA 1 - U07 (TORRE DEL GRECO)">CAMPANIA 1 - U07 (TORRE DEL GRECO)</option>
+<option value="CAMPANIA 2 - U01 (AVERSA)">CAMPANIA 2 - U01 (AVERSA)</option>
+<option value="CAMPANIA 2 - U02 (CASERTA)">CAMPANIA 2 - U02 (CASERTA)</option>
+<option value="CAMPANIA 2 - U03 (BENEVENTO)">CAMPANIA 2 - U03 (BENEVENTO)</option>
+<option value="CAMPANIA 2 - U04 (AVELLINO)">CAMPANIA 2 - U04 (AVELLINO)</option>
+<option value="CAMPANIA 2 - U05 (SCAFATI)">CAMPANIA 2 - U05 (SCAFATI)</option>
+<option value="CAMPANIA 2 - U06 (SALERNO)">CAMPANIA 2 - U06 (SALERNO)</option>
+<option value="CAMPANIA 2 - U07 (EBOLI)">CAMPANIA 2 - U07 (EBOLI)</option>
+<option value="EMILIA-ROMAGNA - U01 (PIACENZA)">EMILIA-ROMAGNA - U01 (PIACENZA)</option>
+<option value="EMILIA-ROMAGNA - U02 (PARMA)">EMILIA-ROMAGNA - U02 (PARMA)</option>
+<option value="EMILIA-ROMAGNA - U03 (REGGIO NELL'EMILIA)">EMILIA-ROMAGNA - U03 (REGGIO NELL'EMILIA)</option>
+<option value="EMILIA-ROMAGNA - U04 (MODENA)">EMILIA-ROMAGNA - U04 (MODENA)</option>
+<option value="EMILIA-ROMAGNA - U05 (IMOLA)">EMILIA-ROMAGNA - U05 (IMOLA)</option>
+<option value="EMILIA-ROMAGNA - U06 (BOLOGNA)">EMILIA-ROMAGNA - U06 (BOLOGNA)</option>
+<option value="EMILIA-ROMAGNA - U07 (CARPI)">EMILIA-ROMAGNA - U07 (CARPI)</option>
+<option value="EMILIA-ROMAGNA - U08 (RAVENNA)">EMILIA-ROMAGNA - U08 (RAVENNA)</option>
+<option value="EMILIA-ROMAGNA - U09 (FERRARA)">EMILIA-ROMAGNA - U09 (FERRARA)</option>
+<option value="EMILIA-ROMAGNA - U10 (FORLI')">EMILIA-ROMAGNA - U10 (FORLI')</option>
+<option value="EMILIA-ROMAGNA - U11 (RIMINI)">EMILIA-ROMAGNA - U11 (RIMINI)</option>
+<option value="FRIULI-VENEZIA GIULIA - U01 (PORDENONE)">FRIULI-VENEZIA GIULIA - U01 (PORDENONE)</option>
+<option value="FRIULI-VENEZIA GIULIA - U02 (UDINE)">FRIULI-VENEZIA GIULIA - U02 (UDINE)</option>
+<option value="FRIULI-VENEZIA GIULIA - U03 (TRIESTE)">FRIULI-VENEZIA GIULIA - U03 (TRIESTE)</option>
+<option value="LAZIO 1 - U04 (ROMA: MUNICIPIO VII)">LAZIO 1 - U04 (ROMA: MUNICIPIO VII)</option>
+<option value="LAZIO 1 - U05 (ROMA: MUNICIPIO X)">LAZIO 1 - U05 (ROMA: MUNICIPIO X)</option>
+<option value="LAZIO 1 - U06 (ROMA: MUNICIPIO XI)">LAZIO 1 - U06 (ROMA: MUNICIPIO XI)</option>
+<option value="LAZIO 1 - U07 (ROMA: MUNICIPIO XIV)">LAZIO 1 - U07 (ROMA: MUNICIPIO XIV)</option>
+<option value="LAZIO 1 - U08 (VELLETRI)">LAZIO 1 - U08 (VELLETRI)</option>
+<option value="LAZIO 1 - U09 (GUIDONIA MONTECELIO)">LAZIO 1 - U09 (GUIDONIA MONTECELIO)</option>
+<option value="LAZIO 2 - U01 (VITERBO)">LAZIO 2 - U01 (VITERBO)</option>
+<option value="LAZIO 2 - U02 (RIETI)">LAZIO 2 - U02 (RIETI)</option>
+<option value="LAZIO 2 - U03 (LATINA)">LAZIO 2 - U03 (LATINA)</option>
+<option value="LAZIO 2 - U04 (FROSINONE)">LAZIO 2 - U04 (FROSINONE)</option>
+<option value="LAZIO 2 - U05 (TERRACINA)">LAZIO 2 - U05 (TERRACINA)</option>
+<option value="LIGURIA - U01 (SAVONA)">LIGURIA - U01 (SAVONA)</option>
+<option value="LIGURIA - U02 (GENOVA: MUNICIPIO VII - PONENTE)">LIGURIA - U02 (GENOVA: MUNICIPIO VII - PONENTE)</option>
+<option value="LIGURIA - U03 (GENOVA: MUNICIPIO I - CENTRO EST)">LIGURIA - U03 (GENOVA: MUNICIPIO I - CENTRO EST)</option>
+<option value="LIGURIA - U04 (LA SPEZIA)">LIGURIA - U04 (LA SPEZIA)</option>
+<option value="LOMBARDIA 1 - U01 (MONZA)">LOMBARDIA 1 - U01 (MONZA)</option>
+<option value="LOMBARDIA 1 - U02 (SEREGNO)">LOMBARDIA 1 - U02 (SEREGNO)</option>
+<option value="LOMBARDIA 1 - U03 (COLOGNO MONZESE)">LOMBARDIA 1 - U03 (COLOGNO MONZESE)</option>
+<option value="LOMBARDIA 1 - U04 (ROZZANO)">LOMBARDIA 1 - U04 (ROZZANO)</option>
+<option value="LOMBARDIA 1 - U05 (LEGNANO)">LOMBARDIA 1 - U05 (LEGNANO)</option>
+<option value="LOMBARDIA 1 - U06 (SESTO SAN GIOVANNI)">LOMBARDIA 1 - U06 (SESTO SAN GIOVANNI)</option>
+<option value="LOMBARDIA 1 - U09 (MILANO: NIL 21 - BUENOS AIRES - VENEZIA)">LOMBARDIA 1 - U09 (MILANO: NIL 21 - BUENOS AIRES - VENEZIA)</option>
+<option value="LOMBARDIA 2 - U01 (VARESE)">LOMBARDIA 2 - U01 (VARESE)</option>
+<option value="LOMBARDIA 2 - U02 (BUSTO ARSIZIO)">LOMBARDIA 2 - U02 (BUSTO ARSIZIO)</option>
+<option value="LOMBARDIA 2 - U03 (COMO)">LOMBARDIA 2 - U03 (COMO)</option>
+<option value="LOMBARDIA 2 - U04 (SONDRIO)">LOMBARDIA 2 - U04 (SONDRIO)</option>
+<option value="LOMBARDIA 2 - U05 (LECCO)">LOMBARDIA 2 - U05 (LECCO)</option>
+<option value="LOMBARDIA 3 - U01 (TREVIGLIO)">LOMBARDIA 3 - U01 (TREVIGLIO)</option>
+<option value="LOMBARDIA 3 - U02 (BERGAMO)">LOMBARDIA 3 - U02 (BERGAMO)</option>
+<option value="LOMBARDIA 3 - U03 (LUMEZZANE)">LOMBARDIA 3 - U03 (LUMEZZANE)</option>
+<option value="LOMBARDIA 3 - U04 (BRESCIA)">LOMBARDIA 3 - U04 (BRESCIA)</option>
+<option value="LOMBARDIA 3 - U05 (DESENZANO DEL GARDA)">LOMBARDIA 3 - U05 (DESENZANO DEL GARDA)</option>
+<option value="LOMBARDIA 4 - U01 (PAVIA)">LOMBARDIA 4 - U01 (PAVIA)</option>
+<option value="LOMBARDIA 4 - U02 (LODI)">LOMBARDIA 4 - U02 (LODI)</option>
+<option value="LOMBARDIA 4 - U03 (CREMONA)">LOMBARDIA 4 - U03 (CREMONA)</option>
+<option value="LOMBARDIA 4 - U04 (MANTOVA)">LOMBARDIA 4 - U04 (MANTOVA)</option>
+<option value="MARCHE - U01 (ASCOLI PICENO)">MARCHE - U01 (ASCOLI PICENO)</option>
+<option value="MARCHE - U02 (MACERATA)">MARCHE - U02 (MACERATA)</option>
+<option value="MARCHE - U03 (ANCONA)">MARCHE - U03 (ANCONA)</option>
+<option value="MARCHE - U04 (PESARO)">MARCHE - U04 (PESARO)</option>
+<option value="MOLISE - U01 (CAMPOBASSO)">MOLISE - U01 (CAMPOBASSO)</option>
+<option value="PIEMONTE 1 - U02 (TORINO: CIRCOSCRIZIONE 3 - SAN PAOLO - CENISIA - POZZO STRADA - CITTURIN - BORGATA">PIEMONTE 1 - U02 (TORINO: CIRCOSCRIZIONE 3 - SAN PAOLO - CENISIA - POZZO STRADA - CITTURIN - BORGATA</option>
+<option value="PIEMONTE 1 - U03 (COLLEGNO)">PIEMONTE 1 - U03 (COLLEGNO)</option>
+<option value="PIEMONTE 1 - U04 (CHIERI)">PIEMONTE 1 - U04 (CHIERI)</option>
+<option value="PIEMONTE 1 - U05 (MONCALIERI)">PIEMONTE 1 - U05 (MONCALIERI)</option>
+<option value="PIEMONTE 2 - U01 (ALESSANDRIA)">PIEMONTE 2 - U01 (ALESSANDRIA)</option>
+<option value="PIEMONTE 2 - U02 (NOVARA)">PIEMONTE 2 - U02 (NOVARA)</option>
+<option value="PIEMONTE 2 - U03 (VERCELLI)">PIEMONTE 2 - U03 (VERCELLI)</option>
+<option value="PIEMONTE 2 - U04 (ASTI)">PIEMONTE 2 - U04 (ASTI)</option>
+<option value="PIEMONTE 2 - U05 (CUNEO)">PIEMONTE 2 - U05 (CUNEO)</option>
+<option value="PUGLIA - U01 (FOGGIA)">PUGLIA - U01 (FOGGIA)</option>
+<option value="PUGLIA - U02 (CERIGNOLA)">PUGLIA - U02 (CERIGNOLA)</option>
+<option value="PUGLIA - U03 (ANDRIA)">PUGLIA - U03 (ANDRIA)</option>
+<option value="PUGLIA - U04 (MOLFETTA)">PUGLIA - U04 (MOLFETTA)</option>
+<option value="PUGLIA - U05 (BARI)">PUGLIA - U05 (BARI)</option>
+<option value="PUGLIA - U06 (ALTAMURA)">PUGLIA - U06 (ALTAMURA)</option>
+<option value="PUGLIA - U07 (BRINDISI)">PUGLIA - U07 (BRINDISI)</option>
+<option value="PUGLIA - U08 (TARANTO)">PUGLIA - U08 (TARANTO)</option>
+<option value="PUGLIA - U09 (LECCE)">PUGLIA - U09 (LECCE)</option>
+<option value="PUGLIA - U10 (GALATINA)">PUGLIA - U10 (GALATINA)</option>
+<option value="SARDEGNA - U01 (CAGLIARI)">SARDEGNA - U01 (CAGLIARI)</option>
+<option value="SARDEGNA - U02 (CARBONIA)">SARDEGNA - U02 (CARBONIA)</option>
+<option value="SARDEGNA - U03 (NUORO)">SARDEGNA - U03 (NUORO)</option>
+<option value="SARDEGNA - U04 (SASSARI)">SARDEGNA - U04 (SASSARI)</option>
+<option value="SICILIA 1 - U01 (PALERMO: QUARTIERE 11 - SETTE CANNOLI)">SICILIA 1 - U01 (PALERMO: QUARTIERE 11 - SETTE CANNOLI)</option>
+<option value="SICILIA 1 - U02 (PALERMO: QUARTIERE 20 - RESUTTANA - S. LORENZO)">SICILIA 1 - U02 (PALERMO: QUARTIERE 20 - RESUTTANA - S. LORENZO)</option>
+<option value="SICILIA 1 - U03 (BAGHERIA)">SICILIA 1 - U03 (BAGHERIA)</option>
+<option value="SICILIA 1 - U04 (GELA)">SICILIA 1 - U04 (GELA)</option>
+<option value="SICILIA 1 - U05 (AGRIGENTO)">SICILIA 1 - U05 (AGRIGENTO)</option>
+<option value="SICILIA 1 - U06 (MARSALA)">SICILIA 1 - U06 (MARSALA)</option>
+<option value="SICILIA 2 - U01 (RAGUSA)">SICILIA 2 - U01 (RAGUSA)</option>
+<option value="SICILIA 2 - U02 (CATANIA)">SICILIA 2 - U02 (CATANIA)</option>
+<option value="SICILIA 2 - U03 (ACIREALE)">SICILIA 2 - U03 (ACIREALE)</option>
+<option value="SICILIA 2 - U04 (SIRACUSA)">SICILIA 2 - U04 (SIRACUSA)</option>
+<option value="SICILIA 2 - U05 (BARCELLONA POZZO DI GOTTO)">SICILIA 2 - U05 (BARCELLONA POZZO DI GOTTO)</option>
+<option value="SICILIA 2 - U06 (MESSINA)">SICILIA 2 - U06 (MESSINA)</option>
+<option value="TOSCANA - U01 (GROSSETO)">TOSCANA - U01 (GROSSETO)</option>
+<option value="TOSCANA - U02 (MASSA)">TOSCANA - U02 (MASSA)</option>
+<option value="TOSCANA - U03 (LUCCA)">TOSCANA - U03 (LUCCA)</option>
+<option value="TOSCANA - U04 (PISA)">TOSCANA - U04 (PISA)</option>
+<option value="TOSCANA - U05 (LIVORNO)">TOSCANA - U05 (LIVORNO)</option>
+<option value="TOSCANA - U06 (PRATO)">TOSCANA - U06 (PRATO)</option>
+<option value="TOSCANA - U07 (FIRENZE)">TOSCANA - U07 (FIRENZE)</option>
+<option value="TOSCANA - U08 (SCANDICCI)">TOSCANA - U08 (SCANDICCI)</option>
+<option value="TOSCANA - U09 (AREZZO)">TOSCANA - U09 (AREZZO)</option>
+<option value="TRENTINO-ALTO ADIGE/SUDTIROL - U01 (TRENTO)">TRENTINO-ALTO ADIGE/SUDTIROL - U01 (TRENTO)</option>
+<option value="TRENTINO-ALTO ADIGE/SUDTIROL - U02 (ROVERETO)">TRENTINO-ALTO ADIGE/SUDTIROL - U02 (ROVERETO)</option>
+<option value="TRENTINO-ALTO ADIGE/SUDTIROL - U03 (BOLZANO/BOZEN)">TRENTINO-ALTO ADIGE/SUDTIROL - U03 (BOLZANO/BOZEN)</option>
+<option value="TRENTINO-ALTO ADIGE/SUDTIROL - U04 (BRESSANONE/BRIXEN)">TRENTINO-ALTO ADIGE/SUDTIROL - U04 (BRESSANONE/BRIXEN)</option>
+<option value="UMBRIA - U01 (TERNI)">UMBRIA - U01 (TERNI)</option>
+<option value="UMBRIA - U02 (PERUGIA)">UMBRIA - U02 (PERUGIA)</option>
+<option value="VENETO 1 - U01 (VENEZIA)">VENETO 1 - U01 (VENEZIA)</option>
+<option value="VENETO 1 - U02 (CHIOGGIA)">VENETO 1 - U02 (CHIOGGIA)</option>
+<option value="VENETO 1 - U03 (TREVISO)">VENETO 1 - U03 (TREVISO)</option>
+<option value="VENETO 1 - U04 (CASTELFRANCO VENETO)">VENETO 1 - U04 (CASTELFRANCO VENETO)</option>
+<option value="VENETO 1 - U05 (BELLUNO)">VENETO 1 - U05 (BELLUNO)</option>
+<option value="VENETO 2 - U01 (ROVIGO)">VENETO 2 - U01 (ROVIGO)</option>
+<option value="VENETO 2 - U02 (SELVAZZANO DENTRO)">VENETO 2 - U02 (SELVAZZANO DENTRO)</option>
+<option value="VENETO 2 - U03 (PADOVA)">VENETO 2 - U03 (PADOVA)</option>
+<option value="VENETO 2 - U04 (BASSANO DEL GRAPPA)">VENETO 2 - U04 (BASSANO DEL GRAPPA)</option>
+<option value="VENETO 2 - U05 (VICENZA)">VENETO 2 - U05 (VICENZA)</option>
+<option value="VENETO 2 - U06 (VERONA)">VENETO 2 - U06 (VERONA)</option>
+<option value="VENETO 2 - U07 (VILLAFRANCA DI VERONA)">VENETO 2 - U07 (VILLAFRANCA DI VERONA)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Box ISTAT reale -->
+      <div class="istat-preview" id="istat-box">
+        <div class="istat-label">ISTAT 2021 · Profilo demografico reale del collegio</div>
+        <div class="istat-grid" id="istat-grid"></div>
+      </div>
+
+      <div class="field-row" style="margin-top:16px">
+        <div>
+          <label class="field-label">Fascia d&apos;età prevalente</label>
+          <select class="field-select" id="f-eta">
+            <option value="">Tutte le fasce</option>
+            <option value="18-30">Giovani 18–30</option>
+            <option value="30-50">Adulti 30–50</option>
+            <option value="50-65">Maturi 50–65</option>
+            <option value="65+">Anziani 65+</option>
+            <option value="misto">Misto / trasversale</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label">Livello istruzione</label>
+          <select class="field-select" id="f-istr">
+            <option value="">Tutti i livelli</option>
+            <option value="bassa">Bassa (licenza media o meno)</option>
+            <option value="media">Media (diploma superiore)</option>
+            <option value="alta">Alta (laurea o più)</option>
+            <option value="misto">Misto</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div>
+          <label class="field-label">Condizione lavorativa</label>
+          <select class="field-select" id="f-lavoro">
+            <option value="">Tutte</option>
+            <option value="dipendente_pubblico">Dipendente pubblico</option>
+            <option value="dipendente_privato">Dipendente privato</option>
+            <option value="autonomo">Autonomo / libero professionista</option>
+            <option value="operaio">Operaio / artigiano</option>
+            <option value="precario">Precario / part-time</option>
+            <option value="disoccupato">Disoccupato / in cerca</option>
+            <option value="pensionato">Pensionato</option>
+            <option value="studente">Studente</option>
+            <option value="neet">NEET (non studia, non lavora)</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label">Contesto urbano</label>
+          <select class="field-select" id="f-urbano">
+            <option value="">Tutti i contesti</option>
+            <option value="metropoli">Metropoli (>500k ab.)</option>
+            <option value="citta_media">Città media (50–500k)</option>
+            <option value="piccolo_comune">Piccolo comune (<50k)</option>
+            <option value="area_rurale">Area rurale / periferica</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-full">
+        <label class="field-label">Descrizione libera del segmento (opzionale)</label>
+        <input class="field-input" id="f-segmento-libero"
+               placeholder="es. donatori abituali over 60, lavoratori metalmeccanici in ristrutturazione, genitori con figli disabili...">
+        <p class="field-hint">Integra i filtri sopra con dettagli specifici che conosci del tuo pubblico</p>
+      </div>
+
+      <div class="field-full" style="text-align:right;margin-top:8px">
+        <button class="btn-primary" onclick="setTab('messaggio');scrollToTabs()">Messaggio da testare →</button>
+      </div>
+    </div>
+
+    <!-- TAB 3: MESSAGGIO -->
+    <div class="tab-panel" id="tab-messaggio">
+      <div class="field-full">
+        <label class="field-label">Tema e obiettivo della comunicazione</label>
+        <textarea class="field-textarea tall" id="f-messaggio"
+          placeholder="Descrivi il messaggio da testare e l&apos;obiettivo che vuoi raggiungere. Puoi essere molto specifico.&#10;&#10;Esempi:&#10;&quot;Devo raggiungere donatori over 60 con un messaggio sui lasciti testamentari cercando di massimizzare i contatti qualificati per il nostro ufficio legale.&quot;&#10;&#10;&quot;Campagna per il rinnovo del contratto dei metalmeccanici: il messaggio deve mobilitare i lavoratori delle PMI del Nord-Est che si sentono esclusi dalla grande industria.&quot;&#10;&#10;&quot;Comunicazione istituzionale del comune sulle politiche abitative per famiglie giovani con reddito sotto i 30k euro.&quot;"></textarea>
+        <p class="field-hint">Più contesto fornisci, più precisa e utile sarà l&apos;analisi</p>
+      </div>
+      <div class="field-full" id="tipo-campagna-wrap" style="display:none">
+        <label class="field-label">Tipo campagna ONG</label>
+        <select class="field-select" id="f-tipo-campagna" onchange="aggiornaTipoCampagna()">
+          <option value="ong_lasciti">Lasciti testamentari / donazioni legacy</option>
+          <option value="ong_corporate">Partnership corporate / CSR</option>
+          <option value="advocacy">Advocacy / sensibilizzazione pubblica</option>
+          <option value="fundraising">Raccolta fondi generale</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <div>
+          <label class="field-label">Canale di comunicazione</label>
+          <select class="field-select" id="f-canale">
+            <option value="">Non specificato</option>
+            <option value="social">Social media (Instagram, Facebook, X)</option>
+            <option value="email">Email / newsletter</option>
+            <option value="volantino">Materiale cartaceo / volantino</option>
+            <option value="discorso">Discorso pubblico / assemblea</option>
+            <option value="video">Video / spot</option>
+            <option value="comunicato">Comunicato stampa</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label">Contesto / campagna</label>
+          <input class="field-input" id="f-contesto"
+                 placeholder="es. raccolta fondi annuale, vertenza in corso, campagna elettorale...">
+        </div>
+      </div>
+
+      <div class="cta-row">
+        <button class="btn-primary" id="btn-analizza" onclick="analizza()">Analizza messaggio →</button>
+        <div id="loading" style="display:none;flex-direction:column;gap:12px;width:100%;margin-top:16px;padding:24px 28px;background:var(--black);border:none">
+          <div style="display:flex;align-items:center;gap:16px">
+            <div style="flex:1;height:3px;background:#333;overflow:hidden;border-radius:2px">
+              <div style="height:3px;background:#60a5fa;animation:opt-progress 1.8s ease-in-out infinite;border-radius:2px"></div>
+            </div>
+          </div>
+          <div style="font-family:var(--font-mono);font-size:11px;color:#e8e6e3;letter-spacing:2px;text-transform:uppercase">
+            Analisi in corso...
+          </div>
+          <div style="font-family:var(--font-mono);font-size:9px;color:#888;letter-spacing:1px">
+            Valutazione valoriale · Framework Entman · Generazione varianti
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RISULTATI -->
+    <div id="results">
+      <div class="res-eyebrow">Risultati analisi</div>
+
+      <!-- Score -->
+      <div class="score-row" id="score-row"></div>
+
+      <!-- Alert -->
+      <div id="alert-box"></div>
+
+      <!-- Entman -->
+      <div class="entman-section-title">Analisi framing — Framework Entman</div>
+      <p class="entman-cite">Entman R.M. (1993) — Framing: Toward Clarification of a Fractured Paradigm · Journal of Communication · 4 dimensioni di analisi</p>
+      <div class="entman-grid" id="entman-grid"></div>
+
+      <!-- Varianti -->
+      <div class="varianti-title">Varianti ottimizzate</div>
+      <div id="varianti-container"></div>
+      <div id="raccomandazione-box"></div>
+
+      <div style="margin-bottom:20px">
+        <button onclick="downloadAnalisi()" style="font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;background:none;border:0.5px solid var(--border2);color:var(--mid);padding:10px 20px;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--black)';this.style.color='var(--black)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--mid)'">
+          ↓ Scarica analisi (TXT)
+        </button>
+      </div>
+
+      <div class="disclaimer">
+        Analisi esplorativa basata su: Entman 1993 · ISTAT 2021 Censimento Permanente · Eligendo OpenData<br>
+        Non validata su campagne reali · Limitazioni dichiarate: polisim.dev/metodologia.html<br>
+        PoliSim.dev · <a href="/accesso.html" style="color:var(--ghost)">← Torna all&apos;accesso</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const API = 'https://api.polisim.dev';
+const ACCESSI = {
+  'ong2026test':        {label:'ONG / Advocacy'},
+  'civic2026test':      {label:'Ente civico / Sindacato'},
+  'pol2026test':        {label:'Consulente politico'},
+  'admin-polisim-2026': {label:'Admin'},
+};
+const ISTAT_COLLEGI = {"ABRUZZO - U01 (CHIETI)":{"pop_tot":373717,"pct_giovani_1834":21.0,"pct_adulti_3564":42.9,"pct_anziani_65plus":25.9,"pct_laureati":15.8,"pct_diploma":37.8,"pct_bassa_istr":46.4,"tasso_occupazione":58.0,"pct_stranieri":5.2,"pct_occupati_f":41.8},"ABRUZZO - U02 (PESCARA)":{"pop_tot":477269,"pct_giovani_1834":21.6,"pct_adulti_3564":43.5,"pct_anziani_65plus":24.1,"pct_laureati":17.2,"pct_diploma":37.7,"pct_bassa_istr":45.1,"tasso_occupazione":57.2,"pct_stranieri":6.3,"pct_occupati_f":42.7},"ABRUZZO - U03 (L'AQUILA)":{"pop_tot":410165,"pct_giovani_1834":21.1,"pct_adulti_3564":43.3,"pct_anziani_65plus":25.5,"pct_laureati":17.2,"pct_diploma":38.0,"pct_bassa_istr":44.8,"tasso_occupazione":58.7,"pct_stranieri":7.5,"pct_occupati_f":42.3},"BASILICATA - U01 (POTENZA)":{"pop_tot":586707,"pct_giovani_1834":23.0,"pct_adulti_3564":42.7,"pct_anziani_65plus":24.1,"pct_laureati":14.1,"pct_diploma":35.9,"pct_bassa_istr":50.0,"tasso_occupazione":52.3,"pct_stranieri":3.9,"pct_occupati_f":39.3},"CALABRIA - U01 (CORIGLIANO-ROSSANO)":{"pop_tot":404387,"pct_giovani_1834":23.8,"pct_adulti_3564":41.9,"pct_anziani_65plus":22.9,"pct_laureati":12.4,"pct_diploma":34.1,"pct_bassa_istr":53.6,"tasso_occupazione":45.5,"pct_stranieri":5.8,"pct_occupati_f":39.3},"CALABRIA - U02 (COSENZA)":{"pop_tot":416034,"pct_giovani_1834":22.3,"pct_adulti_3564":43.4,"pct_anziani_65plus":23.6,"pct_laureati":16.8,"pct_diploma":36.4,"pct_bassa_istr":46.7,"tasso_occupazione":47.8,"pct_stranieri":4.0,"pct_occupati_f":39.6},"CALABRIA - U03 (CATANZARO)":{"pop_tot":338949,"pct_giovani_1834":23.0,"pct_adulti_3564":42.4,"pct_anziani_65plus":23.6,"pct_laureati":15.5,"pct_diploma":35.6,"pct_bassa_istr":48.9,"tasso_occupazione":47.8,"pct_stranieri":4.9,"pct_occupati_f":39.8},"CALABRIA - U04 (VIBO VALENTIA)":{"pop_tot":298637,"pct_giovani_1834":24.9,"pct_adulti_3564":41.2,"pct_anziani_65plus":22.1,"pct_laureati":12.5,"pct_diploma":33.5,"pct_bassa_istr":54.0,"tasso_occupazione":45.1,"pct_stranieri":4.7,"pct_occupati_f":40.3},"CALABRIA - U05 (REGGIO DI CALABRIA)":{"pop_tot":367793,"pct_giovani_1834":23.0,"pct_adulti_3564":41.9,"pct_anziani_65plus":23.7,"pct_laureati":16.6,"pct_diploma":36.1,"pct_bassa_istr":47.3,"tasso_occupazione":47.8,"pct_stranieri":5.8,"pct_occupati_f":42.2},"CAMPANIA 1 - U01 (GIUGLIANO IN CAMPANIA)":{"pop_tot":478319,"pct_giovani_1834":26.2,"pct_adulti_3564":42.9,"pct_anziani_65plus":17.8,"pct_laureati":11.8,"pct_diploma":34.3,"pct_bassa_istr":53.9,"tasso_occupazione":43.4,"pct_stranieri":3.7,"pct_occupati_f":36.1},"CAMPANIA 1 - U03 (NAPOLI: QUARTIERE 7 - SAN CARLO ALL'ARENA)":{"pop_tot":921142,"pct_giovani_1834":24.6,"pct_adulti_3564":42.0,"pct_anziani_65plus":21.3,"pct_laureati":15.8,"pct_diploma":31.4,"pct_bassa_istr":52.8,"tasso_occupazione":44.4,"pct_stranieri":5.8,"pct_occupati_f":38.5},"CAMPANIA 1 - U04 (CASORIA)":{"pop_tot":435347,"pct_giovani_1834":27.5,"pct_adulti_3564":42.2,"pct_anziani_65plus":16.7,"pct_laureati":9.5,"pct_diploma":30.5,"pct_bassa_istr":60.0,"tasso_occupazione":40.9,"pct_stranieri":2.7,"pct_occupati_f":32.7},"CAMPANIA 1 - U05 (ACERRA)":{"pop_tot":395342,"pct_giovani_1834":25.8,"pct_adulti_3564":41.8,"pct_anziani_65plus":19.2,"pct_laureati":13.2,"pct_diploma":34.2,"pct_bassa_istr":52.6,"tasso_occupazione":45.3,"pct_stranieri":1.8,"pct_occupati_f":36.1},"CAMPANIA 1 - U06 (SOMMA VESUVIANA)":{"pop_tot":379403,"pct_giovani_1834":26.3,"pct_adulti_3564":43.2,"pct_anziani_65plus":17.5,"pct_laureati":13.2,"pct_diploma":33.8,"pct_bassa_istr":53.0,"tasso_occupazione":47.0,"pct_stranieri":6.2,"pct_occupati_f":36.1},"CAMPANIA 1 - U07 (TORRE DEL GRECO)":{"pop_tot":367134,"pct_giovani_1834":25.7,"pct_adulti_3564":40.9,"pct_anziani_65plus":20.8,"pct_laureati":13.0,"pct_diploma":35.0,"pct_bassa_istr":52.0,"tasso_occupazione":45.5,"pct_stranieri":2.1,"pct_occupati_f":36.9},"CAMPANIA 2 - U01 (AVERSA)":{"pop_tot":473982,"pct_giovani_1834":26.3,"pct_adulti_3564":43.2,"pct_anziani_65plus":17.3,"pct_laureati":11.5,"pct_diploma":33.1,"pct_bassa_istr":55.3,"tasso_occupazione":44.6,"pct_stranieri":6.4,"pct_occupati_f":34.8},"CAMPANIA 2 - U02 (CASERTA)":{"pop_tot":369693,"pct_giovani_1834":25.2,"pct_adulti_3564":43.2,"pct_anziani_65plus":19.5,"pct_laureati":15.5,"pct_diploma":36.1,"pct_bassa_istr":48.4,"tasso_occupazione":48.8,"pct_stranieri":4.2,"pct_occupati_f":38.2},"CAMPANIA 2 - U03 (BENEVENTO)":{"pop_tot":326425,"pct_giovani_1834":23.3,"pct_adulti_3564":42.4,"pct_anziani_65plus":24.1,"pct_laureati":15.0,"pct_diploma":36.4,"pct_bassa_istr":48.6,"tasso_occupazione":51.3,"pct_stranieri":3.1,"pct_occupati_f":39.8},"CAMPANIA 2 - U04 (AVELLINO)":{"pop_tot":401451,"pct_giovani_1834":23.4,"pct_adulti_3564":43.3,"pct_anziani_65plus":23.1,"pct_laureati":15.3,"pct_diploma":37.5,"pct_bassa_istr":47.3,"tasso_occupazione":51.7,"pct_stranieri":3.2,"pct_occupati_f":38.9},"CAMPANIA 2 - U05 (SCAFATI)":{"pop_tot":318171,"pct_giovani_1834":25.4,"pct_adulti_3564":42.7,"pct_anziani_65plus":19.7,"pct_laureati":13.6,"pct_diploma":35.5,"pct_bassa_istr":51.0,"tasso_occupazione":48.6,"pct_stranieri":3.9,"pct_occupati_f":36.7},"CAMPANIA 2 - U06 (SALERNO)":{"pop_tot":397499,"pct_giovani_1834":23.3,"pct_adulti_3564":43.3,"pct_anziani_65plus":22.1,"pct_laureati":18.3,"pct_diploma":35.9,"pct_bassa_istr":45.8,"tasso_occupazione":51.3,"pct_stranieri":4.3,"pct_occupati_f":40.0},"CAMPANIA 2 - U07 (EBOLI)":{"pop_tot":348823,"pct_giovani_1834":23.0,"pct_adulti_3564":42.6,"pct_anziani_65plus":23.8,"pct_laureati":13.0,"pct_diploma":35.1,"pct_bassa_istr":51.9,"tasso_occupazione":49.1,"pct_stranieri":5.8,"pct_occupati_f":38.1},"EMILIA-ROMAGNA - U01 (PIACENZA)":{"pop_tot":355814,"pct_giovani_1834":21.4,"pct_adulti_3564":42.8,"pct_anziani_65plus":24.9,"pct_laureati":14.4,"pct_diploma":39.3,"pct_bassa_istr":46.3,"tasso_occupazione":66.9,"pct_stranieri":14.8,"pct_occupati_f":43.9},"EMILIA-ROMAGNA - U02 (PARMA)":{"pop_tot":387412,"pct_giovani_1834":22.0,"pct_adulti_3564":43.7,"pct_anziani_65plus":23.0,"pct_laureati":18.4,"pct_diploma":37.3,"pct_bassa_istr":44.3,"tasso_occupazione":68.1,"pct_stranieri":14.9,"pct_occupati_f":45.2},"EMILIA-ROMAGNA - U03 (REGGIO NELL'EMILIA)":{"pop_tot":477317,"pct_giovani_1834":22.3,"pct_adulti_3564":43.5,"pct_anziani_65plus":22.5,"pct_laureati":13.9,"pct_diploma":37.9,"pct_bassa_istr":48.1,"tasso_occupazione":67.2,"pct_stranieri":12.7,"pct_occupati_f":44.4},"EMILIA-ROMAGNA - U04 (MODENA)":{"pop_tot":485204,"pct_giovani_1834":22.3,"pct_adulti_3564":43.3,"pct_anziani_65plus":23.1,"pct_laureati":15.9,"pct_diploma":37.3,"pct_bassa_istr":46.8,"tasso_occupazione":67.6,"pct_stranieri":12.3,"pct_occupati_f":44.8},"EMILIA-ROMAGNA - U05 (IMOLA)":{"pop_tot":434100,"pct_giovani_1834":20.6,"pct_adulti_3564":43.4,"pct_anziani_65plus":25.1,"pct_laureati":15.6,"pct_diploma":37.7,"pct_bassa_istr":46.6,"tasso_occupazione":67.4,"pct_stranieri":11.0,"pct_occupati_f":45.7},"EMILIA-ROMAGNA - U06 (BOLOGNA)":{"pop_tot":387842,"pct_giovani_1834":22.4,"pct_adulti_3564":43.0,"pct_anziani_65plus":24.6,"pct_laureati":30.7,"pct_diploma":34.2,"pct_bassa_istr":35.0,"tasso_occupazione":68.2,"pct_stranieri":15.1,"pct_occupati_f":47.5},"EMILIA-ROMAGNA - U07 (CARPI)":{"pop_tot":442811,"pct_giovani_1834":21.2,"pct_adulti_3564":44.0,"pct_anziani_65plus":23.4,"pct_laureati":13.6,"pct_diploma":38.2,"pct_bassa_istr":48.2,"tasso_occupazione":67.8,"pct_stranieri":11.5,"pct_occupati_f":45.2},"EMILIA-ROMAGNA - U08 (RAVENNA)":{"pop_tot":385631,"pct_giovani_1834":20.2,"pct_adulti_3564":43.6,"pct_anziani_65plus":25.8,"pct_laureati":15.0,"pct_diploma":38.2,"pct_bassa_istr":46.8,"tasso_occupazione":64.9,"pct_stranieri":11.8,"pct_occupati_f":45.3},"EMILIA-ROMAGNA - U09 (FERRARA)":{"pop_tot":339573,"pct_giovani_1834":18.3,"pct_adulti_3564":43.9,"pct_anziani_65plus":28.6,"pct_laureati":14.7,"pct_diploma":35.0,"pct_bassa_istr":50.3,"tasso_occupazione":65.4,"pct_stranieri":10.1,"pct_occupati_f":45.3},"EMILIA-ROMAGNA - U10 (FORLI')":{"pop_tot":274735,"pct_giovani_1834":20.9,"pct_adulti_3564":43.8,"pct_anziani_65plus":24.5,"pct_laureati":13.6,"pct_diploma":36.1,"pct_bassa_istr":50.2,"tasso_occupazione":65.1,"pct_stranieri":10.9,"pct_occupati_f":45.2},"EMILIA-ROMAGNA - U11 (RIMINI)":{"pop_tot":331587,"pct_giovani_1834":21.0,"pct_adulti_3564":44.4,"pct_anziani_65plus":23.8,"pct_laureati":16.3,"pct_diploma":37.8,"pct_bassa_istr":45.9,"tasso_occupazione":60.9,"pct_stranieri":10.9,"pct_occupati_f":45.1},"FRIULI-VENEZIA GIULIA - U01 (PORDENONE)":{"pop_tot":357478,"pct_giovani_1834":20.8,"pct_adulti_3564":43.2,"pct_anziani_65plus":25.3,"pct_laureati":13.3,"pct_diploma":40.6,"pct_bassa_istr":46.1,"tasso_occupazione":66.5,"pct_stranieri":9.8,"pct_occupati_f":44.3},"FRIULI-VENEZIA GIULIA - U02 (UDINE)":{"pop_tot":470437,"pct_giovani_1834":19.8,"pct_adulti_3564":43.5,"pct_anziani_65plus":26.9,"pct_laureati":15.0,"pct_diploma":40.4,"pct_bassa_istr":44.6,"tasso_occupazione":65.9,"pct_stranieri":8.2,"pct_occupati_f":45.1},"FRIULI-VENEZIA GIULIA - U03 (TRIESTE)":{"pop_tot":351737,"pct_giovani_1834":20.1,"pct_adulti_3564":42.4,"pct_anziani_65plus":27.9,"pct_laureati":18.0,"pct_diploma":39.1,"pct_bassa_istr":42.9,"tasso_occupazione":64.6,"pct_stranieri":11.1,"pct_occupati_f":45.0},"LAZIO 1 - U04 (ROMA: MUNICIPIO VII)":{"pop_tot":38519,"pct_giovani_1834":21.8,"pct_adulti_3564":44.6,"pct_anziani_65plus":22.2,"pct_laureati":18.4,"pct_diploma":42.5,"pct_bassa_istr":39.1,"tasso_occupazione":60.6,"pct_stranieri":7.5,"pct_occupati_f":44.8},"LAZIO 1 - U05 (ROMA: MUNICIPIO X)":{"pop_tot":64005,"pct_giovani_1834":22.7,"pct_adulti_3564":46.9,"pct_anziani_65plus":18.2,"pct_laureati":14.8,"pct_diploma":42.8,"pct_bassa_istr":42.4,"tasso_occupazione":59.6,"pct_stranieri":12.6,"pct_occupati_f":42.7},"LAZIO 1 - U06 (ROMA: MUNICIPIO XI)":{"pop_tot":80738,"pct_giovani_1834":22.0,"pct_adulti_3564":47.2,"pct_anziani_65plus":17.8,"pct_laureati":13.6,"pct_diploma":41.9,"pct_bassa_istr":44.5,"tasso_occupazione":59.8,"pct_stranieri":11.8,"pct_occupati_f":43.5},"LAZIO 1 - U07 (ROMA: MUNICIPIO XIV)":{"pop_tot":2749031,"pct_giovani_1834":21.0,"pct_adulti_3564":44.7,"pct_anziani_65plus":23.3,"pct_laureati":25.6,"pct_diploma":39.0,"pct_bassa_istr":35.4,"tasso_occupazione":60.7,"pct_stranieri":12.3,"pct_occupati_f":47.0},"LAZIO 1 - U08 (VELLETRI)":{"pop_tot":464772,"pct_giovani_1834":21.8,"pct_adulti_3564":45.2,"pct_anziani_65plus":21.3,"pct_laureati":16.0,"pct_diploma":40.7,"pct_bassa_istr":43.3,"tasso_occupazione":56.5,"pct_stranieri":9.8,"pct_occupati_f":42.2},"LAZIO 1 - U09 (GUIDONIA MONTECELIO)":{"pop_tot":425394,"pct_giovani_1834":22.6,"pct_adulti_3564":44.9,"pct_anziani_65plus":20.6,"pct_laureati":13.5,"pct_diploma":41.2,"pct_bassa_istr":45.3,"tasso_occupazione":56.4,"pct_stranieri":11.7,"pct_occupati_f":41.1},"LAZIO 2 - U01 (VITERBO)":{"pop_tot":408132,"pct_giovani_1834":20.7,"pct_adulti_3564":44.6,"pct_anziani_65plus":24.4,"pct_laureati":15.2,"pct_diploma":38.9,"pct_bassa_istr":45.9,"tasso_occupazione":57.5,"pct_stranieri":9.4,"pct_occupati_f":42.3},"LAZIO 2 - U02 (RIETI)":{"pop_tot":446163,"pct_giovani_1834":21.5,"pct_adulti_3564":44.7,"pct_anziani_65plus":22.9,"pct_laureati":15.2,"pct_diploma":40.6,"pct_bassa_istr":44.2,"tasso_occupazione":57.2,"pct_stranieri":11.1,"pct_occupati_f":42.5},"LAZIO 2 - U03 (LATINA)":{"pop_tot":354169,"pct_giovani_1834":22.8,"pct_adulti_3564":44.2,"pct_anziani_65plus":21.2,"pct_laureati":13.6,"pct_diploma":36.8,"pct_bassa_istr":49.6,"tasso_occupazione":56.1,"pct_stranieri":10.5,"pct_occupati_f":40.9},"LAZIO 2 - U04 (FROSINONE)":{"pop_tot":345979,"pct_giovani_1834":21.8,"pct_adulti_3564":43.2,"pct_anziani_65plus":24.5,"pct_laureati":13.3,"pct_diploma":38.2,"pct_bassa_istr":48.5,"tasso_occupazione":55.0,"pct_stranieri":5.1,"pct_occupati_f":39.5},"LAZIO 2 - U05 (TERRACINA)":{"pop_tot":337980,"pct_giovani_1834":22.1,"pct_adulti_3564":43.0,"pct_anziani_65plus":24.1,"pct_laureati":15.5,"pct_diploma":37.8,"pct_bassa_istr":46.7,"tasso_occupazione":52.8,"pct_stranieri":6.3,"pct_occupati_f":39.3},"LIGURIA - U01 (SAVONA)":{"pop_tot":421481,"pct_giovani_1834":19.5,"pct_adulti_3564":42.4,"pct_anziani_65plus":28.8,"pct_laureati":13.1,"pct_diploma":37.2,"pct_bassa_istr":49.7,"tasso_occupazione":59.6,"pct_stranieri":10.9,"pct_occupati_f":44.6},"LIGURIA - U02 (GENOVA: MUNICIPIO VII - PONENTE)":{"pop_tot":126141,"pct_giovani_1834":18.5,"pct_adulti_3564":42.4,"pct_anziani_65plus":30.3,"pct_laureati":13.7,"pct_diploma":39.3,"pct_bassa_istr":47.0,"tasso_occupazione":64.0,"pct_stranieri":5.5,"pct_occupati_f":43.6},"LIGURIA - U03 (GENOVA: MUNICIPIO I - CENTRO EST)":{"pop_tot":581355,"pct_giovani_1834":19.9,"pct_adulti_3564":41.9,"pct_anziani_65plus":28.8,"pct_laureati":19.3,"pct_diploma":38.8,"pct_bassa_istr":41.9,"tasso_occupazione":64.3,"pct_stranieri":10.1,"pct_occupati_f":45.4},"LIGURIA - U04 (LA SPEZIA)":{"pop_tot":368538,"pct_giovani_1834":19.3,"pct_adulti_3564":42.7,"pct_anziani_65plus":28.6,"pct_laureati":15.3,"pct_diploma":40.6,"pct_bassa_istr":44.1,"tasso_occupazione":62.8,"pct_stranieri":9.0,"pct_occupati_f":43.6},"LOMBARDIA 1 - U01 (MONZA)":{"pop_tot":433739,"pct_giovani_1834":21.7,"pct_adulti_3564":43.4,"pct_anziani_65plus":23.4,"pct_laureati":18.2,"pct_diploma":39.6,"pct_bassa_istr":42.2,"tasso_occupazione":67.6,"pct_stranieri":9.6,"pct_occupati_f":45.0},"LOMBARDIA 1 - U02 (SEREGNO)":{"pop_tot":413155,"pct_giovani_1834":21.6,"pct_adulti_3564":44.2,"pct_anziani_65plus":22.6,"pct_laureati":13.4,"pct_diploma":39.2,"pct_bassa_istr":47.4,"tasso_occupazione":66.9,"pct_stranieri":8.4,"pct_occupati_f":44.1},"LOMBARDIA 1 - U03 (COLOGNO MONZESE)":{"pop_tot":492004,"pct_giovani_1834":22.2,"pct_adulti_3564":43.6,"pct_anziani_65plus":22.1,"pct_laureati":17.6,"pct_diploma":39.6,"pct_bassa_istr":42.8,"tasso_occupazione":67.7,"pct_stranieri":12.4,"pct_occupati_f":45.2},"LOMBARDIA 1 - U04 (ROZZANO)":{"pop_tot":430895,"pct_giovani_1834":22.0,"pct_adulti_3564":43.6,"pct_anziani_65plus":22.5,"pct_laureati":14.9,"pct_diploma":40.0,"pct_bassa_istr":45.1,"tasso_occupazione":67.1,"pct_stranieri":9.9,"pct_occupati_f":45.3},"LOMBARDIA 1 - U05 (LEGNANO)":{"pop_tot":348789,"pct_giovani_1834":21.3,"pct_adulti_3564":44.2,"pct_anziani_65plus":23.2,"pct_laureati":14.6,"pct_diploma":39.7,"pct_bassa_istr":45.7,"tasso_occupazione":67.2,"pct_stranieri":8.7,"pct_occupati_f":44.7},"LOMBARDIA 1 - U06 (SESTO SAN GIOVANNI)":{"pop_tot":518071,"pct_giovani_1834":21.7,"pct_adulti_3564":42.7,"pct_anziani_65plus":24.5,"pct_laureati":15.3,"pct_diploma":40.0,"pct_bassa_istr":44.7,"tasso_occupazione":66.9,"pct_stranieri":13.1,"pct_occupati_f":45.2},"LOMBARDIA 1 - U09 (MILANO: NIL 21 - BUENOS AIRES - VENEZIA)":{"pop_tot":1349930,"pct_giovani_1834":23.1,"pct_adulti_3564":43.4,"pct_anziani_65plus":22.7,"pct_laureati":30.3,"pct_diploma":35.6,"pct_bassa_istr":34.1,"tasso_occupazione":68.3,"pct_stranieri":18.8,"pct_occupati_f":45.9},"LOMBARDIA 2 - U01 (VARESE)":{"pop_tot":402044,"pct_giovani_1834":21.3,"pct_adulti_3564":42.9,"pct_anziani_65plus":24.9,"pct_laureati":15.0,"pct_diploma":37.1,"pct_bassa_istr":47.9,"tasso_occupazione":60.1,"pct_stranieri":7.9,"pct_occupati_f":44.2},"LOMBARDIA 2 - U02 (BUSTO ARSIZIO)":{"pop_tot":470457,"pct_giovani_1834":21.3,"pct_adulti_3564":43.4,"pct_anziani_65plus":23.8,"pct_laureati":14.5,"pct_diploma":37.6,"pct_bassa_istr":48.0,"tasso_occupazione":66.5,"pct_stranieri":8.9,"pct_occupati_f":44.3},"LOMBARDIA 2 - U03 (COMO)":{"pop_tot":390664,"pct_giovani_1834":21.9,"pct_adulti_3564":43.8,"pct_anziani_65plus":23.1,"pct_laureati":15.5,"pct_diploma":38.0,"pct_bassa_istr":46.5,"tasso_occupazione":62.7,"pct_stranieri":8.0,"pct_occupati_f":43.7},"LOMBARDIA 2 - U04 (SONDRIO)":{"pop_tot":340095,"pct_giovani_1834":21.3,"pct_adulti_3564":43.3,"pct_anziani_65plus":24.6,"pct_laureati":11.8,"pct_diploma":39.8,"pct_bassa_istr":48.4,"tasso_occupazione":63.4,"pct_stranieri":6.2,"pct_occupati_f":43.5},"LOMBARDIA 2 - U05 (LECCO)":{"pop_tot":438993,"pct_giovani_1834":21.9,"pct_adulti_3564":43.1,"pct_anziani_65plus":23.6,"pct_laureati":13.4,"pct_diploma":36.4,"pct_bassa_istr":50.2,"tasso_occupazione":66.3,"pct_stranieri":7.7,"pct_occupati_f":43.1},"LOMBARDIA 3 - U01 (TREVIGLIO)":{"pop_tot":502656,"pct_giovani_1834":23.3,"pct_adulti_3564":44.1,"pct_anziani_65plus":19.9,"pct_laureati":10.7,"pct_diploma":34.2,"pct_bassa_istr":55.1,"tasso_occupazione":65.6,"pct_stranieri":13.1,"pct_occupati_f":41.3},"LOMBARDIA 3 - U02 (BERGAMO)":{"pop_tot":471277,"pct_giovani_1834":22.3,"pct_adulti_3564":42.8,"pct_anziani_65plus":24.0,"pct_laureati":15.4,"pct_diploma":35.6,"pct_bassa_istr":49.1,"tasso_occupazione":65.8,"pct_stranieri":9.3,"pct_occupati_f":43.7},"LOMBARDIA 3 - U03 (LUMEZZANE)":{"pop_tot":360713,"pct_giovani_1834":21.8,"pct_adulti_3564":43.6,"pct_anziani_65plus":23.4,"pct_laureati":10.2,"pct_diploma":35.3,"pct_bassa_istr":54.5,"tasso_occupazione":65.6,"pct_stranieri":9.1,"pct_occupati_f":41.8},"LOMBARDIA 3 - U04 (BRESCIA)":{"pop_tot":457265,"pct_giovani_1834":22.5,"pct_adulti_3564":43.3,"pct_anziani_65plus":22.7,"pct_laureati":15.9,"pct_diploma":35.4,"pct_bassa_istr":48.7,"tasso_occupazione":66.6,"pct_stranieri":13.4,"pct_occupati_f":43.7},"LOMBARDIA 3 - U05 (DESENZANO DEL GARDA)":{"pop_tot":384115,"pct_giovani_1834":23.3,"pct_adulti_3564":43.8,"pct_anziani_65plus":20.2,"pct_laureati":10.9,"pct_diploma":34.3,"pct_bassa_istr":54.8,"tasso_occupazione":65.3,"pct_stranieri":13.8,"pct_occupati_f":40.8},"LOMBARDIA 4 - U01 (PAVIA)":{"pop_tot":447127,"pct_giovani_1834":20.5,"pct_adulti_3564":43.7,"pct_anziani_65plus":25.8,"pct_laureati":15.9,"pct_diploma":36.9,"pct_bassa_istr":47.1,"tasso_occupazione":65.1,"pct_stranieri":12.0,"pct_occupati_f":44.2},"LOMBARDIA 4 - U02 (LODI)":{"pop_tot":370506,"pct_giovani_1834":21.9,"pct_adulti_3564":44.5,"pct_anziani_65plus":21.7,"pct_laureati":12.7,"pct_diploma":39.6,"pct_bassa_istr":47.8,"tasso_occupazione":67.1,"pct_stranieri":12.0,"pct_occupati_f":43.6},"LOMBARDIA 4 - U03 (CREMONA)":{"pop_tot":384051,"pct_giovani_1834":21.3,"pct_adulti_3564":43.2,"pct_anziani_65plus":24.7,"pct_laureati":12.9,"pct_diploma":37.4,"pct_bassa_istr":49.7,"tasso_occupazione":66.0,"pct_stranieri":11.9,"pct_occupati_f":43.0},"LOMBARDIA 4 - U04 (MANTOVA)":{"pop_tot":404476,"pct_giovani_1834":21.0,"pct_adulti_3564":43.7,"pct_anziani_65plus":24.2,"pct_laureati":12.4,"pct_diploma":36.4,"pct_bassa_istr":51.3,"tasso_occupazione":66.8,"pct_stranieri":13.1,"pct_occupati_f":42.8},"MARCHE - U01 (ASCOLI PICENO)":{"pop_tot":370659,"pct_giovani_1834":21.1,"pct_adulti_3564":42.7,"pct_anziani_65plus":26.2,"pct_laureati":15.8,"pct_diploma":36.0,"pct_bassa_istr":48.3,"tasso_occupazione":61.7,"pct_stranieri":8.0,"pct_occupati_f":44.4},"MARCHE - U02 (MACERATA)":{"pop_tot":344150,"pct_giovani_1834":21.1,"pct_adulti_3564":42.5,"pct_anziani_65plus":25.7,"pct_laureati":16.0,"pct_diploma":35.2,"pct_bassa_istr":48.8,"tasso_occupazione":64.1,"pct_stranieri":8.9,"pct_occupati_f":44.7},"MARCHE - U03 (ANCONA)":{"pop_tot":422523,"pct_giovani_1834":20.8,"pct_adulti_3564":42.8,"pct_anziani_65plus":25.9,"pct_laureati":17.5,"pct_diploma":37.2,"pct_bassa_istr":45.3,"tasso_occupazione":64.7,"pct_stranieri":9.1,"pct_occupati_f":45.1},"MARCHE - U04 (PESARO)":{"pop_tot":350007,"pct_giovani_1834":21.2,"pct_adulti_3564":43.4,"pct_anziani_65plus":24.8,"pct_laureati":16.3,"pct_diploma":37.2,"pct_bassa_istr":46.6,"tasso_occupazione":64.5,"pct_stranieri":8.0,"pct_occupati_f":44.3},"MOLISE - U01 (CAMPOBASSO)":{"pop_tot":291517,"pct_giovani_1834":21.6,"pct_adulti_3564":42.7,"pct_anziani_65plus":26.2,"pct_laureati":16.6,"pct_diploma":35.7,"pct_bassa_istr":47.7,"tasso_occupazione":54.9,"pct_stranieri":3.9,"pct_occupati_f":40.3},"PIEMONTE 1 - U02 (TORINO: CIRCOSCRIZIONE 3 - SAN PAOLO - CENISIA - POZZO STRADA - CITTURIN - BORGATA":{"pop_tot":848748,"pct_giovani_1834":21.3,"pct_adulti_3564":42.5,"pct_anziani_65plus":26.0,"pct_laureati":20.9,"pct_diploma":35.5,"pct_bassa_istr":43.6,"tasso_occupazione":64.0,"pct_stranieri":14.7,"pct_occupati_f":45.9},"PIEMONTE 1 - U03 (COLLEGNO)":{"pop_tot":369099,"pct_giovani_1834":20.6,"pct_adulti_3564":42.7,"pct_anziani_65plus":26.1,"pct_laureati":12.9,"pct_diploma":38.4,"pct_bassa_istr":48.7,"tasso_occupazione":65.7,"pct_stranieri":5.0,"pct_occupati_f":46.2},"PIEMONTE 1 - U04 (CHIERI)":{"pop_tot":451488,"pct_giovani_1834":20.5,"pct_adulti_3564":43.0,"pct_anziani_65plus":25.9,"pct_laureati":13.1,"pct_diploma":38.1,"pct_bassa_istr":48.8,"tasso_occupazione":64.8,"pct_stranieri":6.7,"pct_occupati_f":45.1},"PIEMONTE 1 - U05 (MONCALIERI)":{"pop_tot":488334,"pct_giovani_1834":20.5,"pct_adulti_3564":42.9,"pct_anziani_65plus":26.0,"pct_laureati":12.5,"pct_diploma":37.3,"pct_bassa_istr":50.2,"tasso_occupazione":64.5,"pct_stranieri":6.5,"pct_occupati_f":45.2},"PIEMONTE 2 - U01 (ALESSANDRIA)":{"pop_tot":406838,"pct_giovani_1834":19.2,"pct_adulti_3564":43.2,"pct_anziani_65plus":28.3,"pct_laureati":12.8,"pct_diploma":38.0,"pct_bassa_istr":49.2,"tasso_occupazione":63.8,"pct_stranieri":11.2,"pct_occupati_f":43.9},"PIEMONTE 2 - U02 (NOVARA)":{"pop_tot":495410,"pct_giovani_1834":20.6,"pct_adulti_3564":43.6,"pct_anziani_65plus":25.4,"pct_laureati":13.1,"pct_diploma":36.3,"pct_bassa_istr":50.6,"tasso_occupazione":63.9,"pct_stranieri":9.1,"pct_occupati_f":44.4},"PIEMONTE 2 - U03 (VERCELLI)":{"pop_tot":343369,"pct_giovani_1834":19.5,"pct_adulti_3564":42.6,"pct_anziani_65plus":28.6,"pct_laureati":11.9,"pct_diploma":35.3,"pct_bassa_istr":52.8,"tasso_occupazione":64.8,"pct_stranieri":7.2,"pct_occupati_f":45.3},"PIEMONTE 2 - U04 (ASTI)":{"pop_tot":369743,"pct_giovani_1834":21.1,"pct_adulti_3564":42.5,"pct_anziani_65plus":25.8,"pct_laureati":11.8,"pct_diploma":36.7,"pct_bassa_istr":51.6,"tasso_occupazione":66.0,"pct_stranieri":11.5,"pct_occupati_f":44.9},"PIEMONTE 2 - U05 (CUNEO)":{"pop_tot":367153,"pct_giovani_1834":22.2,"pct_adulti_3564":41.8,"pct_anziani_65plus":24.7,"pct_laureati":12.2,"pct_diploma":35.7,"pct_bassa_istr":52.1,"tasso_occupazione":67.0,"pct_stranieri":10.1,"pct_occupati_f":44.3},"PUGLIA - U01 (FOGGIA)":{"pop_tot":335859,"pct_giovani_1834":24.3,"pct_adulti_3564":41.7,"pct_anziani_65plus":23.0,"pct_laureati":13.0,"pct_diploma":32.7,"pct_bassa_istr":54.3,"tasso_occupazione":47.6,"pct_stranieri":5.5,"pct_occupati_f":37.1},"PUGLIA - U02 (CERIGNOLA)":{"pop_tot":319039,"pct_giovani_1834":25.1,"pct_adulti_3564":41.4,"pct_anziani_65plus":21.9,"pct_laureati":11.2,"pct_diploma":30.0,"pct_bassa_istr":58.8,"tasso_occupazione":45.0,"pct_stranieri":4.7,"pct_occupati_f":36.8},"PUGLIA - U03 (ANDRIA)":{"pop_tot":324746,"pct_giovani_1834":24.7,"pct_adulti_3564":43.2,"pct_anziani_65plus":20.5,"pct_laureati":11.2,"pct_diploma":29.8,"pct_bassa_istr":59.0,"tasso_occupazione":48.0,"pct_stranieri":2.4,"pct_occupati_f":35.3},"PUGLIA - U04 (MOLFETTA)":{"pop_tot":431347,"pct_giovani_1834":23.5,"pct_adulti_3564":43.2,"pct_anziani_65plus":22.0,"pct_laureati":13.4,"pct_diploma":34.0,"pct_bassa_istr":52.6,"tasso_occupazione":51.8,"pct_stranieri":2.9,"pct_occupati_f":38.5},"PUGLIA - U05 (BARI)":{"pop_tot":479058,"pct_giovani_1834":22.1,"pct_adulti_3564":43.3,"pct_anziani_65plus":24.0,"pct_laureati":17.1,"pct_diploma":34.0,"pct_bassa_istr":48.9,"tasso_occupazione":53.7,"pct_stranieri":3.6,"pct_occupati_f":40.3},"PUGLIA - U06 (ALTAMURA)":{"pop_tot":455632,"pct_giovani_1834":24.0,"pct_adulti_3564":42.4,"pct_anziani_65plus":22.5,"pct_laureati":12.7,"pct_diploma":33.1,"pct_bassa_istr":54.2,"tasso_occupazione":52.7,"pct_stranieri":3.7,"pct_occupati_f":38.4},"PUGLIA - U07 (BRINDISI)":{"pop_tot":381273,"pct_giovani_1834":22.6,"pct_adulti_3564":42.7,"pct_anziani_65plus":24.4,"pct_laureati":11.5,"pct_diploma":32.2,"pct_bassa_istr":56.3,"tasso_occupazione":50.2,"pct_stranieri":3.0,"pct_occupati_f":39.5},"PUGLIA - U08 (TARANTO)":{"pop_tot":420639,"pct_giovani_1834":22.3,"pct_adulti_3564":42.5,"pct_anziani_65plus":24.4,"pct_laureati":11.8,"pct_diploma":32.1,"pct_bassa_istr":56.2,"tasso_occupazione":47.7,"pct_stranieri":2.4,"pct_occupati_f":37.1},"PUGLIA - U09 (LECCE)":{"pop_tot":351312,"pct_giovani_1834":21.7,"pct_adulti_3564":43.0,"pct_anziani_65plus":24.8,"pct_laureati":16.0,"pct_diploma":32.7,"pct_bassa_istr":51.3,"tasso_occupazione":51.5,"pct_stranieri":4.4,"pct_occupati_f":41.3},"PUGLIA - U10 (GALATINA)":{"pop_tot":390970,"pct_giovani_1834":22.2,"pct_adulti_3564":41.8,"pct_anziani_65plus":26.0,"pct_laureati":12.7,"pct_diploma":32.3,"pct_bassa_istr":55.0,"tasso_occupazione":49.8,"pct_stranieri":2.4,"pct_occupati_f":40.1},"SARDEGNA - U01 (CAGLIARI)":{"pop_tot":421688,"pct_giovani_1834":19.8,"pct_adulti_3564":46.6,"pct_anziani_65plus":24.4,"pct_laureati":18.8,"pct_diploma":33.2,"pct_bassa_istr":47.9,"tasso_occupazione":56.2,"pct_stranieri":3.6,"pct_occupati_f":44.9},"SARDEGNA - U02 (CARBONIA)":{"pop_tot":331698,"pct_giovani_1834":18.9,"pct_adulti_3564":44.8,"pct_anziani_65plus":27.7,"pct_laureati":8.6,"pct_diploma":29.3,"pct_bassa_istr":62.1,"tasso_occupazione":51.3,"pct_stranieri":1.6,"pct_occupati_f":40.8},"SARDEGNA - U03 (NUORO)":{"pop_tot":329955,"pct_giovani_1834":20.2,"pct_adulti_3564":43.4,"pct_anziani_65plus":27.3,"pct_laureati":11.7,"pct_diploma":28.8,"pct_bassa_istr":59.4,"tasso_occupazione":53.5,"pct_stranieri":2.1,"pct_occupati_f":43.0},"SARDEGNA - U04 (SASSARI)":{"pop_tot":469310,"pct_giovani_1834":20.2,"pct_adulti_3564":45.6,"pct_anziani_65plus":24.5,"pct_laureati":13.6,"pct_diploma":31.9,"pct_bassa_istr":54.6,"tasso_occupazione":53.8,"pct_stranieri":4.3,"pct_occupati_f":43.6},"SICILIA 1 - U01 (PALERMO: QUARTIERE 11 - SETTE CANNOLI)":{"pop_tot":1307,"pct_giovani_1834":20.2,"pct_adulti_3564":42.9,"pct_anziani_65plus":26.7,"pct_laureati":10.8,"pct_diploma":31.2,"pct_bassa_istr":57.9,"tasso_occupazione":45.1,"pct_stranieri":2.6,"pct_occupati_f":35.2},"SICILIA 1 - U02 (PALERMO: QUARTIERE 20 - RESUTTANA - S. LORENZO)":{"pop_tot":888721,"pct_giovani_1834":23.9,"pct_adulti_3564":42.1,"pct_anziani_65plus":21.6,"pct_laureati":14.7,"pct_diploma":30.8,"pct_bassa_istr":54.5,"tasso_occupazione":44.1,"pct_stranieri":3.3,"pct_occupati_f":38.8},"SICILIA 1 - U03 (BAGHERIA)":{"pop_tot":304018,"pct_giovani_1834":23.5,"pct_adulti_3564":41.5,"pct_anziani_65plus":23.4,"pct_laureati":10.6,"pct_diploma":29.4,"pct_bassa_istr":60.0,"tasso_occupazione":43.1,"pct_stranieri":1.4,"pct_occupati_f":35.2},"SICILIA 1 - U04 (GELA)":{"pop_tot":263032,"pct_giovani_1834":24.4,"pct_adulti_3564":41.6,"pct_anziani_65plus":22.9,"pct_laureati":12.1,"pct_diploma":31.5,"pct_bassa_istr":56.4,"tasso_occupazione":44.2,"pct_stranieri":2.8,"pct_occupati_f":35.4},"SICILIA 1 - U05 (AGRIGENTO)":{"pop_tot":344803,"pct_giovani_1834":24.0,"pct_adulti_3564":41.4,"pct_anziani_65plus":23.6,"pct_laureati":12.6,"pct_diploma":32.4,"pct_bassa_istr":55.0,"tasso_occupazione":43.4,"pct_stranieri":3.3,"pct_occupati_f":37.2},"SICILIA 1 - U06 (MARSALA)":{"pop_tot":410977,"pct_giovani_1834":23.5,"pct_adulti_3564":41.5,"pct_anziani_65plus":24.0,"pct_laureati":12.2,"pct_diploma":31.7,"pct_bassa_istr":56.1,"tasso_occupazione":46.1,"pct_stranieri":5.0,"pct_occupati_f":38.3},"SICILIA 2 - U01 (RAGUSA)":{"pop_tot":472968,"pct_giovani_1834":24.8,"pct_adulti_3564":41.6,"pct_anziani_65plus":21.5,"pct_laureati":11.3,"pct_diploma":29.2,"pct_bassa_istr":59.5,"tasso_occupazione":45.6,"pct_stranieri":7.6,"pct_occupati_f":37.7},"SICILIA 2 - U02 (CATANIA)":{"pop_tot":462237,"pct_giovani_1834":24.0,"pct_adulti_3564":41.9,"pct_anziani_65plus":21.5,"pct_laureati":14.9,"pct_diploma":32.3,"pct_bassa_istr":52.9,"tasso_occupazione":45.5,"pct_stranieri":3.5,"pct_occupati_f":39.1},"SICILIA 2 - U03 (ACIREALE)":{"pop_tot":438092,"pct_giovani_1834":24.3,"pct_adulti_3564":42.9,"pct_anziani_65plus":20.5,"pct_laureati":13.7,"pct_diploma":34.4,"pct_bassa_istr":52.0,"tasso_occupazione":45.5,"pct_stranieri":2.5,"pct_occupati_f":38.8},"SICILIA 2 - U04 (SIRACUSA)":{"pop_tot":385900,"pct_giovani_1834":23.0,"pct_adulti_3564":42.9,"pct_anziani_65plus":22.6,"pct_laureati":12.5,"pct_diploma":35.2,"pct_bassa_istr":52.3,"tasso_occupazione":44.6,"pct_stranieri":3.8,"pct_occupati_f":36.9},"SICILIA 2 - U05 (BARCELLONA POZZO DI GOTTO)":{"pop_tot":357180,"pct_giovani_1834":22.9,"pct_adulti_3564":42.1,"pct_anziani_65plus":24.6,"pct_laureati":12.9,"pct_diploma":32.9,"pct_bassa_istr":54.2,"tasso_occupazione":48.1,"pct_stranieri":3.3,"pct_occupati_f":40.1},"SICILIA 2 - U06 (MESSINA)":{"pop_tot":377431,"pct_giovani_1834":22.2,"pct_adulti_3564":42.9,"pct_anziani_65plus":24.3,"pct_laureati":16.8,"pct_diploma":36.0,"pct_bassa_istr":47.3,"tasso_occupazione":47.9,"pct_stranieri":4.5,"pct_occupati_f":40.9},"TOSCANA - U01 (GROSSETO)":{"pop_tot":478218,"pct_giovani_1834":20.0,"pct_adulti_3564":42.7,"pct_anziani_65plus":27.5,"pct_laureati":15.8,"pct_diploma":35.8,"pct_bassa_istr":48.4,"tasso_occupazione":63.8,"pct_stranieri":10.5,"pct_occupati_f":45.5},"TOSCANA - U02 (MASSA)":{"pop_tot":348512,"pct_giovani_1834":19.2,"pct_adulti_3564":44.0,"pct_anziani_65plus":27.5,"pct_laureati":14.1,"pct_diploma":37.6,"pct_bassa_istr":48.3,"tasso_occupazione":59.6,"pct_stranieri":6.8,"pct_occupati_f":43.3},"TOSCANA - U03 (LUCCA)":{"pop_tot":350666,"pct_giovani_1834":20.3,"pct_adulti_3564":43.5,"pct_anziani_65plus":25.9,"pct_laureati":12.9,"pct_diploma":35.1,"pct_bassa_istr":52.0,"tasso_occupazione":62.9,"pct_stranieri":10.1,"pct_occupati_f":44.2},"TOSCANA - U04 (PISA)":{"pop_tot":439805,"pct_giovani_1834":20.9,"pct_adulti_3564":43.4,"pct_anziani_65plus":24.9,"pct_laureati":17.2,"pct_diploma":34.7,"pct_bassa_istr":48.1,"tasso_occupazione":64.4,"pct_stranieri":10.4,"pct_occupati_f":44.9},"TOSCANA - U05 (LIVORNO)":{"pop_tot":327262,"pct_giovani_1834":19.3,"pct_adulti_3564":43.3,"pct_anziani_65plus":27.7,"pct_laureati":14.2,"pct_diploma":37.9,"pct_bassa_istr":47.8,"tasso_occupazione":61.7,"pct_stranieri":8.1,"pct_occupati_f":44.5},"TOSCANA - U06 (PRATO)":{"pop_tot":483355,"pct_giovani_1834":21.2,"pct_adulti_3564":43.7,"pct_anziani_65plus":24.1,"pct_laureati":11.9,"pct_diploma":33.1,"pct_bassa_istr":55.0,"tasso_occupazione":66.2,"pct_stranieri":15.3,"pct_occupati_f":45.3},"TOSCANA - U07 (FIRENZE)":{"pop_tot":361619,"pct_giovani_1834":20.8,"pct_adulti_3564":42.8,"pct_anziani_65plus":26.4,"pct_laureati":26.3,"pct_diploma":35.1,"pct_bassa_istr":38.6,"tasso_occupazione":66.2,"pct_stranieri":14.8,"pct_occupati_f":48.0},"TOSCANA - U08 (SCANDICCI)":{"pop_tot":499080,"pct_giovani_1834":21.0,"pct_adulti_3564":42.8,"pct_anziani_65plus":25.5,"pct_laureati":14.4,"pct_diploma":34.4,"pct_bassa_istr":51.2,"tasso_occupazione":66.4,"pct_stranieri":11.7,"pct_occupati_f":46.3},"TOSCANA - U09 (AREZZO)":{"pop_tot":362325,"pct_giovani_1834":20.7,"pct_adulti_3564":42.8,"pct_anziani_65plus":26.1,"pct_laureati":14.4,"pct_diploma":36.6,"pct_bassa_istr":49.0,"tasso_occupazione":65.8,"pct_stranieri":10.5,"pct_occupati_f":45.4},"TRENTINO-ALTO ADIGE/SUDTIROL - U01 (TRENTO)":{"pop_tot":264754,"pct_giovani_1834":23.6,"pct_adulti_3564":41.7,"pct_anziani_65plus":23.1,"pct_laureati":18.3,"pct_diploma":41.2,"pct_bassa_istr":40.4,"tasso_occupazione":67.2,"pct_stranieri":9.4,"pct_occupati_f":45.2},"TRENTINO-ALTO ADIGE/SUDTIROL - U02 (ROVERETO)":{"pop_tot":262597,"pct_giovani_1834":22.8,"pct_adulti_3564":42.4,"pct_anziani_65plus":22.8,"pct_laureati":15.3,"pct_diploma":43.1,"pct_bassa_istr":41.6,"tasso_occupazione":67.6,"pct_stranieri":7.5,"pct_occupati_f":45.7},"TRENTINO-ALTO ADIGE/SUDTIROL - U03 (BOLZANO/BOZEN)":{"pop_tot":276528,"pct_giovani_1834":23.8,"pct_adulti_3564":41.8,"pct_anziani_65plus":21.5,"pct_laureati":15.1,"pct_diploma":45.1,"pct_bassa_istr":39.7,"tasso_occupazione":70.8,"pct_stranieri":11.7,"pct_occupati_f":46.8},"TRENTINO-ALTO ADIGE/SUDTIROL - U04 (BRESSANONE/BRIXEN)":{"pop_tot":244524,"pct_giovani_1834":25.5,"pct_adulti_3564":42.0,"pct_anziani_65plus":18.5,"pct_laureati":10.7,"pct_diploma":46.7,"pct_bassa_istr":42.6,"tasso_occupazione":72.0,"pct_stranieri":7.4,"pct_occupati_f":45.6},"UMBRIA - U01 (TERNI)":{"pop_tot":416094,"pct_giovani_1834":19.8,"pct_adulti_3564":42.4,"pct_anziani_65plus":28.0,"pct_laureati":15.5,"pct_diploma":39.6,"pct_bassa_istr":45.0,"tasso_occupazione":61.5,"pct_stranieri":10.1,"pct_occupati_f":44.3},"UMBRIA - U02 (PERUGIA)":{"pop_tot":396701,"pct_giovani_1834":21.2,"pct_adulti_3564":42.8,"pct_anziani_65plus":25.1,"pct_laureati":18.6,"pct_diploma":38.0,"pct_bassa_istr":43.4,"tasso_occupazione":64.0,"pct_stranieri":10.8,"pct_occupati_f":46.0},"VENETO 1 - U01 (VENEZIA)":{"pop_tot":407258,"pct_giovani_1834":20.3,"pct_adulti_3564":42.8,"pct_anziani_65plus":27.1,"pct_laureati":15.6,"pct_diploma":36.4,"pct_bassa_istr":48.0,"tasso_occupazione":62.9,"pct_stranieri":12.7,"pct_occupati_f":43.8},"VENETO 1 - U02 (CHIOGGIA)":{"pop_tot":389604,"pct_giovani_1834":20.5,"pct_adulti_3564":44.7,"pct_anziani_65plus":24.2,"pct_laureati":12.6,"pct_diploma":37.0,"pct_bassa_istr":50.4,"tasso_occupazione":65.5,"pct_stranieri":7.9,"pct_occupati_f":43.6},"VENETO 1 - U03 (TREVISO)":{"pop_tot":385595,"pct_giovani_1834":22.2,"pct_adulti_3564":43.7,"pct_anziani_65plus":22.7,"pct_laureati":15.2,"pct_diploma":38.4,"pct_bassa_istr":46.4,"tasso_occupazione":65.9,"pct_stranieri":10.2,"pct_occupati_f":43.9},"VENETO 1 - U04 (CASTELFRANCO VENETO)":{"pop_tot":325749,"pct_giovani_1834":22.7,"pct_adulti_3564":43.3,"pct_anziani_65plus":22.1,"pct_laureati":11.7,"pct_diploma":36.9,"pct_bassa_istr":51.5,"tasso_occupazione":65.4,"pct_stranieri":10.3,"pct_occupati_f":43.0},"VENETO 1 - U05 (BELLUNO)":{"pop_tot":323897,"pct_giovani_1834":20.5,"pct_adulti_3564":42.6,"pct_anziani_65plus":27.0,"pct_laureati":13.8,"pct_diploma":40.2,"pct_bassa_istr":46.1,"tasso_occupazione":67.5,"pct_stranieri":7.8,"pct_occupati_f":45.8},"VENETO 2 - U01 (ROVIGO)":{"pop_tot":361961,"pct_giovani_1834":19.3,"pct_adulti_3564":44.6,"pct_anziani_65plus":26.6,"pct_laureati":12.0,"pct_diploma":35.6,"pct_bassa_istr":52.4,"tasso_occupazione":64.9,"pct_stranieri":7.9,"pct_occupati_f":43.3},"VENETO 2 - U02 (SELVAZZANO DENTRO)":{"pop_tot":383756,"pct_giovani_1834":22.2,"pct_adulti_3564":44.6,"pct_anziani_65plus":21.5,"pct_laureati":13.6,"pct_diploma":37.1,"pct_bassa_istr":49.3,"tasso_occupazione":66.8,"pct_stranieri":9.4,"pct_occupati_f":43.6},"VENETO 2 - U03 (PADOVA)":{"pop_tot":385551,"pct_giovani_1834":21.3,"pct_adulti_3564":43.5,"pct_anziani_65plus":24.8,"pct_laureati":22.3,"pct_diploma":35.0,"pct_bassa_istr":42.8,"tasso_occupazione":65.2,"pct_stranieri":12.3,"pct_occupati_f":45.1},"VENETO 2 - U04 (BASSANO DEL GRAPPA)":{"pop_tot":410088,"pct_giovani_1834":22.4,"pct_adulti_3564":43.0,"pct_anziani_65plus":23.5,"pct_laureati":12.5,"pct_diploma":37.7,"pct_bassa_istr":49.8,"tasso_occupazione":66.4,"pct_stranieri":7.7,"pct_occupati_f":43.7},"VENETO 2 - U05 (VICENZA)":{"pop_tot":417315,"pct_giovani_1834":22.8,"pct_adulti_3564":43.6,"pct_anziani_65plus":22.3,"pct_laureati":13.9,"pct_diploma":37.6,"pct_bassa_istr":48.5,"tasso_occupazione":66.3,"pct_stranieri":11.1,"pct_occupati_f":43.1},"VENETO 2 - U06 (VERONA)":{"pop_tot":469101,"pct_giovani_1834":22.4,"pct_adulti_3564":42.7,"pct_anziani_65plus":23.8,"pct_laureati":17.9,"pct_diploma":38.3,"pct_bassa_istr":43.8,"tasso_occupazione":65.9,"pct_stranieri":12.5,"pct_occupati_f":44.8},"VENETO 2 - U07 (VILLAFRANCA DI VERONA)":{"pop_tot":438925,"pct_giovani_1834":22.3,"pct_adulti_3564":44.2,"pct_anziani_65plus":21.5,"pct_laureati":11.6,"pct_diploma":38.1,"pct_bassa_istr":50.3,"tasso_occupazione":66.2,"pct_stranieri":11.5,"pct_occupati_f":43.3}};
+
+let tipoCorrente = 'ong_lasciti';
+let tabCorrente = 'org';
+
+// ── Auto-login da URL params ──────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const p = new URLSearchParams(window.location.search);
+  const pwd = p.get('pwd');
+  const tipo = p.get('tipo');
+  if (pwd && ACCESSI[pwd]) {
+    document.getElementById('gate-pwd').value = pwd;
+    if (tipo) {
+      const map = {'ong':'ong_lasciti','ong_lasciti':'ong_lasciti',
+                   'civic':'sindacato','sindacato':'sindacato'};
+      if (map[tipo]) tipoCorrente = map[tipo];
+    }
+    checkGate();
+  }
+});
+
+function checkGate() {
+  const pwd = document.getElementById('gate-pwd').value.trim();
+  if (!ACCESSI[pwd]) {
+    document.getElementById('gate-err').textContent = 'Codice non valido';
+    setTimeout(() => document.getElementById('gate-err').textContent = '', 2500);
+    return;
+  }
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('nav-user').textContent = ACCESSI[pwd].label;
+  // Mostra solo la scheda pertinente al profilo
+  const showSolo = tipoCorrente === 'sindacato' ? 't-sindacato' : 't-ong_lasciti';
+  const hideSolo = tipoCorrente === 'sindacato' ? 't-ong_lasciti' : 't-sindacato';
+  document.getElementById(showSolo).classList.add('active');
+  document.getElementById(hideSolo).style.display = 'none';
+  // Inizializza visibilità engagement e tipo campagna in base al tipo corrente
+  aggiornaVisibilitaTipoCampagna();
+}
+
+function setTipo(t) {
+  tipoCorrente = t;
+  document.querySelectorAll('.tipo-card').forEach(c => c.classList.remove('active'));
+  // ONG e varianti puntano a t-ong_lasciti
+  const idMap = {'ong_lasciti':'t-ong_lasciti','ong_corporate':'t-ong_lasciti','sindacato':'t-sindacato'};
+  const el = document.getElementById(idMap[t] || 't-ong_lasciti');
+  if (el) el.classList.add('active');
+  aggiornaVisibilitaTipoCampagna();
+}
+
+function aggiornaTipoCampagna() {
+  const val = document.getElementById('f-tipo-campagna').value;
+  // Mappa tipi campagna ai backend types supportati
+  const tipoMap = {
+    'ong_lasciti': 'ong_lasciti',
+    'ong_corporate': 'ong_corporate',
+    'advocacy': 'ong_lasciti',
+    'fundraising': 'ong_lasciti',
+  };
+  tipoCorrente = tipoMap[val] || 'ong_lasciti';
+}
+
+function aggiornaVisibilitaTipoCampagna() {
+  const wrap = document.getElementById('tipo-campagna-wrap');
+  // Mostra il select tipo campagna solo per ONG, non per ente civico
+  if (wrap) {
+    const isOng = tipoCorrente === 'ong_lasciti' || tipoCorrente === 'ong_corporate';
+    wrap.style.display = isOng ? 'block' : 'none';
+  }
+}
+
+function setTab(t) {
+  if (t === 'messaggio') aggiornaVisibilitaTipoCampagna();
+  tabCorrente = t;
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    const tabs = ['org','segmento','messaggio'];
+    b.classList.toggle('active', tabs[i] === t);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + t).classList.add('active');
+}
+
+function scrollToTabs() {
+  document.querySelector('.tabs').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function aggiornaISTAT(collegio) {
+  const box = document.getElementById('istat-box');
+  const grid = document.getElementById('istat-grid');
+  const d = ISTAT_COLLEGI[collegio];
+  if (!d) { box.classList.remove('visible'); return; }
+  box.classList.add('visible');
+  const stats = [
+    {n: (d.pop_tot/1000).toFixed(0)+'k', l: 'Popolazione'},
+    {n: d.pct_giovani_1834+'%', l: 'Giovani 18-34'},
+    {n: d.pct_anziani_65plus+'%', l: 'Anziani 65+'},
+    {n: d.pct_laureati+'%', l: 'Laureati'},
+    {n: d.tasso_occupazione+'%', l: 'Tasso occupaz.'},
+    {n: d.pct_stranieri+'%', l: 'Stranieri'},
+  ];
+  grid.innerHTML = stats.map(s =>
+    `<div class="istat-stat">
+      <div class="istat-stat-n">${s.n}</div>
+      <div class="istat-stat-l">${s.l}</div>
+    </div>`
+  ).join('');
+}
+
+async function analizza() {
+  const nome = document.getElementById('f-nome').value.trim();
+  const valori = document.getElementById('f-valori').value.trim();
+  const messaggio = document.getElementById('f-messaggio').value.trim();
+
+  if (!messaggio) {
+    setTab('messaggio');
+    document.getElementById('f-messaggio').focus();
+    return;
+  }
+
+  // Costruisce profilo segmento
+  const collegio = document.getElementById('f-collegio').value;
+  const area = document.getElementById('f-area').value;
+  const eta = document.getElementById('f-eta').value;
+  const istr = document.getElementById('f-istr').value;
+  const lavoro = document.getElementById('f-lavoro').value;
+  const urbano = document.getElementById('f-urbano').value;
+  const libero = document.getElementById('f-segmento-libero').value.trim();
+  const canale = document.getElementById('f-canale').value;
+  const contesto = document.getElementById('f-contesto').value.trim();
+
+  // Dati ISTAT del collegio selezionato
+  const istatData = collegio ? ISTAT_COLLEGI[collegio] : null;
+
+  const segmentoDesc = [
+    area && `Area: ${area}`,
+    collegio && `Collegio: ${collegio}`,
+    eta && `Età: ${eta}`,
+    istr && `Istruzione: ${istr}`,
+    lavoro && `Lavoro: ${lavoro}`,
+    urbano && `Contesto: ${urbano}`,
+    libero && libero,
+    istatData && `Dati reali ISTAT 2021: giovani 18-34 ${istatData.pct_giovani_1834}%, anziani 65+ ${istatData.pct_anziani_65plus}%, laureati ${istatData.pct_laureati}%, tasso occupazione ${istatData.tasso_occupazione}%, stranieri ${istatData.pct_stranieri}%`,
+  ].filter(Boolean).join(' · ') || 'Non specificato';
+
+  document.getElementById('btn-analizza').disabled = true;
+  document.getElementById('loading').style.display = 'flex';
+  document.getElementById('results').style.display = 'none';
+  // Scroll alla loading bar
+  document.getElementById('loading').scrollIntoView({behavior:'smooth', block:'center'});
+
+  try {
+    const res = await fetch(API + '/api/optimize-civic', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        nome: nome || 'Organizzazione non specificata',
+        valori,
+        messaggio,
+        target: segmentoDesc,
+        contesto: [canale && `canale: ${canale}`, contesto].filter(Boolean).join(' · '),
+        tipo: tipoCorrente,
+      })
+    });
+    if (!res.ok) throw new Error('Errore ' + res.status);
+    const data = await res.json();
+    renderResults(data);
+  } catch(e) {
+    alert('Errore API: ' + e.message);
+  } finally {
+    document.getElementById('btn-analizza').disabled = false;
+    document.getElementById('loading').style.display = 'none';
+  }
+}
+
+function downloadAnalisi() {
+  const nome = document.getElementById('f-nome')?.value || 'Organizzazione';
+  const messaggio = document.getElementById('f-messaggio')?.value || '';
+  const data = window._lastAnalisiData;
+  if (!data) { alert('Nessuna analisi da scaricare.'); return; }
+  
+  const score = Math.round((data.score_coerenza||0)*100);
+  const rischio = (data.rischio_rigetto||'').toUpperCase();
+  const impatto = data.impatto_pp || 0;
+  const entman = data.entman || {};
+  const varianti = data.varianti || [];
+  const rec = data.raccomandazione || '';
+  const avv = data.avvertenza || '';
+  const ts = new Date().toLocaleDateString('it-IT');
+  const NL = String.fromCharCode(10);
+  const SEP = '='.repeat(50);
+  const sep = '-'.repeat(30);
+  
+  const dimLabels = {problema:'Definizione del problema',causa:'Diagnosi delle cause',valutazione:'Valutazione morale',soluzione:'Soluzione proposta'};
+  const forzaStars = {forte:'★★★',neutro:'★★☆',debole:'★☆☆'};
+  
+  let lines = [
+    'POLISIM.DEV — ANALISI MESSAGE OPTIMIZER',
+    SEP,
+    'Data: ' + ts,
+    'Organizzazione: ' + nome,
+    'Messaggio testato: ' + messaggio,
+    '',
+    'RISULTATI SINTETICI',
+    sep,
+    'Coerenza valoriale: ' + score + '%',
+    'Rischio rigetto: ' + rischio,
+    'Impatto stimato: ' + (impatto >= 0 ? '+' : '') + impatto + 'pp',
+    ''
+  ];
+  
+  if (data.alert) lines.push('ALERT: ' + data.alert, '');
+  if (data.motivazione) lines.push('VALUTAZIONE: ' + data.motivazione, '');
+  
+  lines.push('ANALISI ENTMAN — 4 DIMENSIONI', sep);
+  ['problema','causa','valutazione','soluzione'].forEach((k,i) => {
+    const v = entman[k] || {};
+    lines.push((i+1) + '. ' + (dimLabels[k]||k).toUpperCase() + ' ' + (forzaStars[v.forza||'neutro']||'★★☆'));
+    lines.push('Forza: ' + (v.forza||'—'));
+    lines.push('Analisi: ' + (v.analisi||'—'));
+    lines.push('Suggerimento: ' + (v.suggerimento||'—'));
+    lines.push('');
+  });
+  
+  lines.push('VARIANTI OTTIMIZZATE', sep);
+  varianti.forEach((v,i) => {
+    lines.push((i+1) + '. ' + (v.tipo||'Variante') + ' — Score ' + Math.round((v.score||0)*100) + '%');
+    lines.push('"' + (v.testo||'') + '"');
+    if (v.note) lines.push(v.note);
+    if (v.metriche_dettaglio) {
+      Object.entries(v.metriche_dettaglio).forEach(([m,val]) => lines.push('  ' + m.split('_').join(' ') + ': ' + val + '/10'));
+    }
+    lines.push('');
+  });
+  
+  if (rec) { lines.push('RACCOMANDAZIONE', sep, rec, ''); }
+  if (avv) { lines.push('COSA EVITARE', sep, avv, ''); }
+  
+  lines.push(SEP, 'Analisi esplorativa — Non validata su campagne reali', 'Metodologia: polisim.dev/metodologia.html');
+  
+  const txt = lines.join(NL);
+  const blob = new Blob([txt], {type: 'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'polisim_analisi_' + nome.split(' ').join('_').toLowerCase() + '_' + ts.split('/').join('-') + '.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function scoreClass(v) {
+  return v >= 0.65 ? 'green' : v >= 0.4 ? 'amber' : 'red';
+}
+function forzaClass(f) {
+  return f === 'forte' ? 'strong' : f === 'debole' ? 'weak' : 'medium';
+}
+
+function renderResults(d) {
+  const score = d.score_coerenza || 0;
+  const pct = Math.round(score * 100);
+  const rischio = (d.rischio_rigetto || 'medio').toLowerCase();
+  const impatto = d.impatto_pp ?? 0;
+  const cls = scoreClass(score);
+  const rCls = rischio === 'basso' || rischio === 'nessuno' ? 'green' :
+               rischio === 'medio' ? 'amber' : 'red';
+
+  // Score row — con confronto prima/dopo se impatto disponibile
+  const impattoPp = parseFloat(impatto) || 0;
+  const quotaBase = parseFloat(document.getElementById('f-quota-base')?.value) || null;
+  const quotaStimata = quotaBase ? (quotaBase + impattoPp).toFixed(1) : null;
+  const impattoBox = impattoPp !== 0
+    ? '<div class="score-box" style="grid-column:1/-1;border-top:0.5px solid var(--border);background:var(--bg2)">' +
+      '<div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;padding:12px 0">' +
+      '<div style="text-align:center">' +
+        '<div class="score-n" style="font-size:36px">' + (quotaBase ? quotaBase.toFixed(1)+'%' : '—') + '</div>' +
+        '<div class="score-l">Sondaggio attuale</div>' +
+      '</div>' +
+      '<div style="font-family:var(--font-mono);font-size:20px;color:var(--light)">→</div>' +
+      '<div style="text-align:center">' +
+        '<div class="score-n ' + (impattoPp >= 0 ? 'green' : 'red') + '" style="font-size:36px">' + (quotaStimata ? quotaStimata+'%' : (impattoPp >= 0 ? '+' : '') + impattoPp + 'pp') + '</div>' +
+        '<div class="score-l">Con questo messaggio</div>' +
+        (impattoPp !== 0 ? '<div style="font-family:var(--font-mono);font-size:11px;font-weight:500;margin-top:4px;color:' + (impattoPp >= 0 ? '#2a7a3a' : '#b05040') + '">' + (impattoPp >= 0 ? '+' : '') + impattoPp + 'pp</div>' : '') +
+      '</div>' +
+      '</div></div>'
+    : '';
+  document.getElementById('score-row').innerHTML =
+    '<div class="score-box">' +
+      '<div class="score-n ' + cls + '">' + pct + '%</div>' +
+      '<div class="score-l">Coerenza valoriale</div>' +
+    '</div>' +
+    '<div class="score-box">' +
+      '<div class="score-n ' + rCls + '">' + rischio.toUpperCase() + '</div>' +
+      '<div class="score-l">Rischio rigetto</div>' +
+    '</div>' +
+    '<div class="score-box">' +
+      '<div class="score-n ' + (impatto >= 0 ? 'green' : 'red') + '">' + (impatto >= 0 ? '+' : '') + impatto + '</div>' +
+      '<div class="score-l">Impatto stimato</div>' +
+    '</div>' + impattoBox;
+
+  // Alert
+  let alertHtml = '';
+  if (d.alert) {
+    alertHtml += `<div class="alert ${cls === 'red' ? 'red' : cls === 'amber' ? 'amber' : 'green'}">
+      <div class="alert-title">${rischio === 'critico' ? '⚠ Allerta critica' : rischio === 'alto' ? '⚠ Allerta alta' : 'Nota'}</div>
+      <div class="alert-text">${d.alert}</div>
+    </div>`;
+  }
+  if (d.motivazione) {
+    alertHtml += `<div class="alert green">
+      <div class="alert-title">Valutazione complessiva</div>
+      <div class="alert-text">${d.motivazione}</div>
+    </div>`;
+  }
+  document.getElementById('alert-box').innerHTML = alertHtml;
+
+  // Entman — 4 frame con score separati
+  const entman = d.entman || {};
+  const dims = [
+    {k:'problema',    n:'01', label:'Definizione del problema'},
+    {k:'causa',       n:'02', label:'Diagnosi delle cause'},
+    {k:'valutazione', n:'03', label:'Valutazione morale'},
+    {k:'soluzione',   n:'04', label:'Soluzione proposta'},
+  ];
+  document.getElementById('entman-grid').innerHTML = dims.map(dim => {
+    const v = entman[dim.k] || {};
+    const forza = (v.forza || 'neutro').toLowerCase();
+    const fCls = forza === 'forte' ? 'forza-forte' : forza === 'debole' ? 'forza-debole' : 'forza-neutro';
+    const sCls = forzaClass(forza);
+    // Score per frame: forte=80-95, neutro=50-65, debole=20-40
+    const frameScore = forza === 'forte' ? '★★★' : forza === 'debole' ? '★☆☆' : '★★☆';
+    return `<div class="entman-card">
+      <div class="entman-header">
+        <span class="entman-num">${dim.n}</span>
+        <span class="entman-score ${sCls}">${frameScore}</span>
+      </div>
+      <div class="entman-label">${dim.label}</div>
+      <span class="entman-forza ${fCls}">${forza}</span>
+      <div class="entman-text">${v.analisi || '—'}</div>
+      ${v.suggerimento ? `<div class="entman-suggest">→ ${v.suggerimento}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  // Varianti con metriche dettagliate
+  const varianti = d.varianti || [];
+  const metriche = d.metriche || [];
+  const labelScore = d.label_score || 'Score';
+
+  document.getElementById('varianti-container').innerHTML = varianti.length
+    ? varianti.map(v => {
+        const md = v.metriche_dettaglio || {};
+        const scoreBar = metriche.map(m => {
+          const val = md[m] || 0;
+          const pct = val * 10;
+          return '<div style="margin-bottom:6px">' +
+            '<div style="display:flex;justify-content:space-between;margin-bottom:3px">' +
+            '<span style="font-family:var(--font-mono);font-size:8px;letter-spacing:1px;color:var(--light);text-transform:uppercase">' + m.replace(/_/g,' ') + '</span>' +
+            '<span style="font-family:var(--font-mono);font-size:9px;color:var(--ink);font-weight:500">' + val + '/10</span></div>' +
+            '<div style="height:2px;background:var(--border2);width:100%">' +
+            '<div style="height:2px;background:var(--black);width:' + pct + '%"></div></div></div>';
+        }).join('');
+        return '<div class="variante">' +
+          '<div class="variante-header">' +
+          '<span class="variante-tipo">' + (v.tipo || 'Variante') + '</span>' +
+          '<span class="variante-pct">' + labelScore + ' ' + Math.round((v.score||0)*100) + '%</span></div>' +
+          '<div class="variante-testo">' + v.testo + '</div>' +
+          (v.note ? '<div class="variante-note">' + v.note + '</div>' : '') +
+          (metriche.length ? '<div style="margin-top:14px;padding-top:12px;border-top:0.5px solid var(--border)">' + scoreBar + '</div>' : '') +
+          '</div>';
+      }).join('')
+    : '<p style="font-family:var(--font-mono);font-size:11px;color:var(--ghost)">Nessuna variante generata — riprova con un messaggio più specifico.</p>';
+
+  // Raccomandazione finale
+  console.log('raccomandazione:', d.raccomandazione, '| avvertenza:', d.avvertenza);
+  const recBox = document.getElementById('raccomandazione-box');
+  if (recBox) {
+    const rec = d.raccomandazione || '';
+    const avv = d.avvertenza || '';
+    recBox.innerHTML = (rec || avv) ? (
+      (rec ? '<div class="alert green"><div class="alert-title green">Raccomandazione</div><div class="alert-text">' + rec + '</div></div>' : '') +
+      (avv ? '<div class="alert amber"><div class="alert-title amber">⚠ Cosa evitare con questo segmento</div><div class="alert-text">' + avv + '</div></div>' : '')
+    ) : '';
+  }
+
+  // Salva dati per download
+  window._lastAnalisiData = d;
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('results').scrollIntoView({behavior:'smooth'});
+}
+</script>
+</body>
+</html>
