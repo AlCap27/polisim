@@ -847,9 +847,22 @@ async function mostraImpatto(mrpData) {
           </div>
           <div style="font-family:var(--font-mono);font-size:18px;color:var(--text-dim);">→</div>
           <div style="text-align:center;">
-            <div style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:${impColore};">${(quotaNaz + impattoPp).toFixed(1)}%</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:${impColore};">${Math.max(0, quotaNaz + impattoPp).toFixed(1)}%</div>
             <div style="font-family:var(--font-mono);font-size:8px;letter-spacing:1px;color:var(--text-dim);text-transform:uppercase;margin-top:4px;">Con questo messaggio</div>
             <div style="font-family:var(--font-mono);font-size:11px;font-weight:500;color:${impColore};margin-top:4px;">${impSegno}${impattoPp.toFixed(1)}pp</div>
+          </div>
+        </div>` : ''}
+
+        ${quotaNaz > 0 && impattoPp !== 0 ? `<div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;background:#111;border:1px solid #333;padding:14px 16px;margin:10px 0;">
+          <div style="text-align:center;">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:#e8e6e3;">${quotaNaz.toFixed(1)}%</div>
+            <div style="font-family:var(--font-mono);font-size:8px;letter-spacing:1px;color:#666;text-transform:uppercase;margin-top:3px;">Sondaggio attuale</div>
+          </div>
+          <div style="font-family:var(--font-mono);font-size:18px;color:#555;">→</div>
+          <div style="text-align:center;">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:${impColore};">${Math.max(0, quotaNaz + impattoPp).toFixed(1)}%</div>
+            <div style="font-family:var(--font-mono);font-size:8px;letter-spacing:1px;color:#666;text-transform:uppercase;margin-top:3px;">Con questo messaggio</div>
+            <div style="font-family:var(--font-mono);font-size:11px;font-weight:500;color:${impColore};margin-top:3px;">${impSegno}${impattoPp.toFixed(1)}pp</div>
           </div>
         </div>` : ''}
 
