@@ -772,6 +772,7 @@ function downloadAnalisi() {
     'POLISIM.DEV — ANALISI MESSAGE OPTIMIZER',
     SEP,
     'Data: ' + ts,
+    'ID Sessione: ' + (window._lastSessionId || 'n.d.'),
     'Organizzazione: ' + nome,
     'Messaggio testato: ' + messaggio,
     '',
@@ -957,6 +958,7 @@ function renderResults(d) {
 
   // Salva dati per download
   window._lastAnalisiData = d;
+  window._lastSessionId = d.sessione_id || null;
   document.getElementById('results').style.display = 'block';
   document.getElementById('results').scrollIntoView({behavior:'smooth'});
 }
