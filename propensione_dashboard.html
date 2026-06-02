@@ -613,7 +613,13 @@ footer{padding:24px 48px;border-top:1px solid var(--linea);display:flex;justify-
 <!-- ═══ PANEL 2 — RISULTATI ═══ -->
 <div class="panel" id="panel-2">
   <div class="metrics-header">
-    <h2>Risultati analisi</h2>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px">
+      <h2 style="margin-bottom:0">Risultati analisi</h2>
+      <div style="display:flex;gap:10px">
+        <button class="btn-dl" onclick="document.getElementById('btn-csv').click()">↓ CSV completo</button>
+        <button class="btn-dl" onclick="document.getElementById('btn-top').click()">↓ Top 20% per obiettivo</button>
+      </div>
+    </div>
     <div class="kpi-grid" id="kpi-grid"></div>
   </div>
 
