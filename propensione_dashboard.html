@@ -411,9 +411,9 @@ footer{padding:24px 48px;border-top:1px solid var(--linea);display:flex;justify-
 
   <!-- Mapping Dynamics -->
   <details class="dynamics-hint" style="margin-top:32px;max-width:800px">
-    <summary>📊 Guida mapping Microsoft Dynamics 365</summary>
+    <summary>📊 Guida mapping CRM — Dynamics 365 · Salesforce · Raiser's Edge · myDonor · GestONG · HubSpot</summary>
     <div class="dynamics-hint-body">
-      <p style="font-size:13px;color:var(--grigio);margin-bottom:16px;margin-top:8px">Corrispondenza tra i campi CSV PoliSim e le entità standard di Dynamics 365 for Nonprofits.</p>
+      <p style="font-size:13px;color:var(--grigio);margin-bottom:16px;margin-top:8px">Corrispondenza tra i campi CSV PoliSim e le entità dei principali CRM usati dalle ONG in Italia. Espandi per trovare il tuo sistema.</p>
       <div class="dyn-grid">
         <div class="dyn-cell header">Campo CSV PoliSim</div>
         <div class="dyn-cell header">Dynamics 365 / CRM</div>
@@ -559,6 +559,40 @@ footer{padding:24px 48px;border-top:1px solid var(--linea);display:flex;justify-
         <div class="dyn-cell css">cap</div>
         <div class="dyn-cell dyn">contact.zip</div>
         <div class="dyn-cell note">Campo indirizzo standard HubSpot</div>
+      </div>
+
+      <div class="dyn-grid" style="margin-top:16px">
+        <div class="dyn-cell header">Campo CSV PoliSim</div>
+        <div class="dyn-cell header">myDonor® (italiano, specifico nonprofit)</div>
+        <div class="dyn-cell header">Note</div>
+
+        <div class="dyn-cell csv">donor_id</div>
+        <div class="dyn-cell dyn">Anagrafica.CodiceDonoatore (anonimizzato)</div>
+        <div class="dyn-cell note">Il CRM nonprofit italiano più diffuso — mydonor.org</div>
+
+        <div class="dyn-cell csv">anzianita_anni</div>
+        <div class="dyn-cell dyn">Donazioni.DataPrimaDonazione → anni da oggi</div>
+        <div class="dyn-cell note">Storico donazioni nel modulo Fundraising</div>
+
+        <div class="dyn-cell csv">tipo_sostegno_prevalente</div>
+        <div class="dyn-cell dyn">Donazioni.TipologiaDonazione</div>
+        <div class="dyn-cell note">Ricorrente SDD / Una Tantum / Sostegno a distanza</div>
+
+        <div class="dyn-cell csv">metodo_pagamento_prevalente</div>
+        <div class="dyn-cell dyn">Ricorrenti.ModalitaPagamento</div>
+        <div class="dyn-cell note">Banca SDD / Carta di credito / Bollettino postale</div>
+
+        <div class="dyn-cell csv">cap</div>
+        <div class="dyn-cell dyn">Anagrafica.CAP</div>
+        <div class="dyn-cell note">Campo standard anagrafica myDonor</div>
+
+        <div class="dyn-cell csv">ha_risposto_campagna_lasciti</div>
+        <div class="dyn-cell dyn">Lasciti.StatoLascito = interesse/confermato</div>
+        <div class="dyn-cell note">Modulo Gestione Lasciti integrato in myDonor NX</div>
+
+        <div class="dyn-cell csv">ha_risposto_campagna_oneoff</div>
+        <div class="dyn-cell dyn">Campagne.RispostaAppello = 1</div>
+        <div class="dyn-cell note">Risposta a campagna emergency nel modulo Online</div>
       </div>
     </div>
   </details>
