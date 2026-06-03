@@ -19,7 +19,7 @@ To help civic organisations (NGOs, trade unions, municipalities) test whether th
 
 **Live production system:** [polisim.dev](https://polisim.dev)  
 **Documentation:** [polisim.dev/metodologia.html](https://polisim.dev/metodologia.html)  
-**Civic Tech Directory:** [civictech.guide](https://civictech.guide)
+**Civic Tech Directory:** [Civic Tech Field Guide](https://civictech.guide)
 
 ---
 
@@ -258,7 +258,7 @@ Evaluate citizen engagement strategies on census data rather than opaque commerc
 - Field validation partnerships (trade union + NGO)
 - GDPR-compliant data anonymization tool (Data Shield)
 - Public methodology documentation with declared limitations
-- Listed in Civic Tech Guide directory
+- Listed in Civic Tech Field Guide directory
 
 ### 🚧 In Progress (Q2 2026)
 - Open-source repository preparation
@@ -333,7 +333,7 @@ See [LICENSE](LICENSE) for full terms.
 - **Web:** [polisim.dev](https://polisim.dev) · [qitalia.org](https://qitalia.org)
 - **Email:** info@polisim.dev
 - **NGI Application:** 2026-06-238
-- **Civic Tech Guide:** [civictech.guide](https://civictech.guide)
+- **Civic Tech Field Guide:** [Civic Tech Field Guide](https://civictech.guide)
 
 **Live Proof-of-Concept:** [Q-Italia](https://qitalia.org) — Political movement with 14 constitutional principles using PoliSim infrastructure for values-anchored communication.
 
@@ -350,7 +350,7 @@ See [LICENSE](LICENSE) for full terms.
 
 **Research Network:**
 - [mySociety & SITRA](https://www.mysociety.org) — TICTeC civic tech research
-- [Civic Tech Guide](https://civictech.guide) — Recognized civic technology directory
+- [Civic Tech Field Guide](https://civictech.guide) — Recognized civic technology directory
 - [NGI Zero Commons Fund](https://nlnet.nl/commonsfund/) — Applied funding
 
 **AI Foundation:**
