@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PoliSim — Fonti Accademiche e Riferimenti Metodologici</title>
-<meta name="description" content="Fonti accademiche di PoliSim: Wang et al. MRP, Entman framing theory, AEI 2025 AI persuasion, MIT Technology Review, Frontiers Political Science, ScienceDirect IJF 2021, Cambridge Core.">
+<meta name="description" content="Fonti accademiche di PoliSim: MRP elettorale, Entman framing theory, RFML donor segmentation, LLM opinion simulation. Citazioni verificate via OpenAlex API.">
 <link rel="canonical" href="https://polisim.dev/fonti.html">
 <script type="application/ld+json">
 {
@@ -13,10 +13,10 @@
   "name":"Framework metodologico PoliSim",
   "description":"Riferimenti accademici per lo strumento di analisi politica e ottimizzazione della comunicazione PoliSim.dev",
   "citation":[
-    {"@type":"ScholarlyArticle","author":"Wang, Rothschild, Goel, Gelman","name":"Forecasting elections with non-representative polls","datePublished":"2015","publisher":"International Journal of Forecasting"},
+    {"@type":"ScholarlyArticle","author":"Wang, Rothschild, Goel, Gelman","name":"Forecasting elections with non-representative polls","datePublished":"2014","publisher":"International Journal of Forecasting"},
     {"@type":"ScholarlyArticle","author":"Robert M. Entman","name":"Framing: Toward Clarification of a Fractured Paradigm","datePublished":"1993","publisher":"Journal of Communication"},
-    {"@type":"ScholarlyArticle","author":"Graefe et al.","name":"Combining forecasts for elections: Best practices and new frontiers","datePublished":"2021","publisher":"International Journal of Forecasting"},
-    {"@type":"ScholarlyArticle","author":"American Enterprise Institute","name":"The Impact of Generative AI on Political Persuasion and Voter Behavior","datePublished":"2025"}
+    {"@type":"ScholarlyArticle","author":"Park, Gelman, Bafumi","name":"Bayesian Multilevel Estimation with Poststratification","datePublished":"2004","publisher":"Political Analysis"},
+    {"@type":"ScholarlyArticle","author":"Argyle et al.","name":"Out of One, Many: Using Language Models to Simulate Human Samples","datePublished":"2023","publisher":"Political Analysis"}
   ]
 }
 </script>
@@ -38,15 +38,31 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1
 .page{max-width:760px;margin:0 auto;padding:80px 40px}
 .page-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:4px;color:var(--accent);text-transform:uppercase;margin-bottom:16px}
 .page-title{font-family:var(--serif);font-size:clamp(40px,5vw,64px);font-weight:300;line-height:1;color:var(--ink);margin-bottom:12px}
-.page-sub{font-size:13px;color:var(--light);margin-bottom:48px;padding-bottom:40px;border-bottom:0.5px solid var(--line)}
-.cat-label{font-family:var(--mono);font-size:8px;letter-spacing:4px;color:var(--accent);text-transform:uppercase;margin-bottom:20px;margin-top:48px;padding-bottom:8px;border-bottom:0.5px solid var(--line)}
-.source-card{margin-bottom:28px;padding-bottom:28px;border-bottom:0.5px solid var(--line)}
+.page-sub{font-size:13px;color:var(--light);margin-bottom:16px;padding-bottom:32px;border-bottom:0.5px solid var(--line)}
+.live-note{font-family:var(--mono);font-size:9px;color:var(--ghost);letter-spacing:1px;margin-bottom:40px;display:flex;align-items:center;gap:8px}
+.live-dot{width:5px;height:5px;border-radius:50%;background:var(--accent2);display:inline-block;animation:pulse 2.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.cat-label{font-family:var(--mono);font-size:8px;letter-spacing:4px;color:var(--accent);text-transform:uppercase;margin-bottom:20px;margin-top:48px;padding-bottom:8px;border-bottom:0.5px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.cat-count{font-size:8px;color:var(--ghost)}
+.source-card{margin-bottom:28px;padding-bottom:28px;border-bottom:0.5px solid var(--line);opacity:0;transform:translateY(6px);transition:opacity 0.4s,transform 0.4s}
+.source-card.loaded{opacity:1;transform:none}
 .source-card:last-child{border-bottom:none}
-.source-meta{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--light);text-transform:uppercase;margin-bottom:6px}
+.source-meta{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--light);text-transform:uppercase;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.source-cites{font-family:var(--mono);font-size:11px;color:var(--ink);font-weight:500}
+.source-cites span{font-size:8px;color:var(--ghost);font-weight:400;margin-left:2px}
 .source-title{font-family:var(--serif);font-size:20px;font-weight:300;color:var(--ink);margin-bottom:4px;line-height:1.2}
+.source-title a{color:inherit;text-decoration:none}
+.source-title a:hover{color:var(--accent)}
 .source-authors{font-size:12px;color:var(--light);margin-bottom:10px}
 .source-note{font-size:13px;color:var(--mid);font-weight:300;line-height:1.7}
 .source-tag{display:inline-block;font-family:var(--mono);font-size:8px;letter-spacing:1px;color:var(--accent);border:0.5px solid var(--accent2);padding:2px 8px;text-transform:uppercase;margin-bottom:10px}
+.oa-badge{display:inline-block;font-family:var(--mono);font-size:7px;letter-spacing:1px;color:#5a8a5a;border:0.5px solid #5a8a5a;padding:1px 6px;text-transform:uppercase;margin-left:6px;vertical-align:middle}
+.limit-note{font-size:11px;color:var(--accent);margin-top:8px;padding-top:8px;border-top:0.5px solid var(--line);font-style:italic}
+.skeleton{background:linear-gradient(90deg,var(--bg2) 25%,var(--line) 50%,var(--bg2) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;height:14px;border-radius:2px;margin-bottom:8px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:32px;margin-top:-8px}
+.filter-btn{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;padding:5px 12px;border:0.5px solid var(--line);background:transparent;color:var(--light);cursor:pointer;transition:all 0.15s}
+.filter-btn:hover,.filter-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(138,106,58,0.05)}
 a{color:var(--accent);text-decoration:none}
 a:hover{text-decoration:underline}
 footer{border-top:0.5px solid var(--line);padding:32px 56px;display:flex;justify-content:space-between;align-items:center;margin-top:80px}
@@ -54,6 +70,7 @@ footer{border-top:0.5px solid var(--line);padding:32px 56px;display:flex;justify
 .footer-links{display:flex;gap:24px}
 .footer-links a{font-size:12px;color:var(--light);text-decoration:none}
 .footer-links a:hover{color:var(--ink)}
+@media(max-width:600px){.nav{padding:16px 20px}.page{padding:48px 20px}footer{padding:24px 20px;flex-direction:column;gap:16px}}
 </style>
 </head>
 <body>
@@ -63,83 +80,20 @@ footer{border-top:0.5px solid var(--line);padding:32px 56px;display:flex;justify
 </nav>
 
 <div class="page">
-  <div class="page-eyebrow">Fonti · Peer-reviewed · Citate nel tool</div>
+  <div class="page-eyebrow">Fonti · Peer-reviewed · Verificate via OpenAlex</div>
   <h1 class="page-title">Riferimenti<br>accademici</h1>
-  <p class="page-sub">Ogni componente metodologico di PoliSim è fondato su letteratura peer-reviewed. Queste fonti non sono decorative: informano direttamente la struttura dei modelli e le scelte di design del sistema.</p>
+  <p class="page-sub">Ogni componente metodologico di PoliSim è fondato su letteratura peer-reviewed con DOI verificato. Le citazioni sono aggiornate in tempo reale via OpenAlex API.</p>
+  <div class="live-note"><span class="live-dot"></span> CITAZIONI LIVE — OPENALEX.ORG &nbsp;·&nbsp; <span id="loadStatus">caricamento...</span></div>
 
-  <!-- STATISTICA ELETTORALE -->
-  <div class="cat-label">Statistica elettorale e modelli di previsione</div>
-
-  <div class="source-card">
-    <div class="source-tag">Stage 1 · MRP · Fondamento statistico</div>
-    <div class="source-meta">Wang et al. · International Journal of Forecasting · 2015</div>
-    <div class="source-title">Forecasting elections with non-representative polls</div>
-    <div class="source-authors">Wang, W., Rothschild, D., Goel, S., & Gelman, A.</div>
-    <div class="source-note">Fondamento statistico della post-stratificazione demografica. Fornisce il framework MRP per la proiezione dei consensi nei singoli collegi Camera e Senato. Errore medio documentato: 1.9 punti percentuali su sottogruppi demografici. Questo paper è il riferimento principale per la fase di calibrazione del modello sui dati ISTAT 2021.</div>
+  <div class="filter-row">
+    <button class="filter-btn active" data-filter="all">Tutti</button>
+    <button class="filter-btn" data-filter="mrp">MRP</button>
+    <button class="filter-btn" data-filter="framing">Framing</button>
+    <button class="filter-btn" data-filter="rfml">RFML</button>
+    <button class="filter-btn" data-filter="llm">LLM</button>
   </div>
 
-  <div class="source-card">
-    <div class="source-tag">Stage 1 · Ensemble · Validazione approccio</div>
-    <div class="source-meta">Graefe, A., et al. · International Journal of Forecasting · 2021</div>
-    <div class="source-title">Combining forecasts for elections: Best practices and new frontiers</div>
-    <div class="source-authors">Graefe, A., et al.</div>
-    <div class="source-note">Valida l'approccio ensemble (Ridge + Random Forest), dimostrando come l'integrazione di modelli lineari e non lineari migliori la precisione del forecasting elettorale rispetto ai modelli singoli. Base per la scelta dell'architettura Stage 1 di PoliSim.</div>
-  </div>
-
-  <div class="source-card">
-    <div class="source-tag">Stage 2 · Swing model · Calibrazione collegi</div>
-    <div class="source-meta">Stegmaier, M., & Lewis-Beck, M. S. · Cambridge Core · 2024</div>
-    <div class="source-title">Principles of Voter Sentiment Analysis and Election Prediction</div>
-    <div class="source-authors">Stegmaier, M., & Lewis-Beck, M. S.</div>
-    <div class="source-note">Analizza la dinamica dello swing elettorale e la volatilità del voto, supportando la calibrazione del modello sui dati storici Eligendo. Fondamento teorico per l'identificazione dei collegi marginali.</div>
-  </div>
-
-  <!-- AI E PERSUASIONE -->
-  <div class="cat-label">Intelligenza artificiale e persuasione politica</div>
-
-  <div class="source-card">
-    <div class="source-tag">Stage 3 · Impatto AI · Parametri ottimizzazione</div>
-    <div class="source-meta">American Enterprise Institute · 2025</div>
-    <div class="source-title">The Impact of Generative AI on Political Persuasion and Voter Behavior</div>
-    <div class="source-authors">American Enterprise Institute Research Group</div>
-    <div class="source-note">Documenta la capacità degli LLM di generare contenuti persuasivi calibrati per segmento. Quantifica lo spostamento di opinione fino a 25 punti percentuali rispetto ai messaggi non ottimizzati. Fornisce i parametri di riferimento per valutare l'efficacia del Message Optimizer di PoliSim.</div>
-  </div>
-
-  <div class="source-card">
-    <div class="source-tag">Stage 3 · Contesto etico · AI e elezioni</div>
-    <div class="source-meta">MIT Technology Review · 2025</div>
-    <div class="source-title">How Generative AI Reframed the 2024-2025 Global Election Cycle</div>
-    <div class="source-authors">MIT Editorial Board / Tech Policy Group</div>
-    <div class="source-note">Esamina le sfide etiche e tecniche nell'uso dell'IA generativa per la comunicazione politica, con focus sull'accuratezza e la riduzione delle allucinazioni. Informa le scelte di design sulla trasparenza metodologica e la dichiarazione esplicita dei limiti.</div>
-  </div>
-
-  <div class="source-card">
-    <div class="source-tag">Stage 3 · Segmentazione · Deep learning</div>
-    <div class="source-meta">Garcia, L., & Miller, J. · Frontiers in Political Science · 2025</div>
-    <div class="source-title">Deep Learning for Micro-targeting and Audience Segmentation in Modern Campaigns</div>
-    <div class="source-authors">Garcia, L., & Miller, J.</div>
-    <div class="source-note">Definisce le tecniche di segmentazione dell'audience basate su AI. Identifica la segmentazione come secondo fattore determinante dell'efficacia della comunicazione politica. Supporta l'approccio del costruttore di segmenti su dati ISTAT.</div>
-  </div>
-
-  <!-- FRAMING -->
-  <div class="cat-label">Teoria della comunicazione e framing</div>
-
-  <div class="source-card">
-    <div class="source-tag">Stage 3 · Framing · Teoria fondante</div>
-    <div class="source-meta">Entman, R.M. · Journal of Communication · 1993</div>
-    <div class="source-title">Framing: Toward Clarification of a Fractured Paradigm</div>
-    <div class="source-authors">Robert M. Entman</div>
-    <div class="source-note">Teoria cardine che struttura la generazione dei messaggi attraverso quattro processi: definizione del problema, diagnosi delle cause, valutazione morale, suggerimento di soluzioni. Le quattro varianti di framing del Message Optimizer (economico, valoriale, pratico, emotivo) sono un'applicazione diretta di questo framework. Paper più citato nella storia del Journal of Communication.</div>
-  </div>
-
-  <div class="source-card">
-    <div class="source-tag">Stage 3 · Framing digitale · Automazione narrativa</div>
-    <div class="source-meta">Schmidt, F., et al. · Media & Communication · 2024</div>
-    <div class="source-title">Algorithmic Framing: The Intersection of AI and Political Discourse</div>
-    <div class="source-authors">Schmidt, F., et al.</div>
-    <div class="source-note">Analizza l'evoluzione digitale del framing di Entman, offrendo le basi per l'automazione della narrazione politica tramite modelli di intelligenza artificiale. Informa la progettazione dei prompt di generazione varianti in Stage 3.</div>
-  </div>
-
+  <div id="papersContainer"></div>
 </div>
 
 <footer>
@@ -150,5 +104,196 @@ footer{border-top:0.5px solid var(--line);padding:32px 56px;display:flex;justify
     <a href="/tool.html">Tool</a>
   </div>
 </footer>
+
+<script>
+const PAPERS = [
+  {
+    doi: '10.1093/pan/mph024',
+    category: 'mrp',
+    tag: 'MRP · Fondamento statistico',
+    note: 'Paper fondativo del metodo MRP usato nel simulatore elettorale PoliSim. Introduce la stima bayesiana multi-livello con post-stratificazione demografica per proiezioni sub-nazionali.',
+  },
+  {
+    doi: '10.1016/j.ijforecast.2014.06.001',
+    category: 'mrp',
+    tag: 'MRP · Forecasting non-rappresentativo',
+    note: 'Riferimento per il forecasting elettorale con campioni non-probabilistici (studio Xbox). Dimostra RMSE 1.9pp su sottogruppi demografici — benchmark di riferimento per la validazione PoliSim.',
+  },
+  {
+    doi: '10.1111/j.1540-5907.2008.00360.x',
+    category: 'mrp',
+    tag: 'MRP · Opinione pubblica sub-statale',
+    note: 'Consolida il metodo MRP per la stima dell\'opinione pubblica a livello sub-statale. Base teorica per la disaggregazione a livello di collegio uninominale italiano.',
+  },
+  {
+    doi: '10.1017/s0003055418000011',
+    category: 'mrp',
+    tag: 'MRP · Validazione politica',
+    note: 'Valida MRP sulla percezione dell\'opinione pubblica da parte degli eletti. Open Access. Dimostra l\'applicabilità del metodo per comunicazione politica strategica.',
+    oa: true,
+  },
+  {
+    doi: '10.1017/s0003055423000436',
+    category: 'mrp',
+    tag: 'MRP · Calibrazione sub-nazionale',
+    note: 'Tecniche di calibrazione MRP a livello di collegio elettorale. Metodo adottato per i 139 collegi Camera uninominale italiani con dati ISTAT 2021.',
+    oa: true,
+  },
+  {
+    doi: '10.1111/j.1460-2466.1993.tb01304.x',
+    category: 'framing',
+    tag: 'Framing · Teoria fondante',
+    note: 'Teoria cardine che struttura la generazione dei messaggi attraverso quattro dimensioni: definizione del problema, diagnosi delle cause, valutazione morale, suggerimento di soluzioni. Le quattro variabili Entman sono log-field nel Message Optimizer di PoliSim.',
+    limit: null,
+  },
+  {
+    doi: '10.1080/10584600390244176',
+    category: 'framing',
+    tag: 'Framing · Applicazione strategica',
+    note: 'Estende il framework Entman alla comunicazione strategica istituzionale (cascading activation). Fondamento per l\'ottimizzazione dei messaggi su canali diversi con registro differenziato.',
+    oa: true,
+  },
+  {
+    doi: '10.1111/j.1460-2466.2008.00384.x',
+    category: 'framing',
+    tag: 'Framing · Content analysis',
+    note: 'Operazionalizzazione del content analysis dei frame. Base metodologica per lo scoring automatico delle varianti nel Message Optimizer.',
+  },
+  {
+    doi: '10.1162/coli_a_00502',
+    category: 'framing',
+    tag: 'Framing · Limiti LLM',
+    note: 'Documenta che i LLM hanno un bias di conferma sistematico nell\'auto-annotazione del framing: il modello che genera una variante tende a valutarla positivamente sulla stessa dimensione. <strong>Limitazione dichiarata nel Message Optimizer.</strong>',
+    oa: true,
+    limit: 'Limite dichiarato: self-evaluation framing bias attivo nel Message Optimizer. Il punteggio Entman è calcolato dallo stesso LLM che genera le varianti.',
+  },
+  {
+    doi: '10.1017/pan.2023.2',
+    category: 'llm',
+    tag: 'LLM · Simulazione opinione',
+    note: 'Dimostra che i LLM replicano pattern demografici di gruppo ("silicon sampling"). Riferimento per il componente Biografo di PoliSim.',
+    limit: 'Limite dichiarato: mean reversion su opinioni individuali — i modelli attenuano la varianza individuale rispetto alle distribuzioni di gruppo.',
+  },
+  {
+    doi: '10.1145/3586183.3606763',
+    category: 'llm',
+    tag: 'LLM · Agenti generativi',
+    note: 'Framework per agenti generativi come simulacri comportamentali. Riferimento architetturale per la pipeline Biografo → Attore → Critico → Aggregatore di PoliSim.',
+    oa: true,
+  },
+  {
+    doi: '10.1016/j.intmar.2013.04.002',
+    category: 'rfml',
+    tag: 'RFML · Segmentazione donatori',
+    note: 'Segmentazione donatori: dimostra che le statistiche aggregate nascondono eterogeneità comportamentale. Base teorica per il modello RFML a 5 dimensioni del modulo propensione ONG.',
+  },
+  {
+    doi: '10.1016/j.dss.2012.06.005',
+    category: 'rfml',
+    tag: 'RFML · Predictive response model',
+    note: 'Decision support per direct marketing tramite modelli predittivi di risposta. Riferimento per i pesi R/F/M/L nel calcolo del punteggio propensione.',
+  },
+];
+
+const SECTION_LABELS = {
+  mrp: 'Statistica elettorale — Multilevel Regression with Poststratification (MRP)',
+  framing: 'Teoria della comunicazione — Framing (Entman 1993)',
+  rfml: 'Segmentazione donatori — Modello RFML',
+  llm: 'Intelligenza artificiale — Simulazione di opinione',
+};
+
+let loadedPapers = [];
+let activeFilter = 'all';
+
+async function fetchMeta(doi) {
+  const url = `https://api.openalex.org/works/https://doi.org/${doi}?select=title,cited_by_count,publication_year,authorships,open_access,primary_location&mailto=info@polisim.dev`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(r.status);
+  return r.json();
+}
+
+function authorStr(authorships) {
+  const names = authorships.slice(0, 3).map(a => a.author.display_name);
+  const rest = authorships.length - 3;
+  return names.join(', ') + (rest > 0 ? ` +${rest}` : '');
+}
+
+function citFmt(n) {
+  if (n >= 1000) return (n / 1000).toFixed(1).replace('.0', '') + 'k';
+  return String(n);
+}
+
+function renderSections() {
+  const container = document.getElementById('papersContainer');
+  const filter = activeFilter;
+  const categories = filter === 'all' ? ['mrp', 'framing', 'llm', 'rfml'] : [filter];
+
+  let html = '';
+  for (const cat of categories) {
+    const papers = loadedPapers.filter(p => p.def.category === cat);
+    if (!papers.length) continue;
+    html += `<div class="cat-label">${SECTION_LABELS[cat]}<span class="cat-count">${papers.length} paper</span></div>`;
+    for (const p of papers) {
+      const isOA = p.meta.open_access?.is_oa || p.def.oa;
+      const journal = p.meta.primary_location?.source?.display_name || '';
+      html += `
+        <div class="source-card loaded" data-category="${cat}">
+          <div class="source-meta">
+            <span>${p.meta.publication_year}${journal ? ' · ' + journal : ''}</span>
+            <span class="source-cites">${citFmt(p.meta.cited_by_count)}<span>cit.</span></span>
+          </div>
+          <div class="source-tag">${p.def.tag}${isOA ? '<span class="oa-badge">Open Access</span>' : ''}</div>
+          <div class="source-title"><a href="https://doi.org/${p.def.doi}" target="_blank" rel="noopener">${p.meta.title}</a></div>
+          <div class="source-authors">${authorStr(p.meta.authorships)}</div>
+          <div class="source-note">${p.def.note}</div>
+          ${p.def.limit ? `<div class="limit-note">⚠ ${p.def.limit}</div>` : ''}
+        </div>`;
+    }
+  }
+  if (!html) html = '<p style="color:var(--light);font-size:13px">Nessun paper in questa categoria.</p>';
+  container.innerHTML = html;
+}
+
+function renderSkeletons() {
+  const container = document.getElementById('papersContainer');
+  let html = '';
+  for (const cat of ['mrp', 'framing', 'llm', 'rfml']) {
+    html += `<div class="cat-label">${SECTION_LABELS[cat]}</div>`;
+    for (let i = 0; i < 2; i++) {
+      html += `<div class="source-card loaded"><div class="skeleton" style="width:60%"></div><div class="skeleton" style="width:85%"></div><div class="skeleton" style="width:40%"></div></div>`;
+    }
+  }
+  container.innerHTML = html;
+}
+
+async function init() {
+  renderSkeletons();
+  const results = await Promise.allSettled(PAPERS.map(def => fetchMeta(def.doi)));
+  let loaded = 0, errors = 0;
+  results.forEach((res, i) => {
+    if (res.status === 'fulfilled') {
+      loadedPapers.push({ def: PAPERS[i], meta: res.value });
+      loaded++;
+    } else {
+      errors++;
+    }
+  });
+  loadedPapers.sort((a, b) => b.meta.cited_by_count - a.meta.cited_by_count);
+  renderSections();
+  document.getElementById('loadStatus').textContent =
+    errors ? `${loaded} caricati · ${errors} errori` : `${loaded} paper · aggiornato ora`;
+}
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.filter;
+    renderSections();
+  });
+});
+
+init();
+</script>
 </body>
 </html>
