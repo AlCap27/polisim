@@ -149,7 +149,7 @@ NGI Zero Commons Fund applicant (code 2026-06-238)
 
 ## Quick Start
 
-> **Note:** Full open-source release scheduled Q3 2026. Current repository structure is being prepared for public release. Installation guide will be available with the release.
+> **Note:** Repository is public under AGPL v3. Full installation guide and contribution guidelines will be published with the Q3 2026 stable release.
 
 Preview production system:
 - Web interface: [polisim.dev](https://polisim.dev)
@@ -265,9 +265,9 @@ Evaluate citizen engagement strategies on census data rather than opaque commerc
 - GDPR-compliant data anonymization tool (Data Shield)
 - Public methodology documentation with declared limitations
 - Listed in Civic Tech Field Guide directory
+- Public open-source release under AGPL v3 (June 2026)
 
 ### 🚧 In Progress (Q2 2026)
-- Open-source repository preparation
 - AI provider abstraction layer (Mistral/LLaMA/Ollama support)
 - Academic peer review coordination
 - Field validation case study publication
