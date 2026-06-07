@@ -89,9 +89,6 @@ Four methodological caveats published openly:
 **Civic Tech Directory:**  
 Listed in [Civic Tech Guide](https://civictech.guide) — Curated directory of recognized civic technology projects
 
-**Research Network:**  
-Member of [Anthropic Claude Partner Network](https://anthropic.com/partners) (June 2026)
-
 **AI Partnership:**  
 Member of [Anthropic Claude Partner Network](https://anthropic.com/partners) (June 2026)
 
@@ -234,8 +231,6 @@ Full retraining documentation will be included in the Q3 2026 release.
 **Live System:**
 - [polisim.dev](https://polisim.dev) — Public web interface
 - [polisim.dev/metodologia.html](https://polisim.dev/metodologia.html) — Methodology (EN/IT)
-
-**Research:**
 
 ---
 
