@@ -54,11 +54,16 @@ Claude / Mistral / LLaMA / Phi / Ollama — swap in minutes, zero infrastructure
 
 ### 🔬 Declared Limitations
 
-Three methodological caveats published openly:
+Four methodological caveats published openly:
 
 1. Partially expert-calibrated demographic weights (±0.3-0.5pp impact)
 2. Training set imbalanced toward Northern Italian regions
 3. Coherence scores not validated on real campaign outcomes
+4. **Self-evaluation framing bias:** the same LLM that generates message variants also scores them on Entman's four framing dimensions — a known confirmation bias in LLM self-annotation (Ziems et al., 2023, *Computational Linguistics*, doi:[10.1162/coli_a_00502](https://doi.org/10.1162/coli_a_00502))
+
+**Methodological foundations:**
+- Framing model: Entman (1993), *Journal of Communication*, doi:[10.1111/j.1460-2466.1993.tb01304.x](https://doi.org/10.1111/j.1460-2466.1993.tb01304.x) — 15,373 citations
+- Psychographic simulation: Argyle et al. (2023), *Political Analysis*, doi:[10.1017/pan.2023.2](https://doi.org/10.1017/pan.2023.2) — mean reversion limitation declared
 
 ---
 
@@ -85,8 +90,10 @@ Three methodological caveats published openly:
 Listed in [Civic Tech Guide](https://civictech.guide) — Curated directory of recognized civic technology projects
 
 **Research Network:**  
-Practitioner contributor to mySociety/SITRA TICTeC Research (April–May 2026)  
-Three technical reports submitted documenting PoC evolution and field validation
+Member of [Anthropic Claude Partner Network](https://anthropic.com/partners) (June 2026)
+
+**AI Partnership:**  
+Member of [Anthropic Claude Partner Network](https://anthropic.com/partners) (June 2026)
 
 **Data Access:**  
 Meta Content Library — Approved researcher access via CASD/IDAN (May 2026)
@@ -229,7 +236,6 @@ Full retraining documentation will be included in the Q3 2026 release.
 - [polisim.dev/metodologia.html](https://polisim.dev/metodologia.html) — Methodology (EN/IT)
 
 **Research:**
-- [mySociety/SITRA TICTeC Practitioner Reports](https://polisim.dev) (April–May 2026)
 
 ---
 
@@ -349,7 +355,6 @@ See [LICENSE](LICENSE) for full terms.
 - [Tripol](https://tripol.eu) — Political psychology and value orientations
 
 **Research Network:**
-- [mySociety & SITRA](https://www.mysociety.org) — TICTeC civic tech research
 - [Civic Tech Field Guide](https://civictech.guide) — Recognized civic technology directory
 - [NGI Zero Commons Fund](https://nlnet.nl/commonsfund/) — Applied funding
 
@@ -362,4 +367,3 @@ See [LICENSE](LICENSE) for full terms.
 *Built with: Python 3.11+ · PyMC · FastAPI · ISTAT OpenData · Eligendo OpenData · ESS · Tripol · Claude API*
 
 *Last updated: June 2026 · Version: Pre-release (open-source Q3 2026)*
-*Last updated: May 2026 · Version: Pre-release (open-source Q3 2026)*
