@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PoliSim — Validazione Beta Tester</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg:       #f7f5f0;
+      --surface:  #ffffff;
+      --border:   #ddd8cc;
+      --text:     #1a1815;
+      --muted:    #6b6459;
+      --accent:   #2a3d8f;
+      --accent-h: #1e2d6e;
+      --danger:   #b84040;
+      --success:  #2d6e4e;
+      --mono:     'DM Mono', monospace;
+      --serif:    'Cormorant Garamond', Georgia, serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { font-size: 16px; scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--serif);
+      font-weight: 400;
+      line-height: 1.65;
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--text);
+      color: #f7f5f0;
+      padding: 1.5rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .header-brand {
+      display: flex;
+      flex-direction: column;
+    }
+    .header-brand .wordmark {
+      font-size: 1.1rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-family: var(--mono);
+    }
+    .header-brand .tagline {
+      font-size: 0.75rem;
+      opacity: 0.5;
+      font-family: var(--mono);
+      letter-spacing: 0.04em;
+    }
+    .header-badge {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border: 1px solid rgba(247,245,240,0.25);
+      padding: 0.3rem 0.65rem;
+      opacity: 0.7;
+    }
+
+    /* ── LAYOUT ── */
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem 5rem;
+    }
+
+    /* ── INTRO ── */
+    .intro {
+      margin-bottom: 3rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .intro h1 {
+      font-size: 2.4rem;
+      font-weight: 300;
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+      margin-bottom: 1rem;
+    }
+    .intro h1 em {
+      font-style: italic;
+      font-weight: 300;
+    }
+    .intro p {
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 560px;
+    }
+    .intro .note {
+      margin-top: 1rem;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--muted);
+      background: #f0ece3;
+      border-left: 2px solid var(--accent);
+      padding: 0.65rem 1rem;
+      line-height: 1.5;
+    }
+    .intro .note strong {
+      color: var(--accent);
+    }
+
+    /* ── PROGRESS ── */
+    .progress-bar-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg);
+      padding: 0.6rem 0;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .progress-labels {
+      display: flex;
+      gap: 0.25rem;
+      margin-bottom: 0.4rem;
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .progress-labels span {
+      flex: 1;
+      text-align: center;
+      transition: color 0.3s;
+    }
+    .progress-labels span.active { color: var(--accent); }
+    .progress-track {
+      height: 2px;
+      background: var(--border);
+      position: relative;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      transition: width 0.4s ease;
+      width: 0%;
+    }
+
+    /* ── SECTIONS ── */
+    .form-section {
+      display: none;
+      animation: fadeIn 0.35s ease;
+    }
+    .form-section.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .section-header {
+      margin-bottom: 2rem;
+    }
+    .section-header .section-label {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.4rem;
+    }
+    .section-header h2 {
+      font-size: 1.75rem;
+      font-weight: 300;
+    }
+    .section-header .section-hint {
+      margin-top: 0.4rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    /* ── FIELD ── */
+    .field {
+      margin-bottom: 2rem;
+    }
+    .field label {
+      display: block;
+      font-size: 1.05rem;
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+      line-height: 1.4;
+    }
+    .field label .req {
+      color: var(--danger);
+      margin-left: 2px;
+      font-size: 0.8em;
+    }
+    .field .help {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+      font-style: italic;
+    }
+
+    /* inputs */
+    input[type="text"],
+    input[type="email"],
+    select,
+    textarea {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 0;
+      padding: 0.7rem 0.85rem;
+      font-family: var(--serif);
+      font-size: 1rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--accent);
+    }
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6459' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.9rem center;
+      padding-right: 2.5rem;
+      cursor: pointer;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+      line-height: 1.6;
+    }
+
+    /* Mono ID field */
+    .field.field-id input {
+      font-family: var(--mono);
+      font-size: 0.9rem;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── SCALE ── */
+    .scale-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .scale-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .scale-label-min, .scale-label-max {
+      font-size: 0.75rem;
+      color: var(--muted);
+      white-space: nowrap;
+      min-width: 5.5rem;
+      font-family: var(--mono);
+    }
+    .scale-label-max { text-align: right; }
+    .scale-options {
+      display: flex;
+      gap: 0.5rem;
+      flex: 1;
+      justify-content: space-between;
+    }
+    .scale-options label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.3rem;
+      cursor: pointer;
+      flex: 1;
+      font-weight: 400;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .scale-options input[type="radio"] { display: none; }
+    .scale-options .scale-dot {
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      transition: all 0.15s;
+      color: var(--muted);
+    }
+    .scale-options input[type="radio"]:checked + .scale-dot {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+    .scale-options label:hover .scale-dot {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* ── CHECKBOXES ── */
+    .checkbox-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .checkbox-group label {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      cursor: pointer;
+      font-weight: 400;
+      font-size: 1rem;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid transparent;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .checkbox-group label:hover {
+      background: #f0ece3;
+      border-color: var(--border);
+    }
+    .checkbox-group input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      min-width: 16px;
+      margin-top: 3px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+    .checkbox-group input[type="checkbox"]:checked ~ span {
+      color: var(--text);
+    }
+
+    /* ── NAVIGATION ── */
+    .nav-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+      gap: 1rem;
+    }
+    .btn {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.75rem 1.75rem;
+      border: 1px solid currentColor;
+      cursor: pointer;
+      background: transparent;
+      transition: all 0.2s;
+    }
+    .btn-back {
+      color: var(--muted);
+      border-color: var(--border);
+    }
+    .btn-back:hover { color: var(--text); border-color: var(--text); }
+    .btn-next {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+    .btn-next:hover { background: var(--accent); color: white; }
+    .btn-submit {
+      color: white;
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    .btn-submit:hover { background: var(--accent-h); border-color: var(--accent-h); }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .nav-step-info {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+
+    /* ── DIVIDER ── */
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2rem 0;
+    }
+
+    /* ── SUCCESS STATE ── */
+    #success-screen {
+      display: none;
+      text-align: center;
+      padding: 4rem 1rem;
+    }
+    #success-screen .check-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1.5rem;
+      display: block;
+    }
+    #success-screen h2 {
+      font-size: 2rem;
+      font-weight: 300;
+      margin-bottom: 1rem;
+    }
+    #success-screen p {
+      color: var(--muted);
+      font-size: 1rem;
+      max-width: 480px;
+      margin: 0 auto 0.75rem;
+    }
+    #success-screen .contact-info {
+      margin-top: 2rem;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+
+    /* ── ERROR STATE ── */
+    .field-error {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--danger);
+      margin-top: 0.35rem;
+      display: none;
+    }
+    .field.has-error input,
+    .field.has-error select,
+    .field.has-error textarea {
+      border-color: var(--danger);
+    }
+    .field.has-error .field-error { display: block; }
+
+    /* ── SENDING STATE ── */
+    .sending-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(247,245,240,0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    .sending-overlay.visible { display: flex; }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      padding: 2rem 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 480px) {
+      .scale-options .scale-dot { width: 30px; height: 30px; font-size: 0.75rem; }
+      .scale-label-min, .scale-label-max { min-width: 4rem; font-size: 0.65rem; }
+      .intro h1 { font-size: 1.8rem; }
+      .progress-labels span { font-size: 0.55rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-brand">
+    <span class="wordmark">PoliSim</span>
+    <span class="tagline">polisim.dev</span>
+  </div>
+  <span class="header-badge">Beta · Validazione</span>
+</header>
+
+<div class="sending-overlay" id="sending-overlay">
+  Invio in corso…
+</div>
+
+<div class="container">
+
+  <!-- INTRO -->
+  <div class="intro" id="intro-block">
+    <h1>Validazione<br><em>Beta Tester</em></h1>
+    <p>Grazie per aver testato PoliSim. Questo form richiede circa 5 minuti. Le tue risposte sono fondamentali per migliorare il sistema.</p>
+    <div class="note">
+      <strong>Hai bisogno del tuo ID Sessione</strong> — lo trovi nel file TXT scaricato al termine della sessione, nella prima riga (es. <code>SESS-20260608-abc123</code>).
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-bar-wrap" id="progress-wrap" style="display:none;">
+    <div class="progress-labels">
+      <span data-step="0">Identificazione</span>
+      <span data-step="1">Message Optimizer</span>
+      <span data-step="2">Propensione</span>
+      <span data-step="3">Complessiva</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+  </div>
+
+  <form id="validation-form" novalidate>
+
+    <!-- ── SEZIONE 0 — IDENTIFICAZIONE ── -->
+    <div class="form-section active" data-section="0">
+      <div class="section-header">
+        <div class="section-label">Sezione 01 / 04</div>
+        <h2>Identificazione</h2>
+        <div class="section-hint">Questi dati collegano il tuo feedback ai dati tecnici della sessione.</div>
+      </div>
+
+      <div class="field field-id" id="f-session-id">
+        <label>ID Sessione <span class="req">*</span></label>
+        <div class="help">Trovi questo codice nel file TXT scaricato dopo l'uso (prima riga). Es: SESS-20260608-abc123</div>
+        <input type="text" name="session_id" placeholder="SESS-XXXXXXXX-xxxxxx" required autocomplete="off" spellcheck="false">
+        <div class="field-error">Campo obbligatorio</div>
+      </div>
+
+      <div class="field" id="f-org-nome">
+        <label>Nome organizzazione <span class="req">*</span></label>
+        <input type="text" name="org_nome" required placeholder="Es. Associazione XYZ">
+        <div class="field-error">Campo obbligatorio</div>
+      </div>
+
+      <div class="field" id="f-org-tipo">
+        <label>Tipo di organizzazione <span class="req">*</span></label>
+        <select name="org_tipo" required>
+          <option value="" disabled selected>— Seleziona —</option>
+          <option>ONG / ONLUS</option>
+          <option>Associazione sportiva o di promozione sociale</option>
+          <option>Sindacato o ente civico</option>
+          <option>Fondazione</option>
+          <option>Cooperativa sociale</option>
+          <option>Altro</option>
+        </select>
+        <div class="field-error">Seleziona un'opzione</div>
+      </div>
+
+      <div class="field">
+        <label>Quale strumento hai testato?</label>
+        <div class="help">Seleziona tutti quelli applicabili</div>
+        <div class="checkbox-group">
+          <label>
+            <input type="checkbox" name="strumenti" value="Message Optimizer">
+            <span>Message Optimizer</span>
+          </label>
+          <label>
+            <input type="checkbox" name="strumenti" value="Modulo Propensione RFML">
+            <span>Modulo Propensione RFML</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="nav-row">
+        <span></span>
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <span class="nav-step-info">1 di 4</span>
+          <button type="button" class="btn btn-next" onclick="nextSection(0)">Avanti →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SEZIONE 1 — MESSAGE OPTIMIZER ── -->
+    <div class="form-section" data-section="1">
+      <div class="section-header">
+        <div class="section-label">Sezione 02 / 04</div>
+        <h2>Message Optimizer</h2>
+        <div class="section-hint">Se non hai testato il Message Optimizer, clicca "Avanti" per passare alla sezione successiva.</div>
+      </div>
+
+      <div class="field">
+        <label>Verticale usata</label>
+        <div class="help">La tipologia di campagna selezionata nel Tab 1</div>
+        <select name="mo_verticale">
+          <option value="" disabled selected>— Seleziona —</option>
+          <option>Lasciti testamentari</option>
+          <option>Raccolta fondi</option>
+          <option>Advocacy</option>
+          <option>Partnership corporate / CSR</option>
+          <option>Fidelizzazione</option>
+          <option>Volontariato / recruitment</option>
+          <option>Non ho usato il Message Optimizer</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Canale testato</label>
+        <select name="mo_canale">
+          <option value="" disabled selected>— Seleziona —</option>
+          <option>Email</option>
+          <option>Social media</option>
+          <option>Volantino</option>
+          <option>Discorso / intervento pubblico</option>
+          <option>Video</option>
+          <option>Comunicato stampa</option>
+          <option>Non ho usato il Message Optimizer</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Le varianti prodotte erano utilizzabili nella vostra comunicazione reale?</label>
+        <div class="help">1 = Per niente utilizzabili · 5 = Perfettamente utilizzabili</div>
+        <div class="scale-wrap">
+          <div class="scale-row">
+            <span class="scale-label-min">Per niente</span>
+            <div class="scale-options">
+              <label><input type="radio" name="mo_utilizz" value="1"><span class="scale-dot">1</span></label>
+              <label><input type="radio" name="mo_utilizz" value="2"><span class="scale-dot">2</span></label>
+              <label><input type="radio" name="mo_utilizz" value="3"><span class="scale-dot">3</span></label>
+              <label><input type="radio" name="mo_utilizz" value="4"><span class="scale-dot">4</span></label>
+              <label><input type="radio" name="mo_utilizz" value="5"><span class="scale-dot">5</span></label>
+            </div>
+            <span class="scale-label-max">Perfettamente</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>La funzione comunicativa raccomandata corrispondeva al vostro approccio abituale su quel profilo?</label>
+        <div class="help">Es. "educazione_causa" per un prospect, "conversazione_eredità" per un legacy prospect</div>
+        <div class="scale-wrap">
+          <div class="scale-row">
+            <span class="scale-label-min">Per niente</span>
+            <div class="scale-options">
+              <label><input type="radio" name="mo_funzione" value="1"><span class="scale-dot">1</span></label>
+              <label><input type="radio" name="mo_funzione" value="2"><span class="scale-dot">2</span></label>
+              <label><input type="radio" name="mo_funzione" value="3"><span class="scale-dot">3</span></label>
+              <label><input type="radio" name="mo_funzione" value="4"><span class="scale-dot">4</span></label>
+              <label><input type="radio" name="mo_funzione" value="5"><span class="scale-dot">5</span></label>
+            </div>
+            <span class="scale-label-max">Perfettamente</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Lo score di coerenza valoriale vi è sembrato accurato rispetto al vostro statuto?</label>
+        <div class="help">1 = Completamente fuori · 5 = Molto accurato</div>
+        <div class="scale-wrap">
+          <div class="scale-row">
+            <span class="scale-label-min">Comp. fuori</span>
+            <div class="scale-options">
+              <label><input type="radio" name="mo_coerenza" value="1"><span class="scale-dot">1</span></label>
+              <label><input type="radio" name="mo_coerenza" value="2"><span class="scale-dot">2</span></label>
+              <label><input type="radio" name="mo_coerenza" value="3"><span class="scale-dot">3</span></label>
+              <label><input type="radio" name="mo_coerenza" value="4"><span class="scale-dot">4</span></label>
+              <label><input type="radio" name="mo_coerenza" value="5"><span class="scale-dot">5</span></label>
+            </div>
+            <span class="scale-label-max">Molto accurato</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Il rischio di rigetto segnalato vi sembrava plausibile per il vostro pubblico reale?</label>
+        <div class="help">1 = Non plausibile · 5 = Molto plausibile</div>
+        <div class="scale-wrap">
+          <div class="scale-row">
+            <span class="scale-label-min">Non plausibile</span>
+            <div class="scale-options">
+              <label><input type="radio" name="mo_rigetto" value="1"><span class="scale-dot">1</span></label>
+              <label><input type="radio" name="mo_rigetto" value="2"><span class="scale-dot">2</span></label>
+              <label><input type="radio" name="mo_rigetto" value="3"><span class="scale-dot">3</span></label>
+              <label><input type="radio" name="mo_rigetto" value="4"><span class="scale-dot">4</span></label>
+              <label><input type="radio" name="mo_rigetto" value="5"><span class="scale-dot">5</span></label>
+            </div>
+            <span class="scale-label-max">Molto plausibile</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Avete effettivamente usato una delle varianti nella vostra comunicazione?</label>
+        <select name="mo_uso">
+          <option value="" disabled selected>— Seleziona —</option>
+          <option>Sì — usata quasi invariata</option>
+          <option>Sì — rielaborata e adattata</option>
+          <option>No — non ancora</option>
+          <option>No — non la ritenevamo utilizzabile</option>
+          <option>Non ho usato il Message Optimizer</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Cosa non ha funzionato o cosa mancava nel Message Optimizer?</label>
+        <div class="help">Qualsiasi osservazione è utile — anche "non ho capito come funziona X"</div>
+        <textarea name="mo_note" rows="4" placeholder="Osservazioni libere…"></textarea>
+      </div>
+
+      <div class="nav-row">
+        <button type="button" class="btn btn-back" onclick="prevSection(1)">← Indietro</button>
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <span class="nav-step-info">2 di 4</span>
+          <button type="button" class="btn btn-next" onclick="nextSection(1)">Avanti →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SEZIONE 2 — MODULO PROPENSIONE ── -->
+    <div class="form-section" data-section="2">
+      <div class="section-header">
+        <div class="section-label">Sezione 03 / 04</div>
+        <h2>Modulo Propensione RFML</h2>
+        <div class="section-hint">Se non hai testato il Modulo Propensione, clicca "Avanti" per passare alla sezione successiva.</div>
+      </div>
+
+      <div class="field">
+        <label>Avete caricato dati reali o sintetici?</label>
+        <select name="rfml_dati">
+          <option value="" disabled selected>— Seleziona —</option>
+          <option>Dati reali della nostra organizzazione (anonimizzati)</option>
+          <option>Dataset sintetico fornito da PoliSim</option>
+          <option>Non ho usato il Modulo Propensione</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>I top 20% per score lasciti corrispondono ai contatti che nella vostra esperienza sono i più probabili legacy prospect?</label>
+        <div class="help">1 = Per niente corrispondenti · 5 = Perfettamente corrispondenti</div>
+        <div class="scale-wrap">
+          <div class="scale-row">
+            <span class="scale-label-min">Per niente</span>
+            <div class="scale-options">
+              <label><input type="radio" name="rfml_top20" value="1"><span class="scale-dot">1</span></label>
+              <label><input type="radio" name="rfml_top20" value="2"><span class="scale-dot">2</span></label>
+              <label><input type="radio" name="rfml_top20" value="3"><span class="scale-dot">3</span></label>
+              <label><input type="radio" name="rfml_top20" value="4"><span class="scale-dot">4</span></label>
+              <label><input type="radio" name="rfml_top20" value="5"><span class="scale-dot">5</span></label>
+            </div>
+            <span class="scale-label-max">Perfettamente</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Gli score degli altri obiettivi vi sembrano plausibili rispetto alla vostra conoscenza del database?</label>
+        <div class="scale-wrap">
+          <div class="scale-row">
+            <span class="scale-label-min">Per niente</span>
+            <div class="scale-options">
+              <label><input type="radio" name="rfml_altri" value="1"><span class="scale-dot">1</span></label>
+              <label><input type="radio" name="rfml_altri" value="2"><span class="scale-dot">2</span></label>
+              <label><input type="radio" name="rfml_altri" value="3"><span class="scale-dot">3</span></label>
+              <label><input type="radio" name="rfml_altri" value="4"><span class="scale-dot">4</span></label>
+              <label><input type="radio" name="rfml_altri" value="5"><span class="scale-dot">5</span></label>
+            </div>
+            <span class="scale-label-max">Molto plausibili</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>I moltiplicatori territoriali (es. Campania −6%, Toscana +4% sul lascito) vi sembrano coerenti con la vostra esperienza sul campo?</label>
+        <div class="scale-wrap">
+          <div class="scale-row">
+            <span class="scale-label-min">Per niente</span>
+            <div class="scale-options">
+              <label><input type="radio" name="rfml_territ" value="1"><span class="scale-dot">1</span></label>
+              <label><input type="radio" name="rfml_territ" value="2"><span class="scale-dot">2</span></label>
+              <label><input type="radio" name="rfml_territ" value="3"><span class="scale-dot">3</span></label>
+              <label><input type="radio" name="rfml_territ" value="4"><span class="scale-dot">4</span></label>
+              <label><input type="radio" name="rfml_territ" value="5"><span class="scale-dot">5</span></label>
+            </div>
+            <span class="scale-label-max">Molto coerenti</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Quali obiettivi tra i 5 sono rilevanti per la vostra organizzazione?</label>
+        <div class="help">Seleziona tutti quelli che si applicano al vostro contesto operativo</div>
+        <div class="checkbox-group">
+          <label><input type="checkbox" name="rfml_obiettivi" value="Lasciti testamentari"><span>Lasciti testamentari</span></label>
+          <label><input type="checkbox" name="rfml_obiettivi" value="Upgrade importo / quota"><span>Upgrade importo / quota</span></label>
+          <label><input type="checkbox" name="rfml_obiettivi" value="Sostegno continuativo / tesseramento ricorrente"><span>Sostegno continuativo / tesseramento ricorrente</span></label>
+          <label><input type="checkbox" name="rfml_obiettivi" value="Riattivazione contatti inattivi"><span>Riattivazione contatti inattivi</span></label>
+          <label><input type="checkbox" name="rfml_obiettivi" value="One-off emergenza / campagne straordinarie"><span>One-off emergenza / campagne straordinarie</span></label>
+          <label><input type="checkbox" name="rfml_obiettivi" value="Nessuno di questi è rilevante per noi"><span>Nessuno di questi è rilevante per noi</span></label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Cosa non ha funzionato o cosa mancava nel Modulo Propensione?</label>
+        <div class="help">Es. campi mancanti nel mapping CRM, obiettivi non adatti al vostro contesto, difficoltà nel capire i risultati</div>
+        <textarea name="rfml_note" rows="4" placeholder="Osservazioni libere…"></textarea>
+      </div>
+
+      <div class="nav-row">
+        <button type="button" class="btn btn-back" onclick="prevSection(2)">← Indietro</button>
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <span class="nav-step-info">3 di 4</span>
+          <button type="button" class="btn btn-next" onclick="nextSection(2)">Avanti →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SEZIONE 3 — VALUTAZIONE COMPLESSIVA ── -->
+    <div class="form-section" data-section="3">
+      <div class="section-header">
+        <div class="section-label">Sezione 04 / 04</div>
+        <h2>Valutazione complessiva</h2>
+        <div class="section-hint">Ultime domande — le più importanti per noi.</div>
+      </div>
+
+      <div class="field" id="f-usabilita">
+        <label>Quanto è stato difficile capire come usare il sistema? <span class="req">*</span></label>
+        <div class="scale-wrap">
+          <div class="scale-row">
+            <span class="scale-label-min">Molto difficile</span>
+            <div class="scale-options">
+              <label><input type="radio" name="gen_usabilita" value="1" required><span class="scale-dot">1</span></label>
+              <label><input type="radio" name="gen_usabilita" value="2"><span class="scale-dot">2</span></label>
+              <label><input type="radio" name="gen_usabilita" value="3"><span class="scale-dot">3</span></label>
+              <label><input type="radio" name="gen_usabilita" value="4"><span class="scale-dot">4</span></label>
+              <label><input type="radio" name="gen_usabilita" value="5"><span class="scale-dot">5</span></label>
+            </div>
+            <span class="scale-label-max">Molto facile</span>
+          </div>
+        </div>
+        <div class="field-error">Seleziona una risposta</div>
+      </div>
+
+      <div class="field" id="f-adozione">
+        <label>Lo usereste nella vostra comunicazione ordinaria? <span class="req">*</span></label>
+        <select name="gen_adozione" required>
+          <option value="" disabled selected>— Seleziona —</option>
+          <option>Sì, sicuramente</option>
+          <option>Probabilmente sì</option>
+          <option>Probabilmente no</option>
+          <option>No</option>
+          <option>Non saprei — dipende da come evolve</option>
+        </select>
+        <div class="field-error">Seleziona un'opzione</div>
+      </div>
+
+      <div class="field" id="f-raccomandazione">
+        <label>Lo consigliereste a un'organizzazione simile alla vostra? <span class="req">*</span></label>
+        <select name="gen_raccomandazione" required>
+          <option value="" disabled selected>— Seleziona —</option>
+          <option>Sì</option>
+          <option>Probabilmente sì</option>
+          <option>Probabilmente no</option>
+          <option>No</option>
+        </select>
+        <div class="field-error">Seleziona un'opzione</div>
+      </div>
+
+      <div class="field" id="f-aspettative">
+        <label>Quanto il sistema ha rispettato le aspettative che avevi leggendo il foglio istruzioni? <span class="req">*</span></label>
+        <div class="scale-wrap">
+          <div class="scale-row">
+            <span class="scale-label-min">Molto al di sotto</span>
+            <div class="scale-options">
+              <label><input type="radio" name="gen_aspettative" value="1" required><span class="scale-dot">1</span></label>
+              <label><input type="radio" name="gen_aspettative" value="2"><span class="scale-dot">2</span></label>
+              <label><input type="radio" name="gen_aspettative" value="3"><span class="scale-dot">3</span></label>
+              <label><input type="radio" name="gen_aspettative" value="4"><span class="scale-dot">4</span></label>
+              <label><input type="radio" name="gen_aspettative" value="5"><span class="scale-dot">5</span></label>
+            </div>
+            <span class="scale-label-max">Molto al di sopra</span>
+          </div>
+        </div>
+        <div class="field-error">Seleziona una risposta</div>
+      </div>
+
+      <div class="field" id="f-followup">
+        <label>Sareste disponibili a un follow-up a 30 giorni per condividere l'esito reale della campagna? <span class="req">*</span></label>
+        <div class="help">Vi contatteremo via email con un form breve (5 minuti). I dati sono fondamentali per la validazione scientifica del sistema.</div>
+        <select name="gen_followup" required>
+          <option value="" disabled selected>— Seleziona —</option>
+          <option>Sì, con piacere</option>
+          <option>Sì, se non richiede troppo tempo</option>
+          <option>Preferirei di no</option>
+          <option>Non lo so ancora</option>
+        </select>
+        <div class="field-error">Seleziona un'opzione</div>
+      </div>
+
+      <hr>
+
+      <div class="field">
+        <label>Note libere</label>
+        <div class="help">Qualsiasi cosa voglia dirci — errori, aspettative, idee, critiche. Tutto è utile.</div>
+        <textarea name="gen_note" rows="5" placeholder="Osservazioni, critiche, idee…"></textarea>
+      </div>
+
+      <div class="nav-row">
+        <button type="button" class="btn btn-back" onclick="prevSection(3)">← Indietro</button>
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <span class="nav-step-info">4 di 4</span>
+          <button type="submit" class="btn btn-submit" id="submit-btn">Invia feedback</button>
+        </div>
+      </div>
+    </div>
+
+  </form>
+
+  <!-- SUCCESS -->
+  <div id="success-screen">
+    <span class="check-icon">✓</span>
+    <h2>Grazie per il feedback.</h2>
+    <p>È esattamente quello di cui abbiamo bisogno.</p>
+    <p>Se hai scelto il follow-up a 30 giorni ti contatteremo via email con un form breve.</p>
+    <div class="contact-info">
+      info@polisim.dev · Alessandro 392 3600383
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  PoliSim · polisim.dev · AGPL v3 · Alessandro Capetola
+</footer>
+
+<script>
+  const ENDPOINT = 'https://api2.polisim.dev/api/feedback';
+
+  let currentSection = 0;
+  const totalSections = 4;
+
+  // ── Show/hide intro and progress on first advance ──
+  function updateProgress(section) {
+    document.getElementById('intro-block').style.display = section === 0 ? '' : 'none';
+    const pw = document.getElementById('progress-wrap');
+    pw.style.display = section > 0 ? '' : 'none';
+
+    // update labels
+    document.querySelectorAll('.progress-labels span').forEach(el => {
+      el.classList.toggle('active', parseInt(el.dataset.step) === section - 1);
+    });
+
+    const fill = ((section) / totalSections) * 100;
+    document.getElementById('progress-fill').style.width = fill + '%';
+  }
+
+  function showSection(n) {
+    document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+    document.querySelector(`.form-section[data-section="${n}"]`).classList.add('active');
+    currentSection = n;
+    updateProgress(n);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function nextSection(from) {
+    if (from === 0 && !validateSection0()) return;
+    if (from === 3 && !validateSection3()) return;
+    if (from < totalSections - 1) showSection(from + 1);
+  }
+
+  function prevSection(from) {
+    if (from > 0) showSection(from - 1);
+  }
+
+  // ── Validate section 0 ──
+  function validateSection0() {
+    let ok = true;
+
+    const sessionId = document.querySelector('[name="session_id"]');
+    const fSessionId = document.getElementById('f-session-id');
+    if (!sessionId.value.trim()) {
+      fSessionId.classList.add('has-error'); ok = false;
+    } else { fSessionId.classList.remove('has-error'); }
+
+    const orgNome = document.querySelector('[name="org_nome"]');
+    const fOrgNome = document.getElementById('f-org-nome');
+    if (!orgNome.value.trim()) {
+      fOrgNome.classList.add('has-error'); ok = false;
+    } else { fOrgNome.classList.remove('has-error'); }
+
+    const orgTipo = document.querySelector('[name="org_tipo"]');
+    const fOrgTipo = document.getElementById('f-org-tipo');
+    if (!orgTipo.value) {
+      fOrgTipo.classList.add('has-error'); ok = false;
+    } else { fOrgTipo.classList.remove('has-error'); }
+
+    return ok;
+  }
+
+  // ── Validate section 3 ──
+  function validateSection3() {
+    let ok = true;
+
+    const usabilita = document.querySelector('[name="gen_usabilita"]:checked');
+    const fUsabilita = document.getElementById('f-usabilita');
+    if (!usabilita) { fUsabilita.classList.add('has-error'); ok = false; }
+    else { fUsabilita.classList.remove('has-error'); }
+
+    const adozione = document.querySelector('[name="gen_adozione"]');
+    const fAdozione = document.getElementById('f-adozione');
+    if (!adozione.value) { fAdozione.classList.add('has-error'); ok = false; }
+    else { fAdozione.classList.remove('has-error'); }
+
+    const racc = document.querySelector('[name="gen_raccomandazione"]');
+    const fRacc = document.getElementById('f-raccomandazione');
+    if (!racc.value) { fRacc.classList.add('has-error'); ok = false; }
+    else { fRacc.classList.remove('has-error'); }
+
+    const aspett = document.querySelector('[name="gen_aspettative"]:checked');
+    const fAspett = document.getElementById('f-aspettative');
+    if (!aspett) { fAspett.classList.add('has-error'); ok = false; }
+    else { fAspett.classList.remove('has-error'); }
+
+    const followup = document.querySelector('[name="gen_followup"]');
+    const fFollowup = document.getElementById('f-followup');
+    if (!followup.value) { fFollowup.classList.add('has-error'); ok = false; }
+    else { fFollowup.classList.remove('has-error'); }
+
+    return ok;
+  }
+
+  // ── Collect form data ──
+  function collectData() {
+    const fd = new FormData(document.getElementById('validation-form'));
+    const data = {};
+
+    // single values
+    ['session_id','org_nome','org_tipo',
+     'mo_verticale','mo_canale','mo_utilizz','mo_funzione','mo_coerenza','mo_rigetto','mo_uso','mo_note',
+     'rfml_dati','rfml_top20','rfml_altri','rfml_territ','rfml_note',
+     'gen_usabilita','gen_adozione','gen_raccomandazione','gen_aspettative','gen_followup','gen_note'
+    ].forEach(k => { data[k] = fd.get(k) || null; });
+
+    // multi-value checkboxes
+    data.strumenti = fd.getAll('strumenti');
+    data.rfml_obiettivi = fd.getAll('rfml_obiettivi');
+
+    data.timestamp = new Date().toISOString();
+    return data;
+  }
+
+  // ── Submit ──
+  document.getElementById('validation-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    if (!validateSection3()) return;
+
+    const btn = document.getElementById('submit-btn');
+    const overlay = document.getElementById('sending-overlay');
+    btn.disabled = true;
+    overlay.classList.add('visible');
+
+    const payload = collectData();
+
+    try {
+      const res = await fetch(ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+
+      // success
+      document.getElementById('validation-form').style.display = 'none';
+      document.getElementById('progress-wrap').style.display = 'none';
+      document.getElementById('success-screen').style.display = 'block';
+      overlay.classList.remove('visible');
+
+    } catch (err) {
+      overlay.classList.remove('visible');
+      btn.disabled = false;
+      alert('Errore nell\'invio. Riprova o scrivi a info@polisim.dev.\n\n' + err.message);
+    }
+  });
+
+  // ── Init ──
+  showSection(0);
+</script>
+</body>
+</html>
