@@ -761,6 +761,11 @@ function downloadAnalisi() {
   const rec = data.raccomandazione || '';
   const avv = data.avvertenza || '';
   const ts = new Date().toLocaleDateString('it-IT');
+  // Intestazione arricchita (TODO 05/2026): etichette leggibili dai select
+  const _lbl = id => document.getElementById(id)?.selectedOptions?.[0]?.textContent?.trim() || 'n.d.';
+  const tipoCampagna = _lbl('f-tipo-campagna');
+  const engagementLbl = _lbl('f-engagement');
+  const canaleLbl = _lbl('f-canale');
   const NL = String.fromCharCode(10);
   const SEP = '='.repeat(50);
   const sep = '-'.repeat(30);
@@ -775,6 +780,9 @@ function downloadAnalisi() {
     'ID Sessione: ' + (window._lastSessionId || 'n.d.'),
     'Organizzazione: ' + nome,
     'Messaggio testato: ' + messaggio,
+    'Verticale: ' + tipoCampagna,
+    'Canale: ' + canaleLbl,
+    'Profilo relazionale: ' + engagementLbl,
     '',
     'RISULTATI SINTETICI',
     sep,
@@ -786,6 +794,12 @@ function downloadAnalisi() {
   
   if (data.alert) lines.push('ALERT: ' + data.alert, '');
   if (data.motivazione) lines.push('VALUTAZIONE: ' + data.motivazione, '');
+  
+  // Cognitive Science Layer — messaggio originale (hook v2, 10/06/2026)
+  const cm = data.cognitive_messaggio;
+  if (cm && cm.raccomandazione) {
+    lines.push('PROFILO COGNITIVO DEL MESSAGGIO ORIGINALE', sep, cm.raccomandazione, '');
+  }
   
   lines.push('ANALISI ENTMAN — 4 DIMENSIONI', sep);
   ['problema','causa','valutazione','soluzione'].forEach((k,i) => {
@@ -804,6 +818,9 @@ function downloadAnalisi() {
     if (v.note) lines.push(v.note);
     if (v.metriche_dettaglio) {
       Object.entries(v.metriche_dettaglio).forEach(([m,val]) => lines.push('  ' + m.split('_').join(' ') + ': ' + val + '/10'));
+    }
+    if (v.cognitive && v.cognitive.raccomandazione) {
+      lines.push('Lettura cognitiva: ' + v.cognitive.raccomandazione);
     }
     lines.push('');
   });
@@ -939,6 +956,9 @@ function renderResults(d) {
           '<span class="variante-pct">' + labelScore + ' ' + Math.round((v.score||0)*100) + '%</span></div>' +
           '<div class="variante-testo">' + v.testo + '</div>' +
           (v.note ? '<div class="variante-note">' + v.note + '</div>' : '') +
+          (v.cognitive && v.cognitive.raccomandazione ? '<div style="margin-top:10px;padding-top:10px;border-top:0.5px dotted var(--border)">' +
+            '<span style="font-family:var(--font-mono);font-size:8px;letter-spacing:2px;color:var(--light);text-transform:uppercase">Lettura cognitiva</span>' +
+            '<div style="font-size:12px;color:var(--mid);line-height:1.55;margin-top:4px">' + v.cognitive.raccomandazione + '</div></div>' : '') +
           (metriche.length ? '<div style="margin-top:14px;padding-top:12px;border-top:0.5px solid var(--border)">' + scoreBar + '</div>' : '') +
           '</div>';
       }).join('')
@@ -950,9 +970,11 @@ function renderResults(d) {
   if (recBox) {
     const rec = d.raccomandazione || '';
     const avv = d.avvertenza || '';
-    recBox.innerHTML = (rec || avv) ? (
+    const cogMsg = (d.cognitive_messaggio && d.cognitive_messaggio.raccomandazione) || '';
+    recBox.innerHTML = (rec || avv || cogMsg) ? (
       (rec ? '<div class="alert green"><div class="alert-title green">Raccomandazione</div><div class="alert-text">' + rec + '</div></div>' : '') +
-      (avv ? '<div class="alert amber"><div class="alert-title amber">⚠ Cosa evitare con questo segmento</div><div class="alert-text">' + avv + '</div></div>' : '')
+      (avv ? '<div class="alert amber"><div class="alert-title amber">⚠ Cosa evitare con questo segmento</div><div class="alert-text">' + avv + '</div></div>' : '') +
+      (cogMsg ? '<div class="alert"><div class="alert-title">Lettura cognitiva del messaggio</div><div class="alert-text">' + cogMsg + '</div></div>' : '')
     ) : '';
   }
 
