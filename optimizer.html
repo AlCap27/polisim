@@ -731,7 +731,9 @@ async function analizza() {
         messaggio,
         target: segmentoDesc,
         contesto: contesto,
-        tipo: tipoCorrente,
+        // FIX 10/06: il select è la fonte di verità — tipoCorrente può essere
+        // stato resettato da setTipo() (card profilo) dopo la scelta nel menu
+        tipo: (tipoCorrente === 'sindacato' ? 'sindacato' : (document.getElementById('f-tipo-campagna')?.value || tipoCorrente)),
         canale: canale,
         engagement_level: engagement_level,
       })
@@ -804,8 +806,9 @@ function downloadAnalisi() {
   lines.push('ANALISI ENTMAN — 4 DIMENSIONI', sep);
   ['problema','causa','valutazione','soluzione'].forEach((k,i) => {
     const v = entman[k] || {};
-    lines.push((i+1) + '. ' + (dimLabels[k]||k).toUpperCase() + ' ' + (forzaStars[v.forza||'neutro']||'★★☆'));
-    lines.push('Forza: ' + (v.forza||'—'));
+    const _hasDim = v.analisi && v.analisi !== '—';
+    lines.push((i+1) + '. ' + (dimLabels[k]||k).toUpperCase() + ' ' + (_hasDim ? (forzaStars[v.forza||'neutro']||'★★☆') : '—'));
+    lines.push('Forza: ' + (_hasDim ? (v.forza||'—') : '—'));
     lines.push('Analisi: ' + (v.analisi||'—'));
     lines.push('Suggerimento: ' + (v.suggerimento||'—'));
     lines.push('');
@@ -919,7 +922,9 @@ function renderResults(d) {
     const fCls = forza === 'forte' ? 'forza-forte' : forza === 'debole' ? 'forza-debole' : 'forza-neutro';
     const sCls = forzaClass(forza);
     // Score per frame: forte=80-95, neutro=50-65, debole=20-40
-    const frameScore = forza === 'forte' ? '★★★' : forza === 'debole' ? '★☆☆' : '★★☆';
+    // FIX 10/06: stelle '—' quando l'analisi manca (troncamento LLM) — il default neutro mascherava il dato assente
+    const hasDim = v.analisi && v.analisi !== '—';
+    const frameScore = !hasDim ? '—' : forza === 'forte' ? '★★★' : forza === 'debole' ? '★☆☆' : '★★☆';
     return `<div class="entman-card">
       <div class="entman-header">
         <span class="entman-num">${dim.n}</span>
