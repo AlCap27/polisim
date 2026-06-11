@@ -31,3 +31,5 @@ data/*.pkl
 # Models (don't commit trained models)
 models/*.pkl
 models/*.h5
+
+pulizia_repo.sh
