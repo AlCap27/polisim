@@ -516,6 +516,13 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-sans);font-siz
         </div>
       </div>
 
+      <!-- Dati del progetto (patch 11/06): fonte fattuale per varianti ancorate -->
+      <div style="margin-top:18px">
+        <label class="field-label">Dati del progetto <span style="text-transform:none;letter-spacing:0;color:var(--light)">&mdash; opzionale: numeri, fatti e date che le varianti possono usare</span></label>
+        <textarea class="field-input" id="f-dati-progetto" rows="4" style="resize:vertical;min-height:76px;font-family:inherit"
+                  placeholder="es. 670 mila bambini senza scuola · 19.000 scuole distrutte · operiamo nel Paese dal 1979 — ogni numero presente nelle varianti verrà verificato automaticamente contro questa fonte"></textarea>
+      </div>
+
       <div class="cta-row">
         <button class="btn-primary" id="btn-analizza" onclick="analizza()">Analizza messaggio →</button>
         <div id="loading" style="display:none;flex-direction:column;gap:12px;width:100%;margin-top:16px;padding:24px 28px;background:var(--black);border:none">
@@ -699,6 +706,7 @@ async function analizza() {
   const libero = document.getElementById('f-segmento-libero').value.trim();
   const canale = document.getElementById('f-canale').value;
   const contesto = document.getElementById('f-contesto').value.trim();
+  const datiProgetto = document.getElementById('f-dati-progetto')?.value.trim() || '';
   const engagement_level = document.getElementById('f-engagement') ? document.getElementById('f-engagement').value : '';
 
   // Dati ISTAT del collegio selezionato
@@ -736,6 +744,7 @@ async function analizza() {
         tipo: (tipoCorrente === 'sindacato' ? 'sindacato' : (document.getElementById('f-tipo-campagna')?.value || tipoCorrente)),
         canale: canale,
         engagement_level: engagement_level,
+        dati_progetto: datiProgetto,
       })
     });
     if (!res.ok) throw new Error('Errore ' + res.status);
@@ -824,6 +833,9 @@ function downloadAnalisi() {
     }
     if (v.cognitive && v.cognitive.raccomandazione) {
       lines.push('Lettura cognitiva: ' + v.cognitive.raccomandazione);
+    }
+    if (v.ancoraggio_nota) {
+      lines.push('Ancoraggio dati: ' + v.ancoraggio_nota);
     }
     lines.push('');
   });
@@ -964,6 +976,9 @@ function renderResults(d) {
           (v.cognitive && v.cognitive.raccomandazione ? '<div style="margin-top:10px;padding-top:10px;border-top:0.5px dotted var(--border)">' +
             '<span style="font-family:var(--font-mono);font-size:8px;letter-spacing:2px;color:var(--light);text-transform:uppercase">Lettura cognitiva</span>' +
             '<div style="font-size:12px;color:var(--mid);line-height:1.55;margin-top:4px">' + v.cognitive.raccomandazione + '</div></div>' : '') +
+          (v.ancoraggio && v.ancoraggio.applicabile ? (v.ancoraggio.ancorato
+            ? '<div style="margin-top:8px;font-family:var(--font-mono);font-size:9px;letter-spacing:1px;color:#15803d">\u2713 DATI VERIFICATI &mdash; tutti i numeri provengono dalla fonte</div>'
+            : '<div style="margin-top:8px;font-family:var(--font-mono);font-size:9px;letter-spacing:1px;color:#b45309">\u26a0 ANCORAGGIO NON VERIFICATO &mdash; numeri assenti dalla fonte: ' + (v.ancoraggio.numeri_non_tracciati||[]).join(', ') + ' &mdash; verifica prima di pubblicare</div>') : '') +
           (metriche.length ? '<div style="margin-top:14px;padding-top:12px;border-top:0.5px solid var(--border)">' + scoreBar + '</div>' : '') +
           '</div>';
       }).join('')
