@@ -3,14 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Metodologia PoliSim — Dati ITANES, ESS, TRIPOL, ISTAT, Eligendo</title>
-<meta property="og:title" content="Metodologia PoliSim — MRP, ITANES, ISTAT, Eligendo">
-<meta property="og:description" content="Metodologia PoliSim: MRP bayesiano RMSE 4.3pp. ITANES 2022 N=4.696, ESS Round 11 N=2.865, TRIPOL IT N=1.231, ISTAT 2021, Eligendo OpenData.">
-<meta name="description" content="Metodologia PoliSim: flusso multistep Step1→Step2, MRP bayesiano (PyMC, RMSE 4.3pp), valutazione coerenza messaggio-territorio via Claude, override euristico. Dati: ISTAT 2021, Eligendo, PolitPro live.">
-<link rel="canonical" href="https://polisim.dev/metodologia.html">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-
+<title>Metodologia — PoliSim | Open Civic Intelligence</title>
+<meta name="description" content="Metodologia completa di PoliSim: MRP bayesiano su 71 milioni di osservazioni ISTAT, backtest out-of-sample MAE 4.01pp, limitazioni dichiarate. White paper tecnico scaricabile.">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -21,538 +15,376 @@
       "name": "Qual è l'accuratezza del modello MRP di PoliSim?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Il modello MRP con effetti misti per regione (statsmodels MixedLM) raggiunge RMSE=4.44pp e R²=0.782 su 142 collegi Camera (escluso Trentino/SVP). Variabile più predittiva: pct_laureati (p=0.000, coef=-7.62). Effetti casuali per 18 regioni italiane stimati empiricamente dai dati 2022."
+        "text": "Il backtest su 14 collegi Camera del Lazio (politiche 2022) restituisce MAE 4,01 punti percentuali, RMSE 4,64 pp e winner accuracy 14/14. Out-of-sample su Lombardia 2023: RMSE 4,28 pp su 23 collegi. Il modello MRP supera la baseline OLS su tutti i dataset di validazione disponibili."
       }
     },
     {
       "@type": "Question",
-      "name": "Cosa sono i segmenti ITANES di PoliSim?",
+      "name": "Quali dati usa PoliSim?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "I 5 segmenti PoliSim (progressisti_attivisti, centrodestra, qualunquisti, delusi_m5s, giovani_astensionisti) sono derivati empiricamente dal dataset ITANES 2022, panel elettorale italiano con N=4.696 rispondenti e 326 variabili, DOI 10.13130/RD_UNIMI/JV77WR."
+        "text": "Esclusivamente dati pubblici istituzionali: Censimento ISTAT 2021 (71 milioni di osservazioni), risultati elettorali ufficiali Eligendo (Ministero dell'Interno), European Social Survey Round 11 (N=2.865), TRIPOL IT (N=1.231). Nessun dato proprietario, nessun dato personale."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Quali sono le limitazioni dichiarate di PoliSim?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Copertura CI90 al 39,2% invece del 90% nominale (causa: dataset di addestramento limitato), bias sistematico CDX di −3,33 pp, assenza di dati sondaggistici proprietari (modello ecologico), pesi del Message Optimizer expert-calibrated non ancora validati su A/B test. Tutte le limitazioni sono documentate nel white paper."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "PoliSim è open source?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Sì. Il codice è pubblico su GitHub (AlCap27/polisim) con licenza AGPL v3. Il layer AI è sostituibile by design: qualsiasi LLM instruction-following può sostituire il provider corrente."
       }
     }
   ]
 }
 </script>
-
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --bg: #faf9f7;
-  --black: #0d0d0d;
-  --gray: #3a3a3a;
-  --gray-mid: #666;
-  --gray-light: #999;
-  --border: #e0ddd8;
-  --blue: #1e3a5f;
-  --blue-light: #4a7eb5;
-  --font-serif: 'Cormorant Garamond', Georgia, serif;
-  --font-sans: 'DM Sans', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
-}
-html { scroll-behavior: smooth; }
-body { background: var(--bg); color: var(--black); font-family: var(--font-sans); overflow-x: hidden; line-height: 1.6; }
+  :root {
+    --bg: #faf9f7;
+    --text: #1a1a1a;
+    --blue: #1e3a5f;
+    --blue-light: #2e5fa3;
+    --gray: #6b7280;
+    --border: #e5e1da;
+    --amber-bg: #fef3c7;
+    --amber-text: #92400e;
+    --card: #ffffff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 17px;
+  }
+  .serif-display { font-family: 'Cormorant Garamond', Georgia, serif; }
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 1.2rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg);
+  }
+  header a.logo {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--blue);
+    text-decoration: none;
+    letter-spacing: 0.02em;
+  }
+  nav a {
+    color: var(--gray);
+    text-decoration: none;
+    margin-left: 1.5rem;
+    font-family: -apple-system, system-ui, sans-serif;
+    font-size: 0.85rem;
+  }
+  nav a:hover { color: var(--blue); }
+  main { max-width: 880px; margin: 0 auto; padding: 3rem 2rem 5rem; }
 
-.nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(250,249,247,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
-.nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 40px; height: 60px; display: flex; align-items: center; justify-content: space-between; }
-.nav-logo { font-family: var(--font-mono); font-size: 13px; letter-spacing: 3px; font-weight: 500; color: var(--black); text-decoration: none; }
-.nav-links { display: flex; gap: 28px; align-items: center; }
-.nav-links a { font-size: 12px; letter-spacing: 1px; color: var(--gray-mid); text-decoration: none; text-transform: uppercase; transition: color .2s; }
-.nav-links a:hover { color: var(--black); }
-.nav-btn { font-family: var(--font-mono); font-size: 11px; letter-spacing: 2px; color: var(--bg); background: var(--black); padding: 8px 20px; text-decoration: none; text-transform: uppercase; }
+  h1 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 2.6rem;
+    font-weight: 600;
+    color: var(--blue);
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+  }
+  .subtitle {
+    font-size: 1.15rem;
+    color: var(--gray);
+    font-style: italic;
+    margin-bottom: 2.5rem;
+  }
+  h2 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.7rem;
+    font-weight: 600;
+    color: var(--blue);
+    margin: 3rem 0 1rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 2px solid var(--border);
+  }
+  p { margin-bottom: 1.1rem; }
+  strong { color: var(--blue); }
 
-.page-header { max-width: 1200px; margin: 0 auto; padding: 100px 40px 48px; }
-.page-kicker { font-family: var(--font-mono); font-size: 10px; letter-spacing: 4px; color: var(--blue-light); text-transform: uppercase; margin-bottom: 16px; }
-.page-title { font-family: var(--font-serif); font-size: clamp(40px, 5vw, 72px); font-weight: 300; line-height: 1.05; color: var(--black); margin-bottom: 20px; }
-.page-intro { font-size: 16px; color: var(--gray); max-width: 640px; line-height: 1.7; }
+  .download-box {
+    background: var(--blue);
+    color: #fff;
+    border-radius: 8px;
+    padding: 2rem;
+    margin: 2.5rem 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+  }
+  .download-box h3 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+  }
+  .download-box p { color: #cdd9ea; font-size: 0.95rem; margin: 0; }
+  .download-box a.btn {
+    background: #fff;
+    color: var(--blue);
+    padding: 0.8rem 1.8rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-family: -apple-system, system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    white-space: nowrap;
+  }
+  .download-box a.btn:hover { background: #e8eef7; }
 
-.content { max-width: 1200px; margin: 0 auto; padding: 0 40px 80px; }
-hr.div { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0 2rem;
+  }
+  .metric-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.3rem 1.1rem;
+    text-align: center;
+  }
+  .metric-value {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 2.1rem;
+    font-weight: 700;
+    color: var(--blue);
+    line-height: 1.1;
+  }
+  .metric-label {
+    font-family: -apple-system, system-ui, sans-serif;
+    font-size: 0.78rem;
+    color: var(--gray);
+    margin-top: 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .metric-card.warn { border-color: #f0c060; background: #fffbf0; }
+  .metric-card.warn .metric-value { color: var(--amber-text); }
 
-.block-title { font-family: var(--font-serif); font-size: 28px; font-weight: 400; color: var(--black); margin-bottom: 10px; }
-.block-sub { font-size: 14px; color: var(--gray); line-height: 1.7; max-width: 680px; margin-bottom: 24px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0 2rem;
+    font-size: 0.92rem;
+    font-family: -apple-system, system-ui, sans-serif;
+  }
+  th {
+    background: var(--blue);
+    color: #fff;
+    text-align: left;
+    padding: 0.7rem 0.9rem;
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+  td {
+    padding: 0.65rem 0.9rem;
+    border-bottom: 1px solid var(--border);
+  }
+  tr:nth-child(even) td { background: #f4f2ee; }
+  .table-note {
+    font-size: 0.82rem;
+    color: var(--gray);
+    font-style: italic;
+    margin-top: -1.2rem;
+    margin-bottom: 2rem;
+  }
 
-/* FONTI TABLE */
-.fonti-table { width: 100%; border-collapse: collapse; border: 1px solid var(--border); margin-bottom: 12px; }
-.fonti-table th { font-family: var(--font-mono); font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--gray-light); background: #f0ede8; padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
-.fonti-table td { font-size: 12px; color: var(--gray); padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
-.fonti-table td:first-child { font-family: var(--font-mono); font-size: 11px; font-weight: 500; color: var(--black); }
-.fonti-table a { color: var(--blue-light); text-decoration: none; }
-.fonti-table tr:last-child td { border-bottom: none; }
+  .limit-box {
+    background: var(--amber-bg);
+    border-left: 4px solid var(--amber-text);
+    border-radius: 0 6px 6px 0;
+    padding: 1.2rem 1.5rem;
+    margin: 1.5rem 0;
+  }
+  .limit-box strong { color: var(--amber-text); }
+  .limit-box p { margin-bottom: 0.5rem; font-size: 0.95rem; }
+  .limit-box p:last-child { margin-bottom: 0; }
 
-/* SEGMENTI FULL */
-.seg-full-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); }
-.seg-full { background: var(--bg); padding: 24px 18px; }
-.sf-pct { font-family: var(--font-serif); font-size: 40px; font-weight: 300; color: var(--blue); display: block; }
-.sf-n { font-family: var(--font-mono); font-size: 9px; color: var(--gray-light); letter-spacing: 1px; }
-.sf-name { font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--blue-light); margin: 8px 0 6px; display: block; }
-.sf-label { font-size: 12px; font-weight: 500; margin-bottom: 10px; }
-.sf-list { list-style: none; }
-.sf-list li { font-family: var(--font-mono); font-size: 9px; color: var(--gray-mid); padding: 3px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
-.sf-list li:last-child { border-bottom: none; }
-.sf-list span { color: var(--blue-light); }
+  .pipeline {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.8rem;
+    margin: 1.5rem 0 2rem;
+  }
+  .stage {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.1rem;
+  }
+  .stage h4 {
+    font-family: -apple-system, system-ui, sans-serif;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--blue-light);
+    margin-bottom: 0.4rem;
+  }
+  .stage p { font-size: 0.85rem; color: var(--gray); margin: 0; line-height: 1.5; }
 
-/* REGRESSIONE */
-.reg-row { display: grid; grid-template-columns: 200px 1fr; gap: 0; border: 1px solid var(--border); margin-bottom: 1px; }
-.reg-label { font-family: var(--font-mono); font-size: 10px; color: var(--gray-mid); background: #f5f2ec; padding: 12px 16px; display: flex; align-items: center; border-right: 1px solid var(--border); }
-.reg-value { padding: 12px 16px; font-size: 13px; color: var(--gray); }
-.reg-value strong { color: var(--black); font-weight: 500; }
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 2rem;
+    text-align: center;
+    font-family: -apple-system, system-ui, sans-serif;
+    font-size: 0.82rem;
+    color: var(--gray);
+  }
+  footer a { color: var(--blue-light); text-decoration: none; }
 
-/* ROADMAP */
-.roadmap-full { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); }
-.rm-item { background: var(--bg); padding: 28px; }
-.rm-item.next { background: #f5f0f7; }
-.rm-badge { font-family: var(--font-mono); font-size: 9px; letter-spacing: 2px; text-transform: uppercase; padding: 3px 10px; display: inline-block; margin-bottom: 12px; }
-.b-live { background: #1a4a1a; color: #7ef57e; }
-.b-dev  { background: #2a1a4a; color: #c0a0f0; }
-.b-plan { background: #3a2a00; color: #f0c040; }
-.rm-title { font-family: var(--font-serif); font-size: 20px; font-weight: 400; margin-bottom: 8px; }
-.rm-desc { font-size: 12px; color: var(--gray); line-height: 1.6; }
-.rm-tech { font-family: var(--font-mono); font-size: 9px; color: var(--gray-light); margin-top: 10px; letter-spacing: 1px; }
-
-/* LIMITAZIONI */
-.lim-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); }
-.lim-item { background: #fdf8f0; padding: 24px; }
-.lim-badge { font-family: var(--font-mono); font-size: 9px; letter-spacing: 2px; color: #b06000; display: block; margin-bottom: 8px; text-transform: uppercase; }
-.lim-text { font-size: 12px; color: var(--gray); line-height: 1.6; }
-
-footer { border-top: 1px solid var(--border); padding: 32px 40px; max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
-.foot-logo { font-family: var(--font-mono); font-size: 11px; letter-spacing: 3px; color: var(--gray-light); }
-.foot-links { display: flex; gap: 20px; }
-.foot-links a { font-size: 11px; color: var(--gray-light); text-decoration: none; }
-
-@media (max-width: 900px) {
-  .seg-full-grid { grid-template-columns: repeat(2, 1fr); }
-  .roadmap-full { grid-template-columns: 1fr; }
-  .lim-grid { grid-template-columns: 1fr; }
-}
+  @media (max-width: 640px) {
+    h1 { font-size: 2rem; }
+    main { padding: 2rem 1.2rem 3rem; }
+    .download-box { flex-direction: column; align-items: flex-start; }
+  }
 </style>
 </head>
 <body>
 
-<nav class="nav">
-  <div class="nav-inner">
-    <a class="nav-logo" href="/">POLISIM</a>
-    <div class="nav-links">
-      <a href="/come-funziona.html">Come funziona</a>
-      <a href="/metodologia.html" style="color:var(--black)">Metodologia</a>
-      <a href="/validazione.html">Validazione</a>
-      <a href="/fonti.html">Fonti</a>
-      <a href="/en.html">EN</a>
-      <a class="nav-btn" href="/tool">Usa il tool →</a>
+<header>
+  <a href="/" class="logo">PoliSim</a>
+  <nav>
+    <a href="/simulatore.html">Simulatore</a>
+    <a href="/validazione.html">Validazione</a>
+    <a href="/fonti.html">Fonti</a>
+    <a href="/accesso.html">Accesso</a>
+  </nav>
+</header>
+
+<main>
+  <h1>Metodologia</h1>
+  <p class="subtitle">Open Civic Intelligence: simulazione elettorale, ottimizzazione del messaggio e analisi della propensione — con limitazioni dichiarate.</p>
+
+  <p>PoliSim documenta pubblicamente la propria metodologia completa. Il white paper tecnico copre l'intera architettura: lo swing model sui 221 collegi uninominali del Rosatellum, il modello MRP bayesiano con verosimiglianza Dirichlet-Multinomial, il Message Optimizer fondato sulla teoria del framing, il Cognitive Science Layer e il Modulo Propensione RFML. Ogni limitazione nota è dichiarata con la stessa prominenza dei risultati.</p>
+
+  <div class="download-box">
+    <div>
+      <h3>White Paper Tecnico v1.2</h3>
+      <p>Metodologia e validazione completa — 9 sezioni, 22 riferimenti con DOI verificati — Giugno 2026</p>
+    </div>
+    <a class="btn" href="/assets/polisim_whitepaper_v1_2_IT.pdf" download>Scarica il PDF</a>
+  </div>
+
+  <h2>Il contributo: MRP bayesiano su dati censuari italiani</h2>
+  <p>Il cuore metodologico di PoliSim è un modello <strong>Multilevel Regression and Poststratification</strong> (Gelman &amp; Little 1997; Park, Gelman &amp; Bafumi 2004) implementato in PyMC con verosimiglianza Dirichlet-Multinomial, calibrato su <strong>71 milioni di osservazioni del Censimento ISTAT 2021</strong> aggregate a livello di collegio uninominale, con addestramento su 252 osservazioni collegio-elezione in 13 regioni.</p>
+  <p>A nostra conoscenza, non esiste letteratura pubblicata che applichi MRP con verosimiglianza Dirichlet-Multinomial a dati censuari italiani a livello di collegio uninominale con backtesting out-of-sample su elezioni reali. Le applicazioni MRP documentate riguardano prevalentemente il contesto statunitense e britannico, tipicamente con input sondaggistici individuali. L'applicazione ecologica su dati censuari aggregati italiani costituisce, ad oggi, un caso non documentato.</p>
+
+  <h2>Metriche di validazione</h2>
+  <p>Backtest sui 14 collegi Camera del Lazio, elezioni politiche 2022 (riferimento held-out):</p>
+
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-value">4,01<small style="font-size:1rem"> pp</small></div>
+      <div class="metric-label">MAE quota CDX</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">4,64<small style="font-size:1rem"> pp</small></div>
+      <div class="metric-label">RMSE quota CDX</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">14/14</div>
+      <div class="metric-label">Winner accuracy</div>
+    </div>
+    <div class="metric-card warn">
+      <div class="metric-value">39,2%</div>
+      <div class="metric-label">CI90 — limite aperto</div>
     </div>
   </div>
-</nav>
 
-<div class="page-header">
-  <p class="page-kicker">Metodologia · Trasparenza · Limitazioni</p>
-  <h1 class="page-title">Come PoliSim calcola i suoi risultati</h1>
-  <p class="page-intro">Questa pagina descrive le fonti dati, i modelli statistici, i segmenti psicografici e le limitazioni dichiarate di PoliSim. La trasparenza metodologica è un principio di design, non un disclaimer legale.</p>
-</div>
+  <p>Confronto out-of-sample con baseline OLS (stessa matrice di progetto, stessi dati di addestramento):</p>
 
-<div class="content">
-
-  <!-- FONTI -->
-  <h2 class="block-title">Fonti dati</h2>
-  <p class="block-sub">PoliSim usa esclusivamente fonti aperte e verificabili. Nessun dato privato viene raccolto dagli utenti.</p>
-
-  <table class="fonti-table">
-    <thead><tr><th>Fonte</th><th>Uso in PoliSim</th><th>Copertura</th><th>Riferimento</th></tr></thead>
+  <table>
+    <thead>
+      <tr><th>Dataset</th><th>N collegi</th><th>RMSE OLS</th><th>RMSE MRP</th><th>Vantaggio MRP</th></tr>
+    </thead>
     <tbody>
-      <tr>
-        <td>ITANES 2022</td>
-        <td>Profili psicografici dei 5 segmenti. Scale valoriali, fiducia istituzionale, trigger comunicativi. DOI: 10.13130/RD_UNIMI/JV77WR</td>
-        <td>N=4.696 rispondenti, 326 variabili, panel ponderato post-elezioni politiche 2022</td>
-        <td><a href="https://doi.org/10.13130/RD_UNIMI/JV77WR" target="_blank">DOI: 10.13130/RD_UNIMI/JV77WR · Vezzoni et al. 2023</a></td>
-      </tr>
-      <tr>
-        <td>ISTAT Censimento Permanente 2021</td>
-        <td>Variabili demografiche per sezione di censimento (39.609 sezioni Lazio). Laureati, istruzione, occupazione, stranieri, età.</td>
-        <td>Italia completa · livello sezione censimento · aggiornamento annuale</td>
-        <td><a href="https://www.istat.it/it/censimenti-permanenti" target="_blank">istat.it · Tracciato record ufficiale</a></td>
-      </tr>
-      <tr>
-        <td>Eligendo OpenData</td>
-        <td>Risultati elettorali storici per comune (Camera 2022, Regionali 2023, Senato 2022). Margini per collegio.</td>
-        <td>147 collegi Camera · 74 Senato · 7.903 comuni</td>
-        <td><a href="https://eligendo.interno.gov.it" target="_blank">Ministero dell'Interno · eligendo.interno.gov.it</a></td>
-      </tr>
-      <tr>
-        <td>Shapefile collegi 2020</td>
-        <td>Spatial join sezioni censimento → collegio uninominale (match rate 99.8%).</td>
-        <td>Camera + Senato · proiezione UTM32N (EPSG:32632)</td>
-        <td>Ministero dell'Interno · CAMERA_CollegiUNINOMINALI_2020.shp</td>
-      </tr>
+      <tr><td>Lombardia 2023</td><td>23</td><td>4,65 pp</td><td><strong>4,28 pp</strong></td><td>+0,37 pp</td></tr>
+      <tr><td>Lazio 2023</td><td>14</td><td>5,36 pp</td><td><strong>5,08 pp</strong></td><td>+0,28 pp</td></tr>
+      <tr><td>Emilia-Romagna 2024 ⚠</td><td>11</td><td>12,09 pp</td><td><strong>10,36 pp</strong></td><td>+1,73 pp</td></tr>
+      <tr><td>Liguria 2024 †</td><td>4</td><td>9,75 pp</td><td><strong>8,45 pp</strong></td><td>+1,30 pp</td></tr>
+      <tr><td><strong>Media (4 dataset)</strong></td><td>—</td><td>7,96 pp</td><td><strong>7,04 pp</strong></td><td><strong>+0,92 pp</strong></td></tr>
     </tbody>
   </table>
+  <p class="table-note">⚠ Emilia-Romagna outlier: RMSE CSX 15,7 pp — struttura competitiva locale divergente dal training set. † Liguria N=4: risultato indicativo, non statisticamente robusto. Il modello MRP supera la baseline OLS su tutti i dataset disponibili.</p>
 
-  <hr class="div">
-
-  <!-- SEGMENTI ITANES -->
-  <h2 class="block-title">Segmenti psicografici — fonti empiriche</h2>
-  <p class="block-sub">I 5 segmenti non sono costruiti su stereotipi o intuizioni teoriche. Sono derivati empiricamente da tre fonti survey complementari: <strong>ITANES 2022</strong> (N=4.696, panel elettorale italiano, variabili valoriali e fiducia istituzionale), <strong>ESS Round 11</strong> (N=2.865 rispondenti italiani, European Social Survey 2023-24, atteggiamenti verso immigrazione e democrazia) e <strong>TRIPOL IT</strong> (N=1.231, polarizzazione affettiva, indice WAPSV valori politici). Ogni profilo riflette le risposte reali di quel gruppo su variabili chiave.</p>
-
-  <div class="seg-full-grid">
-    <div class="seg-full">
-      <span class="sf-pct">30.7%</span>
-      <span class="sf-n">N=1.444 rispondenti</span>
-      <span class="sf-name">progressisti_attivisti</span>
-      <div class="sf-label">Progressisti e attivisti</div>
-      <ul class="sf-list">
-        <li>Sx-dx media <span>2.86/10</span></li>
-        <li>% Laureati <span>19.8%</span></li>
-        <li>Iscritti CGIL <span>54.4%</span></li>
-        <li>Fiducia scienziati <span>93.5%</span></li>
-        <li>Fiducia magistratura <span>67.4%</span></li>
-        <li>Fiducia gov <span>33.0%</span></li>
-        <li>Usa social <span>4.6 gg/sett</span></li>
-        <li>Clima — molto preoc. <span>69.8%</span></li>
-      </ul>
+  <h2>Architettura</h2>
+  <div class="pipeline">
+    <div class="stage">
+      <h4>Stage 1 — Swing Model</h4>
+      <p>Eligendo 2022, 221 collegi uninominali, d'Hondt con soglia 3%, verifica doppia maggioranza</p>
     </div>
-    <div class="seg-full">
-      <span class="sf-pct">34.7%</span>
-      <span class="sf-n">N=1.628 rispondenti</span>
-      <span class="sf-name">centrodestra</span>
-      <div class="sf-label">Elettorato centrodestra</div>
-      <ul class="sf-list">
-        <li>Sx-dx media <span>8.72/10</span></li>
-        <li>Leader forte <span>alta priorità</span></li>
-        <li>Ordine/sicurezza <span>trigger chiave</span></li>
-        <li>TV e radio <span>canale primario</span></li>
-        <li>Europeismo <span>tiepido</span></li>
-        <li>Immigrazione <span>massima resistenza</span></li>
-      </ul>
+    <div class="stage">
+      <h4>Stage 2 — MRP Bayesiano</h4>
+      <p>PyMC, Dirichlet-Multinomial, 8 feature ISTAT, 252 osservazioni, effetti casuali regionali</p>
     </div>
-    <div class="seg-full">
-      <span class="sf-pct">19.6%</span>
-      <span class="sf-n">N=922 rispondenti</span>
-      <span class="sf-name">qualunquisti</span>
-      <div class="sf-label">Qualunquisti</div>
-      <ul class="sf-list">
-        <li>Sx-dx media <span>5.16/10</span></li>
-        <li>Fiducia partiti <span>molto bassa</span></li>
-        <li>Fiducia parlamento <span>bassa</span></li>
-        <li>Anti-casta <span>trigger principale</span></li>
-        <li>Astensione latente <span>alta</span></li>
-        <li>Responsabilità P9 <span>leva chiave</span></li>
-      </ul>
+    <div class="stage">
+      <h4>Stage 3 — Message Optimizer</h4>
+      <p>Framing Entman ×4, corpus valoriale dell'organizzazione, verificatore di ancoraggio fattuale</p>
     </div>
-    <div class="seg-full">
-      <span class="sf-pct">11.5%</span>
-      <span class="sf-n">N=541 rispondenti</span>
-      <span class="sf-name">delusi_m5s</span>
-      <div class="sf-label">Ex M5S delusi</div>
-      <ul class="sf-list">
-        <li>Sx-dx media <span>4.96/10</span></li>
-        <li>Scala valoriale <span>fluida</span></li>
-        <li>Trasparenza <span>priorità alta</span></li>
-        <li>Segmento più mobile <span>↔</span></li>
-        <li>Digitale nativo <span>sì</span></li>
-        <li>Anti-sistema residuo <span>presente</span></li>
-      </ul>
+    <div class="stage">
+      <h4>Cognitive Layer</h4>
+      <p>5 framework cognitivi, core deterministico &lt;50ms, evaluator AI separato opt-in</p>
     </div>
-    <div class="seg-full">
-      <span class="sf-pct">3.4%</span>
-      <span class="sf-n">N=161 rispondenti</span>
-      <span class="sf-name">giovani_astensionisti</span>
-      <div class="sf-label">Giovani astensionisti</div>
-      <ul class="sf-list">
-        <li>Sx-dx media <span>5.84/10</span></li>
-        <li>Età <span>&lt; 30 anni</span></li>
-        <li>Astensione storica <span>sì</span></li>
-        <li>Fiducia istituzioni <span>bassa</span></li>
-        <li>Trigger pace/clima <span>principale</span></li>
-        <li>Instagram/TikTok <span>canale primario</span></li>
-      </ul>
+    <div class="stage">
+      <h4>Modulo Propensione</h4>
+      <p>RFML a 5 obiettivi, calibrazione territoriale ISTAT, elaborazione client-side GDPR</p>
     </div>
   </div>
 
-  <p style="font-family:var(--font-mono);font-size:10px;color:var(--gray-light);margin-top:12px;letter-spacing:1px;">
-    Fonti: Vezzoni et al. (2023), ITANES Panel 2022, DOI: 10.13130/RD_UNIMI/JV77WR · ESS Round 11 (2023-24), European Social Survey, N=2.865 IT · TRIPOL IT (2021-22), N=1.231. Assegnazione segmenti su scala sx-dx, età e astensione storica. Distribuzione ponderata.
-  </p>
+  <h2>Limitazioni dichiarate</h2>
+  <p>La credibilità scientifica richiede che i limiti siano dichiarati con la stessa prominenza dei risultati. Le limitazioni complete sono nella Sezione 6 del white paper. Le principali:</p>
 
-  <hr class="div">
-
-  <!-- PERCORSO MODELLI -->
-  <h2 class="block-title">Percorso di sviluppo del modello — dalla PoC al MRP</h2>
-  <p class="block-sub">PoliSim ha attraversato un percorso documentato di raffinamento metodologico. Ogni step è riproducibile dai dati aperti pubblicati.</p>
-
-  <div style="margin-bottom: 8px;">
-    <div class="reg-row"><div class="reg-label">PoC 1 — Lazio</div><div class="reg-value"><strong>RMSE 3.9pp · R²=0.618</strong> — OLS 2 variabili ISTAT su 11 collegi Camera Lazio. Prova che i dati demografici correlano col voto.</div></div>
-    <div class="reg-row"><div class="reg-label">PoC 2 — Nazionale flat</div><div class="reg-value"><strong>RMSE 7.8pp</strong> — Ridge 6 variabili su 146 collegi. Baseline: i coefficienti demografici sono opposti tra Nord e Sud.</div></div>
-    <div class="reg-row"><div class="reg-label">PoC 2 — Macro-area</div><div class="reg-value"><strong>RMSE 5.2pp</strong> — Tre modelli separati (Nord/Centro/Sud). Centro: 3.6pp. Nord: 6.2pp (Emilia strutturalmente diversa).</div></div>
-    <div class="reg-row"><div class="reg-label">PoC 3 — MRP bayesiano</div><div class="reg-value"><strong>RMSE 4.3pp (out-of-sample, Lombardia 2023)</strong> — Dirichlet-Multinomial multi-coalizione (PyMC). 252 osservazioni, 54 celle demografiche per collegio. Output: mediana posteriore + IC 90% + P(vittoria). r_hat=1.000.</div></div>
+  <div class="limit-box">
+    <p><strong>CI90 al 39,2% invece del 90% nominale.</strong> Gli intervalli credibili sono sotto-calibrati. Causa confermata: dataset di addestramento limitato (252 osservazioni), non specificazione dei prior — test con prior alternativi (HalfStudentT) non hanno prodotto miglioramenti. Le stime puntuali (MAP) sono gli output operativamente validi; gli intervalli non vanno usati per inferenza probabilistica.</p>
+  </div>
+  <div class="limit-box">
+    <p><strong>Bias sistematico CDX di −3,33 pp.</strong> Concentrato nei collegi provinciali; causa identificata in feature occupazionali non ancora nel modello (dataset DCSC_CONDPROFOCCUP pianificato per la v5).</p>
+  </div>
+  <div class="limit-box">
+    <p><strong>Modello ecologico.</strong> PoliSim stima da dati demografici e storici aggregati, non da sondaggi individuali geo-localizzati. È un calcolatore di scenari, non uno strumento predittivo autonomo.</p>
+  </div>
+  <div class="limit-box">
+    <p><strong>Pesi Stage 3 e RFML expert-calibrated.</strong> Non ancora validati su A/B test reali. Un protocollo di validazione con 20 campagne partner e misurazione standardizzata degli esiti è in fase di reclutamento attivo.</p>
   </div>
 
-  <h2 class="block-title" style="margin-top:32px;">MRP bayesiano — Architettura e risultati</h2>
-  <p class="block-sub">Modello attivo: Dirichlet-Multinomial multi-coalizione con PyMC · freeze 29 aprile 2026.</p>
+  <h2>Dati: esclusivamente fonti pubbliche istituzionali</h2>
+  <table>
+    <thead>
+      <tr><th>Fonte</th><th>Contenuto</th><th>Ruolo</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>ISTAT Censimento 2021</td><td>71M osservazioni, 493k sezioni</td><td>Feature demografiche MRP</td></tr>
+      <tr><td>Eligendo OpenData (Min. Interno)</td><td>Risultati ufficiali, tutti i cicli</td><td>Baseline e validazione</td></tr>
+      <tr><td>ESS Round 11 (2023–24)</td><td>N=2.865 Italia, face-to-face</td><td>Profili psicografici Stage 3</td></tr>
+      <tr><td>TRIPOL IT (2021–22)</td><td>N=1.231, polarizzazione affettiva</td><td>Calibrazione valenza emotiva</td></tr>
+    </tbody>
+  </table>
+  <p>Nessun dato proprietario. Nessun dato personale raccolto o processato. Il codice è pubblico su <a href="https://github.com/AlCap27/polisim" style="color:var(--blue-light)">GitHub</a> con licenza AGPL v3; il layer AI è sostituibile by design con qualsiasi LLM instruction-following.</p>
 
-  <div style="margin-bottom: 8px;">
-    <div class="reg-row"><div class="reg-label">Architettura</div><div class="reg-value"><strong>Dirichlet-Multinomial</strong> — modella simultaneamente CDX, CSX, M5S, ALTRI come distribuzioni di probabilità. Più realistico di una regressione separata per coalizione.</div></div>
-    <div class="reg-row"><div class="reg-label">Training set</div><div class="reg-value"><strong>252 osservazioni</strong> — 139 elezioni politiche 2022 + 113 elezioni regionali 2021-2025</div></div>
-    <div class="reg-row"><div class="reg-label">Celle demografiche</div><div class="reg-value"><strong>54 celle per collegio</strong> — età × istruzione × occupazione × genere (ISTAT Censimento Permanente 2021)</div></div>
-    <div class="reg-row"><div class="reg-label">Convergenza</div><div class="reg-value"><strong>r_hat = 1.000</strong> · 10 divergenze su 8.000 campioni MCMC · distribuzioni posteriori stabili</div></div>
-    <div class="reg-row"><div class="reg-label">Validazione</div><div class="reg-value"><strong>RMSE 4.3pp out-of-sample</strong> (Lombardia 2023) · miglioramento su OLS in 5/6 regioni testate</div></div>
-    <div class="reg-row"><div class="reg-label">Output per collegio</div><div class="reg-value"><strong>Mediana posteriore + IC 90% + P(vittoria)</strong> — es: CDX 35.6% [33.8, 37.3] · P(CDX vince)=0.988</div></div>
-    <div class="reg-row"><div class="reg-label">Aggiornamento</div><div class="reg-value"><strong>~30 minuti</strong> dopo ogni nuova elezione regionale · ritraining automatico</div></div>
-  </div>
-
-  <hr class="div">
-
-  <!-- EQUAZIONI ESPLICITE -->
-  <h2 class="block-title">Le equazioni del modello</h2>
-  <p class="block-sub">Il modello predittivo di PoliSim è completamente riproducibile dai dati aperti. Di seguito le equazioni esplicite per ogni stage.</p>
-
-  <div style="margin-bottom:8px;">
-    <div class="reg-row">
-      <div class="reg-label">Stage 1 — OLS baseline</div>
-      <div class="reg-value" style="font-family:var(--font-mono);font-size:12px;">
-        % CDX = 71.49 − 0.896·pct_laureati + 0.082·pct_bassa_istruz<br>
-        <span style="color:var(--gray-light);font-size:10px;">N=11 collegi Lazio · R²=0.618 · RMSE=3.91pp</span>
-      </div>
-    </div>
-    <div class="reg-row">
-      <div class="reg-label">Stage 2 — Ridge (α=10)</div>
-      <div class="reg-value" style="font-family:var(--font-mono);font-size:12px;">
-        % CDX = β₀ + Σᵢ βᵢ·Xᵢ + λ·‖β‖²<br>
-        <span style="color:var(--gray-light);font-size:10px;">X = [pct_laureati, pct_bassa_istruz, dim_media_famiglia, pct_under35, pct_occupati, pct_stranieri]</span><br>
-        <span style="color:var(--gray-light);font-size:10px;">N=142 collegi · α=10 ottimizzato via LOO-CV · RMSE=6.54pp (flat) → 5.24pp (macro-area)</span>
-      </div>
-    </div>
-    <div class="reg-row">
-      <div class="reg-label">Stage 3 — MRP MixedLM</div>
-      <div class="reg-value" style="font-family:var(--font-mono);font-size:12px;">
-        % CDX<sub>ij</sub> = (β₀ + u<sub>j</sub>) + β₁·pct_laureati<sub>ij</sub> + Σₖ βₖ·Xₖᵢⱼ + ε<sub>ij</sub><br>
-        <span style="color:var(--gray-light);font-size:10px;">i = collegio, j = regione · u<sub>j</sub> ~ N(0, σ²<sub>u</sub>) effetto casuale regionale</span><br>
-        <span style="color:var(--gray-light);font-size:10px;">N=142 collegi · 18 regioni · RMSE=4.44pp · R²=0.782</span>
-      </div>
-    </div>
-    <div class="reg-row">
-      <div class="reg-label">Effetti fissi MRP</div>
-      <div class="reg-value" style="font-family:var(--font-mono);font-size:11px;">
-        β₀=+46.54 · pct_laureati=−7.62*** · pct_occupati=+3.90* · pct_bassa_istruz=−1.94 (ns)<br>
-        <span style="color:var(--gray-light);font-size:10px;">*** p&lt;0.001 · * p&lt;0.05 · ns = non significativo</span>
-      </div>
-    </div>
-    <div class="reg-row">
-      <div class="reg-label">Codice e dati</div>
-      <div class="reg-value" style="font-size:12px;">
-        Script: <code>polisim_nazionale.py</code>, <code>polisim_macroarea.py</code>, <code>polisim_mrp.py</code><br>
-        Repo: github.com/AlCap27/polisim <span style="color:var(--gray-light);font-size:10px;">(privato · apertura pianificata)</span><br>
-        Dati: <a href="https://www.istat.it/notizia/dati-per-sezioni-di-censimento/" target="_blank" style="color:var(--blue-light);">ISTAT Censimento 2023</a> ·
-              <a href="https://eligendo.interno.gov.it" target="_blank" style="color:var(--blue-light);">Eligendo OpenData</a> ·
-              <a href="https://doi.org/10.13130/RD_UNIMI/JV77WR" target="_blank" style="color:var(--blue-light);">ITANES 2022</a>
-      </div>
-    </div>
-  </div>
-
-  <hr class="div">
-
-  <!-- EQUAZIONI ESPLICITE -->
-  <h2 class="block-title">Le equazioni del modello</h2>
-  <p class="block-sub">Il modello è completamente riproducibile dai dati aperti. Equazioni esplicite per ogni stage di sviluppo.</p>
-
-  <div style="margin-bottom:8px;">
-    <div class="reg-row">
-      <div class="reg-label">Stage 1 — OLS baseline</div>
-      <div class="reg-value" style="font-family:var(--font-mono);font-size:12px;">
-        % CDX = 71.49 &#8722; 0.896&#183;pct_laureati + 0.082&#183;pct_bassa_istruz<br>
-        <span style="color:var(--gray-light);font-size:10px;">N=11 collegi Lazio &middot; R&#178;=0.618 &middot; RMSE=3.91pp</span>
-      </div>
-    </div>
-    <div class="reg-row">
-      <div class="reg-label">Stage 2 — Ridge (&#945;=10)</div>
-      <div class="reg-value" style="font-family:var(--font-mono);font-size:12px;">
-        % CDX = &#946;&#8320; + &#8721;&#8320; &#946;&#8341;&#183;X&#8341; + &#955;&#183;&#8214;&#946;&#8214;&#178;<br>
-        <span style="color:var(--gray-light);font-size:10px;">X = [pct_laureati, pct_bassa_istruz, dim_media_famiglia, pct_under35, pct_occupati, pct_stranieri]</span><br>
-        <span style="color:var(--gray-light);font-size:10px;">N=142 collegi &middot; &#945;=10 ottimizzato via LOO-CV &middot; RMSE=5.24pp (macro-area)</span>
-      </div>
-    </div>
-    <div class="reg-row">
-      <div class="reg-label">Stage 3 — MRP MixedLM</div>
-      <div class="reg-value" style="font-family:var(--font-mono);font-size:12px;">
-        % CDX&#7533;&#11388; = (&#946;&#8320; + u&#11388;) + &#946;&#8321;&#183;pct_laureati&#7533;&#11388; + &#8721;&#8342; &#946;&#8342;&#183;X&#8342;&#7533;&#11388; + &#949;&#7533;&#11388;<br>
-        <span style="color:var(--gray-light);font-size:10px;">i = collegio, j = regione &middot; u&#11388; ~ N(0, &#963;&#178;) effetto casuale regionale</span><br>
-        <span style="color:var(--gray-light);font-size:10px;">N=142 &middot; 18 regioni &middot; RMSE=4.44pp &middot; R&#178;=0.782</span>
-      </div>
-    </div>
-    <div class="reg-row">
-      <div class="reg-label">Effetti fissi MRP</div>
-      <div class="reg-value" style="font-family:var(--font-mono);font-size:11px;">
-        &#946;&#8320;=+46.54 &middot; pct_laureati=&#8722;7.62*** &middot; pct_occupati=+3.90* &middot; altri n.s.<br>
-        <span style="color:var(--gray-light);font-size:10px;">*** p&lt;0.001 &middot; * p&lt;0.05 &middot; n.s. = non significativo</span>
-      </div>
-    </div>
-    <div class="reg-row">
-      <div class="reg-label">Codice e dati</div>
-      <div class="reg-value" style="font-size:12px;">
-        Script: <code>polisim_nazionale.py</code>, <code>polisim_macroarea.py</code>, <code>polisim_mrp.py</code><br>
-        Repo: github.com/AlCap27/polisim <span style="color:var(--gray-light);font-size:10px;">(privato &middot; apertura pianificata)</span><br>
-        Dati:
-        <a href="https://www.istat.it/notizia/dati-per-sezioni-di-censimento/" target="_blank" rel="noopener" style="color:var(--blue-light);">ISTAT Censimento 2023</a> &middot;
-        <a href="https://eligendo.interno.gov.it" target="_blank" rel="noopener" style="color:var(--blue-light);">Eligendo OpenData</a> &middot;
-        <a href="https://doi.org/10.13130/RD_UNIMI/JV77WR" target="_blank" rel="noopener" style="color:var(--blue-light);">ITANES 2022</a>
-      </div>
-    </div>
-  </div>
-
-  <hr class="div">
-
-  <!-- EQUAZIONI ESPLICITE -->
-  <h2 class="block-title">Le equazioni del modello</h2>
-  <p class="block-sub">Il modello è completamente riproducibile dai dati aperti. Equazioni esplicite per ogni stage di sviluppo.</p>
-
-  <div style="margin-bottom:8px;">
-    <div class="reg-row">
-      <div class="reg-label">Stage 1 — OLS baseline</div>
-      <div class="reg-value" style="font-family:var(--font-mono);font-size:12px;">
-        % CDX = 71.49 &#8722; 0.896&#183;pct_laureati + 0.082&#183;pct_bassa_istruz<br>
-        <span style="color:var(--gray-light);font-size:10px;">N=11 collegi Lazio &middot; R&#178;=0.618 &middot; RMSE=3.91pp</span>
-      </div>
-    </div>
-    <div class="reg-row">
-      <div class="reg-label">Stage 2 — Ridge (&#945;=10)</div>
-      <div class="reg-value" style="font-family:var(--font-mono);font-size:12px;">
-        % CDX = &#946;&#8320; + &#931;&#7522; &#946;&#7522;&#183;X&#7522; + &#955;&#183;&#8214;&#946;&#8214;&#178; &nbsp;(&#955; ottimizzato via LOO-CV)<br>
-        <span style="color:var(--gray-light);font-size:10px;">X = [pct_laureati, pct_bassa_istruz, dim_media_famiglia, pct_under35, pct_occupati, pct_stranieri]</span><br>
-        <span style="color:var(--gray-light);font-size:10px;">N=142 collegi &middot; &#945;=10 &middot; RMSE=5.24pp (modelli macro-area)</span>
-      </div>
-    </div>
-    <div class="reg-row">
-      <div class="reg-label">Stage 3 — MRP MixedLM</div>
-      <div class="reg-value" style="font-family:var(--font-mono);font-size:12px;">
-        % CDX&#7522;&#11388; = (&#946;&#8320; + u&#11388;) + &#946;&#8321;&#183;pct_laureati + &#931;&#8342; &#946;&#8342;&#183;X&#8342;&#7522;&#11388; + &#949;&#7522;&#11388;<br>
-        <span style="color:var(--gray-light);font-size:10px;">i = collegio, j = regione &middot; u&#11388; &#126; N(0, &#963;&#178;&#7512;) effetto casuale regionale</span><br>
-        <span style="color:var(--gray-light);font-size:10px;">N=142 &middot; 18 regioni &middot; RMSE=4.44pp &middot; R&#178;=0.782 &middot; fitting: powell/nm/lbfgs</span>
-      </div>
-    </div>
-    <div class="reg-row">
-      <div class="reg-label">Effetti fissi MRP</div>
-      <div class="reg-value" style="font-family:var(--font-mono);font-size:11px;">
-        &#946;&#8320;=+46.54 &middot; pct_laureati=&#8722;7.62*** (p=0.000) &middot; pct_occupati=+3.90* (p=0.012)<br>
-        pct_bassa_istruz=&#8722;1.94 (n.s.) &middot; dim_famiglia=&#8722;0.64 (n.s.) &middot; pct_under35=&#8722;0.98 (n.s.)<br>
-        <span style="color:var(--gray-light);font-size:10px;">*** p&lt;0.001 &middot; * p&lt;0.05 &middot; n.s. = non significativo</span>
-      </div>
-    </div>
-    <div class="reg-row">
-      <div class="reg-label">Codice e dati</div>
-      <div class="reg-value" style="font-size:12px;">
-        Script: <code>polisim_nazionale.py</code>, <code>polisim_macroarea.py</code>, <code>polisim_mrp.py</code><br>
-        Repo: <a href="https://github.com/AlCap27/polisim" target="_blank" rel="noopener" style="color:var(--blue-light);">github.com/AlCap27/polisim</a>
-        <span style="color:var(--gray-light);font-size:10px;">(privato &middot; apertura pianificata)</span><br>
-        Dati:
-        <a href="https://www.istat.it/notizia/dati-per-sezioni-di-censimento/" target="_blank" rel="noopener" style="color:var(--blue-light);">ISTAT Censimento 2023</a> &middot;
-        <a href="https://eligendo.interno.gov.it" target="_blank" rel="noopener" style="color:var(--blue-light);">Eligendo OpenData</a> &middot;
-        <a href="https://doi.org/10.13130/RD_UNIMI/JV77WR" target="_blank" rel="noopener" style="color:var(--blue-light);">ITANES 2022</a>
-      </div>
-    </div>
-  </div>
-
-  <hr class="div">
-
-  <!-- ROADMAP -->
-  <h2 class="block-title">Flusso di analisi multistep · <a href="/validazione.html" style="font-size:14px;color:var(--blue-light);font-family:var(--font-mono);letter-spacing:1px;">Vedi le PoC →</a></h2>
-  <p class="block-sub">Roadmap pubblica degli sviluppi pianificati. Ogni funzionalità è dichiarata con stato di avanzamento e riferimento metodologico.</p>
-
-  <div class="roadmap-full">
-    <div class="rm-item" style="background:#f0f4f0;">
-      <span class="rm-badge b-live">✓ Live</span>
-      <div class="rm-title">Swing model + segmenti ITANES 2022</div>
-      <p class="rm-desc">Simulazione Camera e Senato con margini reali per collegio. 5 segmenti psicografici derivati empiricamente da ITANES 2022 (N=4.696). Message optimizer su 3 verticali (partiti, ONG e istituzioni pilota).</p>
-      <p class="rm-tech">Ridge regression · Random Forest · ITANES 2022 · Eligendo · ISTAT 2021</p>
-    </div>
-    <div class="rm-item" style="background:#f0f4f0;">
-      <span class="rm-badge b-live">✓ Live</span>
-      <div class="rm-title">MRP — Mixed Linear Model con effetti casuali per regione</div>
-      <p class="rm-desc">Modello attivo: statsmodels MixedLM con random intercept per regione. RMSE=4.44pp, R²=0.782 su 142 collegi Camera. Serie storiche 2018-2024 (10 elezioni, 8.056 comuni) integrate come prior.</p>
-      <p class="rm-tech">Gelman & Little 1997 · Wang et al. IJF 2021 · statsmodels MixedLM · Eligendo storico</p>
-    </div>
-    <div class="rm-item">
-      <span class="rm-badge b-plan">◌ Pianificato</span>
-      <div class="rm-title">LightRAG · Memoria persistente dei profili territoriali</div>
-      <p class="rm-desc">Integrazione LightRAG (ispirato al wiki-memory model di A. Karpathy) per costruire una memoria a lungo termine dei profili per collegio — tendenze storiche elezione per elezione, coalizioni locali, outlier strutturali. Il modello impara da ogni ciclo elettorale.</p>
-      <p class="rm-tech">LightRAG · Karpathy wiki-memory architecture · Eligendo storico 2006-2022</p>
-    </div>
-    <div class="rm-item">
-      <span class="rm-badge b-plan">◌ Pianificato</span>
-      <div class="rm-title">Shapefile collegi e upload dataset proprietari</div>
-      <p class="rm-desc">Implementazione shapefile per swing model a livello di singolo collegio. Upload di dataset proprietari (sondaggi interni, exit poll, social listening) con strumento di anonimizzazione GDPR integrato.</p>
-      <p class="rm-tech">CAMERA_CollegiUNINOMINALI_2020.shp · GDPR Art. 4.5, 89, 25 · Data Shield</p>
-    </div>
-  </div>
-
-  <hr class="div">
-
-  <!-- LIMITAZIONI -->
-  <h2 class="block-title">Limitazioni dichiarate al freeze</h2>
-  <p class="block-sub">Tre limitazioni documentate al momento del freeze (29 aprile 2026). Non compromettono la validità del modello per uso previsionale — rappresentano la frontiera di sviluppo attiva.</p>
-
-  <div class="lim-grid">
-    <div class="lim-item">
-      <span class="lim-badge">⚠ Limitazione 1 · Pesi demografici parzialmente stimati</span>
-      <p class="lim-text">I tassi occupazionali nelle 54 celle demografiche sono derivati da medie regionali, non da microdati comunali. Impatto stimato: ±0.3-0.5pp sull'RMSE. Il prossimo rilascio utilizzerà i tassi reali per comune dal Censimento Permanente ISTAT 2021.</p>
-    </div>
-    <div class="lim-item">
-      <span class="lim-badge">⚠ Limitazione 2 · Training set sbilanciato geograficamente</span>
-      <p class="lim-text">Le regioni del Nord sono sovrarappresentate nelle elezioni regionali disponibili (2021-2025). Le stime per il Mezzogiorno si basano principalmente sulle politiche 2022. Le prossime regionali del Sud aggiorneranno automaticamente il modello.</p>
-    </div>
-    <div class="lim-item">
-      <span class="lim-badge">⚠ Limitazione 3 · Modello ricalibrato dopo ogni ciclo elettorale</span>
-      <p class="lim-text">Le stime riflettono il comportamento elettorale osservato fino all'ultimo aggiornamento del training set. La simulazione per l'utente è in tempo reale; il ritraining richiede circa 30 minuti dopo ogni nuova elezione regionale disponibile.</p>
-    </div>
-  </div>
-
-</div>
-
-<!-- WHITE PAPER -->
-<div style="max-width:1200px;margin:0 auto;padding:48px 40px 60px">
-  <div class="block-kicker">DOCUMENTAZIONE</div>
-  <h2 class="block-title">White Paper metodologico</h2>
-  <p class="block-sub">Documentazione tecnica completa del modello PoliSim — fonti dati, architettura MRP, backtest di validazione e limitazioni dichiarate. Versione 1.0, maggio 2026.</p>
-
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px">
-
-    <!-- IT -->
-    <div style="border:1px solid var(--border);padding:24px;background:#fff">
-      <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--blue);text-transform:uppercase;margin-bottom:10px">ITALIANO</div>
-      <div style="font-family:var(--serif);font-size:20px;font-weight:400;margin-bottom:10px;color:var(--black)">PoliSim — Piattaforma di simulazione elettorale</div>
-      <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--gray);text-transform:uppercase;margin-bottom:12px">White Paper tecnico · Metodologia e Validazione · v1.0</div>
-      <p style="font-size:12px;color:var(--gray-mid);line-height:1.7;margin-bottom:16px">PoliSim è una piattaforma computazionale a tre stadi per la simulazione elettorale nel sistema misto proporzionale-uninominale italiano (Rosatellum bis). MAE 4.01pp, RMSE 4.64pp, accuratezza vincitore 14/14 collegi nel backtest Lazio 2022.</p>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <a href="/polisim_whitepaper_v1_0_IT.pdf" target="_blank" style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;background:var(--black);color:#faf9f7;padding:8px 16px;text-decoration:none;display:inline-block">Scarica PDF ↓</a>
-        <a href="/metodologia.html#mrp" style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;border:1px solid var(--border);color:var(--gray-mid);padding:8px 16px;text-decoration:none;display:inline-block">Sintesi metodologia</a>
-      </div>
-    </div>
-
-    <!-- EN -->
-    <div style="border:1px solid var(--border);padding:24px;background:#fff">
-      <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--blue);text-transform:uppercase;margin-bottom:10px">ENGLISH</div>
-      <div style="font-family:var(--serif);font-size:20px;font-weight:400;margin-bottom:10px;color:var(--black)">PoliSim — Electoral Simulation Platform</div>
-      <div style="font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--gray);text-transform:uppercase;margin-bottom:12px">Technical White Paper · Methodology &amp; Validation · v1.0</div>
-      <p style="font-size:12px;color:var(--gray-mid);line-height:1.7;margin-bottom:16px">PoliSim is a three-stage computational platform for electoral simulation in the Italian proportional-uninominal mixed system (Rosatellum bis). MAE 4.01pp, RMSE 4.64pp, 14/14 winner accuracy on Lazio 2022 backtest. MRP outperforms OLS baseline by 1.04pp RMSE.</p>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <a href="/polisim_whitepaper_v1_0.pdf" target="_blank" style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;background:var(--black);color:#faf9f7;padding:8px 16px;text-decoration:none;display:inline-block">Download PDF ↓</a>
-        <a href="/en.html" style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;border:1px solid var(--border);color:var(--gray-mid);padding:8px 16px;text-decoration:none;display:inline-block">English overview</a>
-      </div>
-    </div>
-
-  </div>
-
-  <p style="font-family:var(--mono);font-size:9px;color:var(--gray-light);margin-top:16px;letter-spacing:1px">
-    Citazione: Capetola A. (2026). PoliSim — Electoral Simulation Platform. Technical White Paper v1.0. polisim.dev
-  </p>
-</div>
-
+</main>
 
 <footer>
-  <div class="foot-logo">POLISIM.DEV · METODOLOGIA<br><span style="font-size:9px;color:var(--gray-light);letter-spacing:1px;">Repo: github.com/AlCap27/polisim · Privato · Apertura pianificata</span></div>
-  <div class="foot-links">
-    <a href="/">Home</a>
-    <a href="/fonti.html">Fonti</a>
-    <a href="/tools/anonimizza.html">Data Shield</a>
-    <a href="/en.html">English</a>
-  </div>
+  PoliSim — Open Civic Intelligence · <a href="https://github.com/AlCap27/polisim">github.com/AlCap27/polisim</a> · AGPL v3 · <a href="mailto:info@polisim.dev">info@polisim.dev</a>
 </footer>
 
 </body>
