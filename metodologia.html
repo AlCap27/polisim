@@ -150,6 +150,24 @@
   }
   .download-box a.btn:hover { background: #e8eef7; }
 
+  .download-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+    margin: 2.5rem 0;
+  }
+  .download-grid .download-box {
+    margin: 0;
+  }
+  .download-box .lang-tag {
+    font-family: -apple-system, system-ui, sans-serif;
+    font-size: 0.72rem;
+    font-weight: 400;
+    opacity: 0.65;
+    margin-left: 0.4rem;
+    letter-spacing: 0.04em;
+  }
+
   .metrics-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -256,6 +274,7 @@
     h1 { font-size: 2rem; }
     main { padding: 2rem 1.2rem 3rem; }
     .download-box { flex-direction: column; align-items: flex-start; }
+    .download-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -277,12 +296,21 @@
 
   <p>PoliSim documenta pubblicamente la propria metodologia completa. Il white paper tecnico copre l'intera architettura: lo swing model sui 221 collegi uninominali del Rosatellum, il modello MRP bayesiano con verosimiglianza Dirichlet-Multinomial, il Message Optimizer fondato sulla teoria del framing, il Cognitive Science Layer e il Modulo Propensione RFML. Ogni limitazione nota è dichiarata con la stessa prominenza dei risultati.</p>
 
-  <div class="download-box">
-    <div>
-      <h3>White Paper Tecnico v1.2</h3>
-      <p>Metodologia e validazione completa — 9 sezioni, 22 riferimenti con DOI verificati — Giugno 2026</p>
+  <div class="download-grid">
+    <div class="download-box">
+      <div>
+        <h3>White Paper Tecnico v1.2 <span class="lang-tag">🇮🇹 Italiano</span></h3>
+        <p>Metodologia e validazione completa — 9 sezioni, 22 riferimenti con DOI verificati — Giugno 2026</p>
+      </div>
+      <a class="btn" href="/assets/polisim_whitepaper_v1_2_IT.pdf" download>Scarica il PDF</a>
     </div>
-    <a class="btn" href="/assets/polisim_whitepaper_v1_2_IT.pdf" download>Scarica il PDF</a>
+    <div class="download-box">
+      <div>
+        <h3>Technical White Paper v1.2 <span class="lang-tag">🇬🇧 English</span></h3>
+        <p>Full methodology and validation — 9 sections, 22 DOI-verified references — June 2026</p>
+      </div>
+      <a class="btn" href="/assets/polisim_whitepaper_v1_2_EN.pdf" download>Download PDF</a>
+    </div>
   </div>
 
   <h2>Il contributo: MRP bayesiano su dati censuari italiani</h2>
