@@ -621,7 +621,7 @@ async function checkGate() {
     });
     if (!res.ok) throw new Error('Login fallito');
     const data = await res.json();
-    sessionStorage.setItem('polisim_token', data.access_token);
+    sessionStorage.setItem('polisim_token', data.token);
   } catch(e) {
     document.getElementById('gate-err').textContent = 'Errore di autenticazione';
     setTimeout(() => document.getElementById('gate-err').textContent = '', 2500);
