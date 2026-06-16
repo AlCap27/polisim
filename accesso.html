@@ -104,15 +104,7 @@ body{background:var(--bg);color:var(--black);font-family:var(--font-sans);min-he
 </div>
 
 <script>
-const ACCESSI = {
-  "pol2026test":        {profilo:"pol",  dest:"/simulatore.html"},
-  "ong2026test":        {profilo:"ong",  dest:"/optimizer.html?tipo=ong"},
-  "prop2026test":       {profilo:"prop", dest:"/propensione_dashboard.html"},
-  "civic2026test":      {profilo:"civic",dest:"/optimizer.html?tipo=civic"},
-  "admin-polisim-2026": {profilo:"pol",  dest:"/simulatore.html"},
-};
-
-let profiloSel = "pol";
+const API = 'https://api.polisim.dev';
 
 window.addEventListener('DOMContentLoaded', () => {
   const p = new URLSearchParams(window.location.search);
@@ -130,20 +122,23 @@ function selProfilo(p) {
   document.getElementById("gate-pwd").focus();
 }
 
-function checkGate() {
-  const pwd = document.getElementById("gate-pwd").value.trim();
-  const acc = ACCESSI[pwd];
-  if (!acc) {
-    document.getElementById("gate-err").textContent = "Codice non valido";
-    setTimeout(() => document.getElementById("gate-err").textContent = "", 2500);
-    return;
+async function checkGate() {
+  const pwd = document.getElementById('gate-pwd').value.trim();
+  if (!pwd) return;
+  try {
+    const res = await fetch(API + '/api/auth/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({codice: pwd})
+    });
+    if (!res.ok) throw new Error('non valido');
+    const data = await res.json();
+    sessionStorage.setItem('polisim_token', data.token);
+    window.location.href = data.dest;
+  } catch(e) {
+    document.getElementById('gate-err').textContent = 'Codice non valido';
+    setTimeout(() => document.getElementById('gate-err').textContent = '', 2500);
   }
-  if (acc.profilo !== profiloSel) {
-    document.getElementById("gate-err").textContent = "Codice non valido per questo profilo";
-    setTimeout(() => document.getElementById("gate-err").textContent = "", 2500);
-    return;
-  }
-  window.location.href = acc.dest + (acc.dest.includes("?") ? "&" : "?") + "pwd=" + encodeURIComponent(pwd);
 }
 </script>
 </body>
