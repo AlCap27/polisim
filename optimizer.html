@@ -591,50 +591,55 @@ let tipoCorrente = 'ong_lasciti';
 let tabCorrente = 'org';
 
 // ── Auto-login da URL params ──────────────────────────────────────
+  function apriApp() {
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  const showSolo = tipoCorrente === 'sindacato' ? 't-sindacato' : 't-ong_lasciti';
+  const hideSolo = tipoCorrente === 'sindacato' ? 't-ong_lasciti' : 't-sindacato';
+  document.getElementById(showSolo).classList.add('active');
+  document.getElementById(hideSolo).style.display = 'none';
+  aggiornaVisibilitaTipoCampagna();
+}
 window.addEventListener('DOMContentLoaded', () => {
   const p = new URLSearchParams(window.location.search);
-  const pwd = p.get('pwd');
   const tipo = p.get('tipo');
-  if (pwd && ACCESSI[pwd]) {
+  if (tipo) {
+    const map = {'ong':'ong_lasciti','ong_lasciti':'ong_lasciti',
+                 'civic':'sindacato','sindacato':'sindacato'};
+    if (map[tipo]) tipoCorrente = map[tipo];
+  }
+  // Se il token è già in sessionStorage (login da accesso.html), salta il gate
+  const token = sessionStorage.getItem('polisim_token');
+  if (token) {
+    apriApp();
+    return;
+  }
+  // Vecchio flusso ?pwd= per retrocompatibilità
+  const pwd = p.get('pwd');
+  if (pwd) {
     document.getElementById('gate-pwd').value = pwd;
-    if (tipo) {
-      const map = {'ong':'ong_lasciti','ong_lasciti':'ong_lasciti',
-                   'civic':'sindacato','sindacato':'sindacato'};
-      if (map[tipo]) tipoCorrente = map[tipo];
-    }
     checkGate();
   }
 });
 
 async function checkGate() {
   const pwd = document.getElementById('gate-pwd').value.trim();
-  if (!ACCESSI[pwd]) {
-    document.getElementById('gate-err').textContent = 'Codice non valido';
-    setTimeout(() => document.getElementById('gate-err').textContent = '', 2500);
-    return;
-  }
+  if (!pwd) return;
   try {
     const res = await fetch(API + '/api/auth/login', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({codice: pwd})
     });
-    if (!res.ok) throw new Error('Login fallito');
+    if (!res.ok) throw new Error('non valido');
     const data = await res.json();
     sessionStorage.setItem('polisim_token', data.token);
   } catch(e) {
-    document.getElementById('gate-err').textContent = 'Errore di autenticazione';
+    document.getElementById('gate-err').textContent = 'Codice non valido';
     setTimeout(() => document.getElementById('gate-err').textContent = '', 2500);
     return;
   }
-  document.getElementById('gate').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  document.getElementById('nav-user').textContent = ACCESSI[pwd].label;
-  const showSolo = tipoCorrente === 'sindacato' ? 't-sindacato' : 't-ong_lasciti';
-  const hideSolo = tipoCorrente === 'sindacato' ? 't-ong_lasciti' : 't-sindacato';
-  document.getElementById(showSolo).classList.add('active');
-  document.getElementById(hideSolo).style.display = 'none';
-  aggiornaVisibilitaTipoCampagna();
+  apriApp();
 }
 
 function setTipo(t) {
