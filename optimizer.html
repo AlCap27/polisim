@@ -599,6 +599,15 @@ let tabCorrente = 'org';
   document.getElementById(showSolo).classList.add('active');
   document.getElementById(hideSolo).style.display = 'none';
   aggiornaVisibilitaTipoCampagna();
+  // Precompila campi da JWT
+  try {
+    const token = sessionStorage.getItem('polisim_token');
+    if (token) {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      if (payload.org_nome) document.getElementById('f-nome').value = payload.org_nome;
+      if (payload.org_corpus) document.getElementById('f-valori').value = payload.org_corpus;
+    }
+  } catch(e) {}
 }
 window.addEventListener('DOMContentLoaded', () => {
   const p = new URLSearchParams(window.location.search);
