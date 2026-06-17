@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PoliSim — Segmentatore Database</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#faf9f7;--bg2:#f3f1ee;--bg3:#eae7e2;
+  --blu:#1e3a5f;--blu2:#2d5289;--accento:#c8a96e;
+  --testo:#1a1a18;--grigio:#6b6860;--linea:#ddd9d3;
+  --rosso:#b83232;--verde:#2d7a4f;--arancio:#c47a2a;
+  --cg:'Cormorant Garamond',Georgia,serif;
+  --sans:'DM Sans',system-ui,sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--testo);font-family:var(--sans);font-weight:300;line-height:1.6}
+
+nav{padding:20px 48px;border-bottom:1px solid var(--linea);display:flex;align-items:center;justify-content:space-between;background:var(--bg);position:sticky;top:0;z-index:100}
+.nav-logo{font-family:var(--cg);font-size:22px;font-weight:600;color:var(--blu);text-decoration:none}
+.nav-right{display:flex;align-items:center;gap:16px}
+.nav-tag{font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--grigio);text-transform:uppercase;padding:4px 10px;border:1px solid var(--linea)}
+.nav-link{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--blu);text-decoration:none;text-transform:uppercase}
+
+.hero{padding:56px 48px 40px;border-bottom:1px solid var(--linea);background:linear-gradient(135deg,var(--bg) 60%,#eef2f8 100%)}
+.hero-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:4px;color:var(--accento);text-transform:uppercase;margin-bottom:12px}
+.hero h1{font-family:var(--cg);font-size:clamp(34px,5vw,56px);font-weight:300;color:var(--blu);line-height:1.1;margin-bottom:12px}
+.hero h1 em{font-style:italic;color:var(--accento)}
+.hero-sub{max-width:640px;font-size:14px;color:var(--grigio);line-height:1.8}
+
+.wrap{max-width:1000px;margin:0 auto;padding:40px 48px 80px}
+
+/* Data Shield */
+.ds-gdpr-shield{margin:0 0 32px;padding:20px 24px;background:#f0faf4;border:1px solid #a7d7b8;display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start}
+.ds-gdpr-icon{width:44px;height:44px;background:#e0f5e8;border:1px solid #a7d7b8;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.ds-gdpr-title{font-family:var(--mono);font-size:11px;color:var(--verde);letter-spacing:2px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.ds-gdpr-dot{width:7px;height:7px;border-radius:50%;background:var(--verde);animation:dspulse 2s infinite;flex-shrink:0}
+@keyframes dspulse{0%,100%{opacity:1}50%{opacity:.25}}
+.ds-gdpr-desc{font-size:13px;color:var(--grigio);line-height:1.7}
+.ds-gdpr-desc strong{color:var(--testo);font-weight:500}
+
+/* Step indicator */
+.steps{display:flex;gap:0;margin-bottom:32px;border-bottom:1px solid var(--linea)}
+.step{flex:1;padding:14px 8px;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--grigio);text-align:center;border-bottom:2px solid transparent;transition:all .2s}
+.step.active{color:var(--blu);border-bottom-color:var(--blu);font-weight:500}
+.step.done{color:var(--verde)}
+.step-num{display:inline-block;width:20px;height:20px;line-height:20px;border-radius:50%;background:var(--bg3);margin-right:6px;font-size:10px}
+.step.active .step-num{background:var(--blu);color:#fff}
+.step.done .step-num{background:var(--verde);color:#fff}
+
+.panel{display:none}
+.panel.active{display:block;animation:fade .3s}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* Drop zone */
+.drop-zone{border:2px dashed var(--linea);padding:48px 36px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg2)}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--blu);background:#f0f4f9}
+.drop-icon{font-size:32px;margin-bottom:14px}
+.drop-text{font-size:15px;color:var(--grigio);margin-bottom:10px}
+.drop-text strong{color:var(--blu)}
+.drop-formats{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.fmt-badge{padding:3px 10px;font-family:var(--mono);font-size:10px;letter-spacing:.5px;background:var(--bg3);color:var(--grigio)}
+
+h2{font-family:var(--cg);font-size:28px;font-weight:400;color:var(--blu);margin-bottom:6px}
+.section-sub{font-size:13px;color:var(--grigio);margin-bottom:28px;line-height:1.7}
+
+/* Colonne classificate */
+.col-group{margin-bottom:28px}
+.col-group-title{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.col-group-title.util{color:var(--verde)}
+.col-group-title.ridon{color:var(--arancio)}
+.col-group-title.sconsig{color:var(--grigio)}
+.col-item{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border:1px solid var(--linea);margin-bottom:8px;background:var(--bg);transition:all .15s}
+.col-item.selected{border-color:var(--blu);background:#f0f4f9}
+.col-item.disabled{opacity:.55;background:var(--bg2)}
+.col-check{margin-top:3px;width:16px;height:16px;cursor:pointer;accent-color:var(--blu);flex-shrink:0}
+.col-info{flex:1;min-width:0}
+.col-name{font-family:var(--mono);font-size:13px;color:var(--testo);font-weight:500;margin-bottom:2px}
+.col-motivo{font-size:12px;color:var(--grigio);line-height:1.5}
+.col-tipo-badge{font-family:var(--mono);font-size:9px;letter-spacing:.5px;padding:2px 8px;border-radius:2px;margin-left:8px;text-transform:uppercase}
+.badge-cat{background:#e8eef6;color:var(--blu)}
+.badge-num{background:#fdf3e3;color:var(--arancio)}
+.badge-temp{background:#f0ebfa;color:#7c5cbf}
+.badge-flag{background:#e0f5e8;color:var(--verde)}
+
+.ridon-note{font-size:12px;color:var(--arancio);background:#fdf5e8;border:1px solid #e8d5a8;padding:10px 14px;margin-bottom:12px;line-height:1.6}
+
+/* Segmenti */
+.seg-controls{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px}
+.seg-count{font-family:var(--mono);font-size:11px;color:var(--grigio)}
+.seg-item{border:1px solid var(--linea);padding:18px 20px;margin-bottom:12px;background:var(--bg);transition:all .15s}
+.seg-item:hover{border-color:var(--blu2)}
+.seg-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:6px}
+.seg-label{font-size:15px;color:var(--testo);font-weight:400}
+.seg-stats{font-family:var(--mono);font-size:11px;color:var(--grigio);white-space:nowrap}
+.seg-bar-bg{height:4px;background:var(--bg3);margin:10px 0 14px;overflow:hidden}
+.seg-bar-fill{height:100%;background:var(--blu);transition:width .4s}
+.seg-dims{font-family:var(--mono);font-size:10px;color:var(--grigio);letter-spacing:.5px;text-transform:uppercase}
+.seg-actions{margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+.btn-primary{padding:13px 32px;background:var(--blu);color:#fff;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;border:none;cursor:pointer;transition:background .2s}
+.btn-primary:hover{background:var(--blu2)}
+.btn-primary:disabled{background:var(--bg3);color:var(--grigio);cursor:not-allowed}
+.btn-secondary{padding:13px 28px;background:transparent;color:var(--blu);font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;border:1px solid var(--blu);cursor:pointer;transition:all .2s}
+.btn-secondary:hover{background:var(--blu);color:#fff}
+.btn-bridge{padding:10px 20px;background:var(--blu);color:#fff;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;border:none;cursor:pointer;transition:background .2s}
+.btn-bridge:hover{background:var(--blu2)}
+.btn-row{margin-top:28px;display:flex;gap:12px;flex-wrap:wrap}
+
+/* Partizione */
+.dim-picker{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.dim-chip{padding:10px 18px;border:1px solid var(--linea);background:var(--bg);font-family:var(--mono);font-size:12px;cursor:pointer;transition:all .15s;user-select:none}
+.dim-chip:hover{border-color:var(--blu2)}
+.dim-chip.active{background:var(--blu);color:#fff;border-color:var(--blu)}
+.dim-chip.locked{opacity:.4;cursor:not-allowed}
+.part-coverage{font-family:var(--mono);font-size:11px;color:var(--grigio);background:var(--bg2);padding:12px 16px;margin-bottom:18px;border-left:2px solid var(--verde)}
+.part-coverage strong{color:var(--testo)}
+.cella-item{display:flex;align-items:flex-start;gap:14px;border:1px solid var(--linea);padding:16px 18px;margin-bottom:10px;background:var(--bg);transition:all .15s;cursor:pointer}
+.cella-item:hover{border-color:var(--blu2)}
+.cella-item.selected{border-color:var(--blu);background:#f0f4f9}
+.cella-check{margin-top:3px;width:16px;height:16px;cursor:pointer;accent-color:var(--blu);flex-shrink:0}
+.cella-info{flex:1;min-width:0}
+.cella-label{font-size:15px;color:var(--testo);margin-bottom:8px}
+.cella-stats{font-family:var(--mono);font-size:11px;color:var(--grigio);white-space:nowrap}
+.cella-bar-bg{height:4px;background:var(--bg3);margin-top:8px;overflow:hidden}
+.cella-bar-fill{height:100%;background:var(--blu)}
+
+/* Modal multi stacked */
+.mm-cell-block{border:1px solid var(--linea);padding:18px;margin-bottom:16px;background:var(--bg2)}
+.mm-cell-head{font-family:var(--mono);font-size:11px;color:var(--blu);letter-spacing:1px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--linea)}
+.mm-cell-head .n{color:var(--grigio)}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(26,26,24,.5);z-index:200;align-items:flex-start;justify-content:center;padding:40px 24px;overflow-y:auto}
+.modal-bg.active{display:flex}
+.modal{background:var(--bg);max-width:560px;width:100%;padding:36px;border:1px solid var(--linea);max-height:90vh;overflow-y:auto}
+.modal h3{font-family:var(--cg);font-size:24px;font-weight:400;color:var(--blu);margin-bottom:6px}
+.modal-seg{font-family:var(--mono);font-size:11px;color:var(--grigio);margin-bottom:24px;padding:10px 14px;background:var(--bg2);border-left:2px solid var(--accento)}
+.field-label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--blu);margin-bottom:8px}
+.field-hint{font-size:12px;color:var(--grigio);margin:6px 0 0;line-height:1.6}
+.field-select,.field-textarea{width:100%;padding:11px 14px;border:1px solid var(--linea);background:var(--bg);font-family:var(--sans);font-size:14px;color:var(--testo)}
+.field-textarea{min-height:120px;resize:vertical;line-height:1.6}
+.field-block{margin-bottom:22px}
+.ctx-warn{font-size:12px;color:var(--arancio);background:#fdf5e8;border:1px solid #e8d5a8;padding:10px 14px;margin-top:8px;line-height:1.6}
+.modal-actions{display:flex;gap:12px;justify-content:flex-end;margin-top:8px}
+
+footer{padding:32px 48px;border-top:1px solid var(--linea);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.footer-logo{font-family:var(--cg);font-size:18px;color:var(--blu)}
+.footer-copy{font-family:var(--mono);font-size:10px;color:var(--grigio);letter-spacing:.5px}
+
+/* Gate */
+.gate{min-height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px}
+.gate-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:4px;color:var(--accento);text-transform:uppercase;margin-bottom:16px}
+.gate h1{font-family:var(--cg);font-size:44px;font-weight:300;color:var(--blu);margin-bottom:28px;text-align:center}
+.gate h1 em{font-style:italic;color:var(--accento)}
+.gate-input{width:100%;max-width:360px;padding:14px 18px;border:1px solid var(--linea);background:#fffdf8;font-family:var(--mono);font-size:14px;text-align:center;letter-spacing:2px;margin-bottom:14px}
+.gate-err{color:var(--rosso);font-family:var(--mono);font-size:11px;letter-spacing:1px;min-height:16px;margin-top:10px}
+
+@media(max-width:640px){
+  nav,.hero,.wrap,footer{padding-left:20px;padding-right:20px}
+  .step{font-size:8px;letter-spacing:.5px}
+  .step-num{margin-right:0;display:block;margin:0 auto 4px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">PoliSim</a>
+  <div class="nav-right">
+    <span class="nav-tag" id="nav-user">Segmentatore</span>
+    <a href="/optimizer.html?tipo=ong" class="nav-link">Optimizer →</a>
+  </div>
+</nav>
+
+<!-- GATE -->
+<div id="gate" class="gate">
+  <div class="gate-eyebrow">PoliSim · Accesso riservato</div>
+  <h1>Segmentatore <em>Database</em></h1>
+  <input class="gate-input" id="gate-pwd" type="password" placeholder="Codice di accesso"
+         onkeydown="if(event.key==='Enter')checkGate()">
+  <button class="btn-primary" onclick="checkGate()">Accedi →</button>
+  <div class="gate-err" id="gate-err"></div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+  <div class="hero">
+    <div class="hero-eyebrow">Strumento · Segmentazione deterministica</div>
+    <h1>Segmenta il tuo <em>database</em></h1>
+    <p class="hero-sub">Carica un file di anagrafiche. Il sistema rileva i campi utilizzabili, propone i segmenti presenti nei dati con i conteggi reali, e per ciascuno apre il Message Optimizer. Tutto avviene nel tuo browser: nessun dato viene caricato o trasmesso.</p>
+  </div>
+
+  <div class="wrap">
+    <div class="steps">
+      <div class="step active" id="step-1"><span class="step-num">1</span>Carica</div>
+      <div class="step" id="step-2"><span class="step-num">2</span>Scegli i campi</div>
+      <div class="step" id="step-3"><span class="step-num">3</span>Segmenti</div>
+    </div>
+
+    <!-- PANEL 1 — CARICA -->
+    <div class="panel active" id="panel-1">
+      <div class="ds-gdpr-shield">
+        <div class="ds-gdpr-icon">🛡</div>
+        <div>
+          <div class="ds-gdpr-title"><span class="ds-gdpr-dot"></span>Data Shield · elaborazione locale</div>
+          <div class="ds-gdpr-desc"><strong>Nessun dato lascia questo dispositivo.</strong> Il file viene letto e analizzato interamente nel browser. PoliSim non riceve, non salva e non trasmette le tue anagrafiche. Quando passi al Message Optimizer viene trasferita solo la descrizione del segmento — mai i dati dei singoli contatti.</div>
+        </div>
+      </div>
+
+      <div class="drop-zone" id="drop-zone">
+        <div class="drop-icon">📂</div>
+        <div class="drop-text">Trascina qui il file, oppure <strong>clicca per selezionarlo</strong></div>
+        <div class="drop-formats">
+          <span class="fmt-badge">CSV</span>
+          <span class="fmt-badge">XLSX</span>
+          <span class="fmt-badge">XLS</span>
+        </div>
+      </div>
+      <input type="file" id="file-input" accept=".csv,.xlsx,.xls" style="display:none">
+    </div>
+
+    <!-- PANEL 2 — SCEGLI CAMPI -->
+    <div class="panel" id="panel-2">
+      <h2>Scegli i campi per la segmentazione</h2>
+      <p class="section-sub">Il sistema ha rilevato il tipo di ogni colonna. Spunta i campi che vuoi usare per segmentare. Sono pre-selezionati quelli utilizzabili; puoi togliere o aggiungere in base a cosa conosci dei tuoi dati. <strong>I campi senza valore informativo</strong> (identificatori, indirizzi, codici interni) sono esclusi automaticamente.</p>
+      <div id="cols-container"></div>
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="goStep(1)">← Indietro</button>
+        <button class="btn-primary" id="btn-segmenta" onclick="eseguiSegmentazione()">Genera segmenti →</button>
+      </div>
+    </div>
+
+    <!-- PANEL 3 — PARTIZIONE -->
+    <div class="panel" id="panel-3">
+      <h2>Segmenta in gruppi esclusivi</h2>
+      <p class="section-sub">Scegli <strong>uno o due campi</strong> con cui dividere i contatti. Il sistema crea gruppi <strong>mutuamente esclusivi</strong>: ogni contatto finisce in un solo gruppo, così ogni donatore riceve una sola lettera. Seleziona i gruppi che vuoi ottimizzare — anche tutti insieme.</p>
+
+      <div class="dim-picker" id="dim-picker"></div>
+      <p class="field-hint" style="margin:-8px 0 24px">Massimo due campi. Più campi = più gruppi, ciascuno più piccolo.</p>
+
+      <div id="part-coverage" class="part-coverage" style="display:none"></div>
+      <div id="celle-container"></div>
+
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="goStep(2)">← Cambia campi</button>
+        <button class="btn-primary" id="btn-ottimizza-sel" onclick="apriModalMulti()" disabled>Ottimizza i gruppi selezionati →</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span class="footer-logo">PoliSim</span>
+    <span class="footer-copy">© 2026 PoliSim · Elaborazione locale · Nessun dato trasmesso</span>
+  </footer>
+</div>
+
+<!-- BRIDGE MODAL MULTI -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <h3>Ottimizza i gruppi selezionati</h3>
+    <p class="field-hint" style="margin-bottom:20px">Per ogni gruppo scegli l'obiettivo della comunicazione. Si aprirà il Message Optimizer sul primo gruppo, già impostato con obiettivo e campi dell'organizzazione; lì scrivi il contesto e generi le varianti. Al termine di ciascuno passi al successivo.</p>
+    <div id="mm-blocks"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="chiudiModal()">Annulla</button>
+      <button class="btn-primary" onclick="preparaWorklist()">Prepara e apri Optimizer →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://api.polisim.dev';
+
+/* ═══ GATE / AUTENTICAZIONE ═══ */
+async function checkGate(){
+  const pwd=document.getElementById('gate-pwd').value.trim();
+  if(!pwd)return;
+  try{
+    const res=await fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({codice:pwd})});
+    if(!res.ok)throw new Error('non valido');
+    const data=await res.json();
+    sessionStorage.setItem('polisim_token',data.token);
+  }catch(e){
+    document.getElementById('gate-err').textContent='Codice non valido';
+    setTimeout(()=>document.getElementById('gate-err').textContent='',2500);
+    return;
+  }
+  document.getElementById('gate').style.display='none';
+  document.getElementById('app').style.display='block';
+}
+window.addEventListener('DOMContentLoaded',()=>{
+  if(sessionStorage.getItem('polisim_token')){
+    document.getElementById('gate').style.display='none';
+    document.getElementById('app').style.display='block';
+  }
+});
+
+/* ═══ MOTORE SEGMENTATORE (inline) ═══ */
+</script>
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   PoliSim — Motore di Segmentazione Deterministico
+   segmentatore.js · v0.1 · 16/06/2026
+
+   Logica pura, browser-only. Nessun dato lascia il client.
+   Quattro stadi:
+     1. detectTypes()    — rileva il tipo di ogni colonna
+     2. buildDimensions()— trasforma colonne in dimensioni di segmentazione
+     3. proposeSegments()— propone incroci informativi, scarta i piccoli
+     4. (bridge gestito dalla UI)
+
+   Il motore espone FATTI, non interpretazioni. Non sa cosa significhi
+   un campo: sa solo che tipo ha e come distribuisce i record.
+   ═══════════════════════════════════════════════════════════════ */
+
+(function (global) {
+  'use strict';
+
+  // ── Soglie configurabili ──────────────────────────────────────
+  const CONFIG = {
+    maxCategorieCardinali: 15,   // oltre = non categoriale (probabile testo/id)
+    sogliaIdentificatore: 0.9,   // % valori unici oltre cui = identificatore
+    minRecordSegmento: 30,       // segmenti sotto questa soglia vengono scartati
+    nTerzili: 3                  // numero di fasce per numeriche/temporali
+  };
+
+  // ── STADIO 1 — Rilevamento tipo colonna ───────────────────────
+  function detectTypes(righe, colonne) {
+    const tipi = {};
+    const n = righe.length;
+
+    for (const col of colonne) {
+      const valori = righe.map(r => r[col]).filter(v => v !== '' && v != null);
+      const nonVuoti = valori.length;
+      const unici = new Set(valori);
+      const nUnici = unici.size;
+
+      // Identificatore: quasi tutti valori unici
+      if (nonVuoti > 0 && nUnici / nonVuoti >= CONFIG.sogliaIdentificatore && nUnici > CONFIG.maxCategorieCardinali) {
+        tipi[col] = { tipo: 'identificatore', nUnici, nonVuoti, riempimento: nonVuoti / n };
+        continue;
+      }
+
+      // Booleana: il campo è pieno o vuoto (es. CHILD_GENDER), oppure 2 soli valori
+      const riempimento = nonVuoti / n;
+      if (nUnici <= 2 && riempimento < 0.98 && riempimento > 0.02) {
+        // Se molti vuoti, è una flag presenza/assenza
+        if (riempimento < 0.85) {
+          tipi[col] = { tipo: 'flag_presenza', nonVuoti, riempimento,
+                        valori: [...unici] };
+          continue;
+        }
+      }
+      if (nUnici === 2) {
+        tipi[col] = { tipo: 'booleana', nonVuoti, riempimento, valori: [...unici] };
+        continue;
+      }
+
+      // Temporale: i valori parsano come date
+      const quanteDate = valori.filter(v => isData(v)).length;
+      if (nonVuoti > 0 && quanteDate / nonVuoti >= 0.8) {
+        tipi[col] = { tipo: 'temporale', nonVuoti, riempimento };
+        continue;
+      }
+
+      // Numerica: i valori sono numeri con varianza
+      const quantiNum = valori.filter(v => isNumero(v)).length;
+      if (nonVuoti > 0 && quantiNum / nonVuoti >= 0.8 && nUnici > CONFIG.nTerzili) {
+        tipi[col] = { tipo: 'numerica', nonVuoti, riempimento };
+        continue;
+      }
+
+      // Categoriale: poche classi distinte
+      if (nUnici <= CONFIG.maxCategorieCardinali) {
+        tipi[col] = { tipo: 'categoriale', nUnici, nonVuoti, riempimento,
+                      valori: [...unici] };
+        continue;
+      }
+
+      // Resto: testo libero, escluso dalla segmentazione
+      tipi[col] = { tipo: 'testo_libero', nUnici, nonVuoti, riempimento };
+    }
+
+    return tipi;
+  }
+
+  // ── STADIO 1b — Rilevamento ridondanza tra colonne ────────────
+  // Due colonne sono ridondanti se conoscere l'una determina l'altra
+  // (es. PRODUCT/FUND/LETTERA: chi è "IO SAVE THE CHILDREN" ha sempre
+  //  lo stesso FUND e la stessa LETTERA). Calcolo: per ogni coppia di
+  //  colonne categoriali/booleane, verifico se la mappa A→B è una funzione
+  //  quasi deterministica (ogni valore di A mappa quasi sempre allo stesso B).
+  function detectRidondanze(righe, tipi) {
+    const segmentabili = Object.keys(tipi).filter(c =>
+      ['categoriale', 'booleana', 'flag_presenza'].includes(tipi[c].tipo));
+    const gruppi = [];   // ognuno è un array di colonne equivalenti
+    const assegnata = {};
+
+    function quasiDeterminante(colA, colB) {
+      // per ogni valore di A, qual è il valore B dominante? se domina >97% → determinante
+      const mappa = {};
+      let validi = 0;
+      for (const r of righe) {
+        const a = String(r[colA] ?? ''), b = String(r[colB] ?? '');
+        if (a === '' ) continue;
+        validi++;
+        mappa[a] = mappa[a] || {};
+        mappa[a][b] = (mappa[a][b] || 0) + 1;
+      }
+      if (validi === 0) return false;
+      let concordi = 0;
+      for (const a in mappa) {
+        const max = Math.max(...Object.values(mappa[a]));
+        concordi += max;
+      }
+      return concordi / validi >= 0.97;
+    }
+
+    for (let i = 0; i < segmentabili.length; i++) {
+      const colA = segmentabili[i];
+      if (assegnata[colA]) continue;
+      const gruppo = [colA];
+      assegnata[colA] = true;
+      for (let j = i + 1; j < segmentabili.length; j++) {
+        const colB = segmentabili[j];
+        if (assegnata[colB]) continue;
+        // ridondanti se A determina B E B determina A (equivalenza)
+        if (quasiDeterminante(colA, colB) && quasiDeterminante(colB, colA)) {
+          gruppo.push(colB);
+          assegnata[colB] = true;
+        }
+      }
+      if (gruppo.length > 1) gruppi.push(gruppo);
+    }
+    return gruppi;
+  }
+
+  // ── STADIO 1c — Classificazione utilizzabilità per la UI ───────
+  // Tre categorie: utilizzabile / sconsigliata / ridondante
+  function classifica(righe, tipi, ridondanze) {
+    // mappa colonna → gruppo ridondante (se appartiene a uno)
+    const inGruppo = {};
+    ridondanze.forEach((g, idx) => g.forEach(c => { inGruppo[c] = idx; }));
+
+    const out = {};
+    for (const [col, info] of Object.entries(tipi)) {
+      let categoria, motivo;
+
+      if (info.tipo === 'identificatore') {
+        categoria = 'sconsigliata';
+        motivo = `identificatore (${(info.riempimento * 100).toFixed(0)}% riempito, valori quasi tutti unici)`;
+      } else if (info.tipo === 'testo_libero') {
+        categoria = 'sconsigliata';
+        motivo = `testo libero (${info.nUnici} valori distinti)`;
+      } else if (['categoriale', 'booleana', 'flag_presenza', 'numerica', 'temporale'].includes(info.tipo)) {
+        categoria = 'utilizzabile';
+        motivo = etichettaTipo(info.tipo);
+        if (inGruppo[col] != null) {
+          categoria = 'ridondante';
+          const altre = ridondanze[inGruppo[col]].filter(c => c !== col);
+          motivo = `equivalente a: ${altre.join(', ')} — scegline una sola`;
+        }
+      } else {
+        categoria = 'sconsigliata';
+        motivo = info.tipo;
+      }
+
+      out[col] = { ...info, categoria, motivo, gruppoRidondante: inGruppo[col] ?? null };
+    }
+    return out;
+  }
+
+  function etichettaTipo(t) {
+    return {
+      categoriale: 'categoriale (un segmento per valore)',
+      booleana: 'due valori (split A/B)',
+      flag_presenza: 'presenza/assenza',
+      numerica: 'numerica (fasce: basso/medio/alto)',
+      temporale: 'temporale (fasce di anzianità)'
+    }[t] || t;
+  }
+
+  // ── STADIO 2 — Trasformazione colonne in dimensioni ───────────
+  // Accetta colonneScelte: se passato, costruisce dimensioni SOLO per quelle.
+  function buildDimensions(righe, tipi, colonneScelte) {
+    const dimensioni = [];
+
+    for (const [col, info] of Object.entries(tipi)) {
+      if (['identificatore', 'testo_libero'].includes(info.tipo)) continue;
+      // Se l'utente ha scelto un sottoinsieme, rispettalo
+      if (colonneScelte && !colonneScelte.includes(col)) continue;
+
+      if (info.tipo === 'categoriale' || info.tipo === 'booleana') {
+        dimensioni.push({
+          colonna: col,
+          tipo: info.tipo,
+          classi: info.valori.map(v => ({
+            etichetta: String(v),
+            test: r => String(r[col]) === String(v)
+          })),
+          descrizione: `${col} (${info.valori.length} valori)`
+        });
+      }
+
+      else if (info.tipo === 'flag_presenza') {
+        dimensioni.push({
+          colonna: col,
+          tipo: info.tipo,
+          classi: [
+            { etichetta: `${col}=presente`, test: r => r[col] !== '' && r[col] != null },
+            { etichetta: `${col}=assente`,  test: r => r[col] === '' || r[col] == null }
+          ],
+          descrizione: `${col} (presente / assente)`
+        });
+      }
+
+      else if (info.tipo === 'numerica') {
+        const valori = righe.map(r => parseNum(r[col])).filter(v => v != null).sort((a, b) => a - b);
+        const taglio = terzili(valori);
+        dimensioni.push({
+          colonna: col,
+          tipo: info.tipo,
+          classi: [
+            { etichetta: `${col} basso (≤${fmt(taglio.q1)})`,  test: r => { const v = parseNum(r[col]); return v != null && v <= taglio.q1; } },
+            { etichetta: `${col} medio`,                       test: r => { const v = parseNum(r[col]); return v != null && v > taglio.q1 && v <= taglio.q2; } },
+            { etichetta: `${col} alto (>${fmt(taglio.q2)})`,   test: r => { const v = parseNum(r[col]); return v != null && v > taglio.q2; } }
+          ],
+          descrizione: `${col} → terzili: ≤${fmt(taglio.q1)} / ${fmt(taglio.q1)}-${fmt(taglio.q2)} / >${fmt(taglio.q2)}`
+        });
+      }
+
+      else if (info.tipo === 'temporale') {
+        const oggi = new Date();
+        const mesi = righe.map(r => mesiDa(r[col], oggi)).filter(v => v != null).sort((a, b) => a - b);
+        if (mesi.length === 0) continue;
+        const taglio = terzili(mesi);
+        dimensioni.push({
+          colonna: col,
+          tipo: info.tipo,
+          classi: [
+            { etichetta: `${col} recente (≤${Math.round(taglio.q1)} mesi)`,    test: r => { const m = mesiDa(r[col], oggi); return m != null && m <= taglio.q1; } },
+            { etichetta: `${col} medio`,                                       test: r => { const m = mesiDa(r[col], oggi); return m != null && m > taglio.q1 && m <= taglio.q2; } },
+            { etichetta: `${col} remoto (>${Math.round(taglio.q2)} mesi)`,     test: r => { const m = mesiDa(r[col], oggi); return m != null && m > taglio.q2; } }
+          ],
+          descrizione: `${col} → fasce temporali calcolate dai dati`
+        });
+      }
+    }
+
+    return dimensioni;
+  }
+
+  // ── STADIO 3 — Proposta incroci ───────────────────────────────
+  function proposeSegments(righe, dimensioni) {
+    const n = righe.length;
+    const proposte = [];
+
+    // Segmenti a 1 dimensione
+    for (const dim of dimensioni) {
+      for (const classe of dim.classi) {
+        const count = righe.filter(classe.test).length;
+        if (count >= CONFIG.minRecordSegmento) {
+          proposte.push({
+            dimensioni: [dim.colonna],
+            etichette: [classe.etichetta],
+            test: classe.test,
+            count,
+            pct: count / n,
+            descrizioneFattuale: `${classe.etichetta} · ${count} record · ${(count / n * 100).toFixed(1)}%`
+          });
+        }
+      }
+    }
+
+    // Segmenti a 2 dimensioni (incroci)
+    for (let i = 0; i < dimensioni.length; i++) {
+      for (let j = i + 1; j < dimensioni.length; j++) {
+        const dimA = dimensioni[i], dimB = dimensioni[j];
+        for (const ca of dimA.classi) {
+          for (const cb of dimB.classi) {
+            const test = r => ca.test(r) && cb.test(r);
+            const count = righe.filter(test).length;
+            if (count >= CONFIG.minRecordSegmento) {
+              proposte.push({
+                dimensioni: [dimA.colonna, dimB.colonna],
+                etichette: [ca.etichetta, cb.etichetta],
+                test,
+                count,
+                pct: count / n,
+                descrizioneFattuale: `${ca.etichetta} + ${cb.etichetta} · ${count} record · ${(count / n * 100).toFixed(1)}%`
+              });
+            }
+          }
+        }
+      }
+    }
+
+    // Ordina per informatività: preferisci segmenti bilanciati (vicini al 50% per i singoli,
+    // o comunque sostanziosi) — qui ordiniamo per count decrescente ma penalizziamo
+    // i segmenti che coprono quasi tutto (poco informativi)
+    proposte.forEach(p => {
+      // informatività: massima quando il segmento è una frazione "utile" (10-60%)
+      const d = Math.abs(p.pct - 0.35);
+      p.informativita = 1 - d;
+    });
+    proposte.sort((a, b) => {
+      // prima gli incroci a 2 dimensioni (più specifici), poi per informatività
+      if (a.dimensioni.length !== b.dimensioni.length) return b.dimensioni.length - a.dimensioni.length;
+      return b.informativita - a.informativita;
+    });
+
+    return proposte;
+  }
+
+  // ── Helper ─────────────────────────────────────────────────────
+  function isNumero(v) {
+    if (v == null || v === '') return false;
+    const s = String(v).replace(/\./g, '').replace(',', '.').replace(/[€$\s]/g, '');
+    return !isNaN(parseFloat(s)) && isFinite(s);
+  }
+  function parseNum(v) {
+    if (!isNumero(v)) return null;
+    return parseFloat(String(v).replace(/\./g, '').replace(',', '.').replace(/[€$\s]/g, ''));
+  }
+  function isData(v) {
+    if (v == null || v === '') return false;
+    const s = String(v).trim();
+    // formati comuni: YYYY-MM-DD, DD/MM/YYYY, DD-MM-YYYY
+    if (/^\d{4}-\d{1,2}-\d{1,2}/.test(s)) return !isNaN(Date.parse(s));
+    if (/^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4}/.test(s)) return true;
+    return false;
+  }
+  function parseData(v) {
+    const s = String(v).trim();
+    if (/^\d{4}-\d{1,2}-\d{1,2}/.test(s)) return new Date(s);
+    const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+    if (m) return new Date(+m[3], +m[2] - 1, +m[1]);
+    return null;
+  }
+  function mesiDa(v, oggi) {
+    const d = parseData(v);
+    if (!d || isNaN(d)) return null;
+    return (oggi - d) / (1000 * 60 * 60 * 24 * 30.44);
+  }
+  function terzili(arr) {
+    if (arr.length === 0) return { q1: 0, q2: 0 };
+    const q1 = arr[Math.floor(arr.length / 3)];
+    const q2 = arr[Math.floor(arr.length * 2 / 3)];
+    return { q1, q2 };
+  }
+  function fmt(n) {
+    if (n == null) return '?';
+    if (Math.abs(n) >= 1000) return (n / 1000).toFixed(1) + 'k';
+    return Number.isInteger(n) ? String(n) : n.toFixed(1);
+  }
+
+  // Punteggio di leggibilità di una colonna: alto = nome e valori parlanti,
+  // basso = sembra un codice ID. Usato per scegliere il rappresentante di un
+  // gruppo ridondante (preferire PRODUCT a CAMPAIGN_ACTIVITY_CODE).
+  function leggibilita(col, info, righe) {
+    let score = 0;
+    // nome colonna: penalizza "code", "id", "cod"
+    const nome = col.toLowerCase();
+    if (/\b(code|id|cod|codice)\b/.test(nome)) score -= 3;
+    // valori: penalizza pattern da identificatore (ID_xxx, codici alfanumerici)
+    const campione = (info.valori || []).slice(0, 5).map(String);
+    const paionoCodici = campione.filter(v => /^[A-Z]{0,3}[_\-]?\d|^ID|^[A-Z0-9]{6,}$/i.test(v)).length;
+    if (campione.length > 0) score -= (paionoCodici / campione.length) * 3;
+    // bonus: valori con spazi/parole reali sono più leggibili
+    const paroleVere = campione.filter(v => /\s/.test(v) || /^[A-Za-zÀ-ù]{4,}$/.test(v)).length;
+    if (campione.length > 0) score += (paroleVere / campione.length) * 2;
+    return score;
+  }
+
+  // ── API pubblica ───────────────────────────────────────────────
+  global.Segmentatore = {
+    CONFIG,
+    detectTypes,
+    detectRidondanze,
+    classifica,
+    buildDimensions,
+    proposeSegments,
+
+    // FASE 1 — ispeziona il CSV: rileva tipi, ridondanze, classificazione
+    // per la UI di selezione colonne. Nessun segmento ancora.
+    ispeziona(righe, colonne) {
+      const tipi = detectTypes(righe, colonne);
+      const ridondanze = detectRidondanze(righe, tipi);
+      const colonne_classificate = classifica(righe, tipi, ridondanze);
+      // suggerimento default: tutte le utilizzabili + la colonna PIÙ LEGGIBILE
+      // di ogni gruppo ridondante (euristica: penalizza nomi/valori da codice ID)
+      const suggerite = [];
+      for (const [col, c] of Object.entries(colonne_classificate)) {
+        if (c.categoria === 'utilizzabile') suggerite.push(col);
+      }
+      ridondanze.forEach(gruppo => {
+        const migliore = gruppo
+          .map(col => ({ col, score: leggibilita(col, tipi[col], righe) }))
+          .sort((a, b) => b.score - a.score)[0];
+        if (migliore) suggerite.push(migliore.col);
+      });
+      return { tipi, ridondanze, colonne_classificate, suggerite };
+    },
+
+    // FASE 2 — segmenta usando SOLO le colonne scelte dall'utente
+    segmenta(righe, tipi, colonneScelte) {
+      const dimensioni = buildDimensions(righe, tipi, colonneScelte);
+      const segmenti = proposeSegments(righe, dimensioni);
+      return { dimensioni, segmenti };
+    },
+
+    // FASE 2b — PARTIZIONE: dato 1 o 2 campi, produce celle MUTUAMENTE
+    // ESCLUSIVE (ogni record in una sola cella). È il prodotto cartesiano
+    // delle classi: poiché le classi di ogni dimensione sono esclusive
+    // (un AMOUNT è esattamente basso O medio O alto), le celle non si
+    // sovrappongono. Garantisce spedizione coerente: una lettera per donatore.
+    partiziona(righe, tipi, dimColonne) {
+      const dims = buildDimensions(righe, tipi, dimColonne);
+      if (dims.length === 0) return { celle: [], coperti: 0, totale: righe.length };
+
+      let combos = dims[0].classi.map(c => ({
+        etichette: [c.etichetta], dimensioni: [dims[0].colonna], tests: [c.test]
+      }));
+      for (let k = 1; k < dims.length; k++) {
+        const next = [];
+        for (const combo of combos) {
+          for (const c of dims[k].classi) {
+            next.push({
+              etichette: [...combo.etichette, c.etichetta],
+              dimensioni: [...combo.dimensioni, dims[k].colonna],
+              tests: [...combo.tests, c.test]
+            });
+          }
+        }
+        combos = next;
+      }
+
+      const n = righe.length;
+      let coperti = 0;
+      const celle = combos.map(combo => {
+        const test = r => combo.tests.every(t => t(r));
+        const count = righe.filter(test).length;
+        return {
+          etichette: combo.etichette,
+          dimensioni: combo.dimensioni,
+          test, count, pct: count / n,
+          descrizioneFattuale: combo.etichette.join(' + ') + ' · ' + count + ' record · ' + (count / n * 100).toFixed(1) + '%'
+        };
+      }).filter(c => c.count > 0);
+
+      celle.forEach(c => coperti += c.count);
+      celle.sort((a, b) => b.count - a.count);
+      return { celle, coperti, totale: n, scoperti: n - coperti };
+    },
+
+    // pipeline completa (per test / uso diretto senza UI)
+    analizza(righe, colonne, colonneScelte) {
+      const tipi = detectTypes(righe, colonne);
+      const dimensioni = buildDimensions(righe, tipi, colonneScelte);
+      const segmenti = proposeSegments(righe, dimensioni);
+      return { tipi, dimensioni, segmenti };
+    }
+  };
+
+})(typeof window !== 'undefined' ? window : this);
+
+</script>
+<script>
+/* ═══ STATO ═══ */
+let RIGHE=[], COLONNE=[], INSP=null;
+
+/* ═══ NAVIGAZIONE STEP ═══ */
+function goStep(n){
+  for(let i=1;i<=3;i++){
+    document.getElementById('panel-'+i).classList.toggle('active',i===n);
+    const s=document.getElementById('step-'+i);
+    s.classList.toggle('active',i===n);
+    s.classList.toggle('done',i<n);
+  }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ═══ CARICAMENTO FILE ═══ */
+const dz=document.getElementById('drop-zone');
+const fi=document.getElementById('file-input');
+dz.addEventListener('click',()=>fi.click());
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag-over')});
+dz.addEventListener('dragleave',()=>dz.classList.remove('drag-over'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag-over');if(e.dataTransfer.files[0])leggiFile(e.dataTransfer.files[0])});
+fi.addEventListener('change',e=>{if(e.target.files[0])leggiFile(e.target.files[0])});
+
+function leggiFile(file){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'binary'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const json=XLSX.utils.sheet_to_json(ws,{defval:'',raw:false});
+      if(json.length===0){alert('Il file sembra vuoto.');return;}
+      RIGHE=json;
+      COLONNE=Object.keys(json[0]);
+      INSP=Segmentatore.ispeziona(RIGHE,COLONNE);
+      renderColonne();
+      goStep(2);
+    }catch(err){
+      alert('Errore nella lettura del file: '+err.message);
+    }
+  };
+  reader.readAsBinaryString(file);
+}
+
+/* ═══ RENDER SELEZIONE COLONNE ═══ */
+function tipoBadge(info){
+  const t=info.tipo;
+  if(t==='numerica')return '<span class="col-tipo-badge badge-num">numerica</span>';
+  if(t==='temporale')return '<span class="col-tipo-badge badge-temp">temporale</span>';
+  if(t==='flag_presenza')return '<span class="col-tipo-badge badge-flag">presenza</span>';
+  if(t==='categoriale'||t==='booleana')return '<span class="col-tipo-badge badge-cat">categoriale</span>';
+  return '';
+}
+
+function renderColonne(){
+  const cont=document.getElementById('cols-container');
+  const cls=INSP.colonne_classificate;
+  const suggerite=new Set(INSP.suggerite);
+
+  const util=[],ridon=[],sconsig=[];
+  for(const[col,c]of Object.entries(cls)){
+    if(c.categoria==='utilizzabile')util.push([col,c]);
+    else if(c.categoria==='ridondante')ridon.push([col,c]);
+    else sconsig.push([col,c]);
+  }
+
+  let html='';
+
+  if(util.length){
+    html+='<div class="col-group"><div class="col-group-title util">✓ Utilizzabili</div>';
+    util.forEach(([col,c])=>{
+      const sel=suggerite.has(col);
+      html+=colItem(col,c,sel,false);
+    });
+    html+='</div>';
+  }
+
+  if(ridon.length){
+    html+='<div class="col-group"><div class="col-group-title ridon">⚠ Campi equivalenti — scegline uno per gruppo</div>';
+    html+='<div class="ridon-note">Questi campi contengono la stessa informazione ripetuta. Selezionarne più di uno nello stesso gruppo non aggiunge valore. È pre-selezionato il più leggibile.</div>';
+    ridon.forEach(([col,c])=>{
+      const sel=suggerite.has(col);
+      html+=colItem(col,c,sel,false);
+    });
+    html+='</div>';
+  }
+
+  if(sconsig.length){
+    html+='<div class="col-group"><div class="col-group-title sconsig">✗ Esclusi — nessun valore per segmentare</div>';
+    sconsig.forEach(([col,c])=>{
+      html+=colItem(col,c,false,true);
+    });
+    html+='</div>';
+  }
+
+  cont.innerHTML=html;
+}
+
+function colItem(col,c,selected,disabled){
+  return `<label class="col-item ${selected?'selected':''} ${disabled?'disabled':''}">
+    <input type="checkbox" class="col-check" value="${col}" ${selected?'checked':''} ${disabled?'disabled':''}
+      onchange="this.closest('.col-item').classList.toggle('selected',this.checked)">
+    <div class="col-info">
+      <div class="col-name">${col}${tipoBadge(c)}</div>
+      <div class="col-motivo">${c.motivo}</div>
+    </div>
+  </label>`;
+}
+
+/* ═══ STEP 3 — PARTIZIONE ═══ */
+let COLONNE_SCELTE=[], DIM_ATTIVE=[], CELLE=[];
+
+function eseguiSegmentazione(){
+  const scelte=[...document.querySelectorAll('.col-check:checked')].map(cb=>cb.value);
+  if(scelte.length===0){alert('Seleziona almeno un campo.');return;}
+  COLONNE_SCELTE=scelte;
+  DIM_ATTIVE=[];
+  CELLE=[];
+  renderDimPicker();
+  document.getElementById('part-coverage').style.display='none';
+  document.getElementById('celle-container').innerHTML='';
+  aggiornaBtnOttimizza();
+  goStep(3);
+}
+
+function renderDimPicker(){
+  const pick=document.getElementById('dim-picker');
+  pick.innerHTML=COLONNE_SCELTE.map(col=>{
+    const attiva=DIM_ATTIVE.includes(col);
+    const locked=!attiva && DIM_ATTIVE.length>=2;
+    return `<div class="dim-chip ${attiva?'active':''} ${locked?'locked':''}" onclick="toggleDim('${col.replace(/'/g,"\\'")}')">${col}</div>`;
+  }).join('');
+}
+
+function toggleDim(col){
+  const i=DIM_ATTIVE.indexOf(col);
+  if(i>=0)DIM_ATTIVE.splice(i,1);
+  else{ if(DIM_ATTIVE.length>=2)return; DIM_ATTIVE.push(col); }
+  renderDimPicker();
+  if(DIM_ATTIVE.length>=1)calcolaPartizione();
+  else{ document.getElementById('part-coverage').style.display='none'; document.getElementById('celle-container').innerHTML=''; CELLE=[]; aggiornaBtnOttimizza(); }
+}
+
+function calcolaPartizione(){
+  const{celle,coperti,totale,scoperti}=Segmentatore.partiziona(RIGHE,INSP.tipi,DIM_ATTIVE);
+  CELLE=celle;
+  const cov=document.getElementById('part-coverage');
+  cov.style.display='block';
+  let txt=`<strong>${celle.length} gruppi esclusivi</strong> da ${DIM_ATTIVE.join(' × ')} · copertura ${(coperti/totale*100).toFixed(1)}% dei ${totale} contatti`;
+  if(scoperti>0)txt+=` · ${scoperti} contatti senza valore in uno dei campi (esclusi)`;
+  cov.innerHTML=txt;
+  renderCelle();
+}
+
+function renderCelle(){
+  const cont=document.getElementById('celle-container');
+  if(CELLE.length===0){cont.innerHTML='<p class="section-sub">Nessun gruppo con questi campi.</p>';aggiornaBtnOttimizza();return;}
+  cont.innerHTML=CELLE.map((c,i)=>`
+    <label class="cella-item selected">
+      <input type="checkbox" class="cella-check" data-i="${i}" checked onchange="onCellaToggle(this)">
+      <div class="cella-info">
+        <div class="cella-label">${c.etichette.join('  +  ')}</div>
+        <div class="cella-stats">${c.count} record · ${(c.pct*100).toFixed(1)}%</div>
+        <div class="cella-bar-bg"><div class="cella-bar-fill" style="width:${Math.min(100,c.pct*100)}%"></div></div>
+      </div>
+    </label>`).join('');
+  aggiornaBtnOttimizza();
+}
+
+function onCellaToggle(cb){
+  cb.closest('.cella-item').classList.toggle('selected',cb.checked);
+  aggiornaBtnOttimizza();
+}
+
+function celleSelezionate(){
+  return [...document.querySelectorAll('.cella-check:checked')].map(cb=>CELLE[+cb.dataset.i]);
+}
+
+function aggiornaBtnOttimizza(){
+  const n=document.querySelectorAll('.cella-check:checked').length;
+  const btn=document.getElementById('btn-ottimizza-sel');
+  btn.disabled=n===0;
+  btn.textContent=n===0?'Ottimizza i gruppi selezionati →':`Ottimizza ${n} grupp${n===1?'o':'i'} selezionat${n===1?'o':'i'} →`;
+}
+
+/* ═══ MODAL MULTI + WORKLIST ═══ */
+const OBIETTIVO_MAP={
+  riattivazione:   {engagement_level:'a_rischio',           tipo_campagna:'ong_fidelizzazione'},
+  fidelizzazione:  {engagement_level:'sostenitore',         tipo_campagna:'ong_fidelizzazione'},
+  lascito:         {engagement_level:'legacy_prospect',     tipo_campagna:'ong_lasciti'},
+  upgrade:         {engagement_level:'donatore_ricorrente', tipo_campagna:'ong_raccolta_fondi'},
+  raccolta:        {engagement_level:'prospect',            tipo_campagna:'ong_raccolta_fondi'}
+};
+const OBIETTIVO_LABELS={
+  riattivazione:'Riattivazione — donatore interrotto',
+  fidelizzazione:'Fidelizzazione — donatore attivo',
+  lascito:'Lasciti — proposta testamentaria',
+  upgrade:'Upgrade — aumento donazione',
+  raccolta:'Raccolta fondi — nuova donazione'
+};
+let CELLE_MODAL=[];
+
+function apriModalMulti(){
+  CELLE_MODAL=celleSelezionate();
+  if(CELLE_MODAL.length===0)return;
+  const blocks=document.getElementById('mm-blocks');
+  blocks.innerHTML=CELLE_MODAL.map((c,i)=>`
+    <div class="mm-cell-block">
+      <div class="mm-cell-head">GRUPPO ${i+1} <span class="n">· ${c.count} record</span><br>${c.etichette.join(' + ')}</div>
+      <div class="field-block" style="margin-bottom:0">
+        <label class="field-label">Obiettivo della comunicazione</label>
+        <select class="field-select mm-obiettivo" data-i="${i}">
+          ${Object.entries(OBIETTIVO_LABELS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}
+        </select>
+      </div>
+    </div>`).join('');
+  blocks.innerHTML+=`<div class="ctx-warn">Per ogni gruppo scriverai il <strong>contesto</strong> direttamente nel Message Optimizer, che si aprirà già impostato. Il contesto (chi è il gruppo, la sua storia, perché il rapporto si è interrotto) determina la qualità delle varianti: i dati non lo contengono, lo aggiungi tu.</div>`;
+  document.getElementById('modal-bg').classList.add('active');
+}
+
+function chiudiModal(){document.getElementById('modal-bg').classList.remove('active');}
+document.getElementById('modal-bg').addEventListener('click',e=>{if(e.target.id==='modal-bg')chiudiModal();});
+
+function preparaWorklist(){
+  const obiettivi=[...document.querySelectorAll('.mm-obiettivo')];
+  const gruppi=CELLE_MODAL.map((c,i)=>{
+    const map=OBIETTIVO_MAP[obiettivi[i].value];
+    return {
+      engagement_level:map.engagement_level,
+      tipo_campagna:map.tipo_campagna,
+      contesto:'',                       // si compila nell'Optimizer
+      etichetta:c.etichette.join(' + '),
+      n_record:c.count
+    };
+  });
+  // formato comune condiviso con il futuro bridge Propensione
+  sessionStorage.setItem('polisim_bridge',JSON.stringify({
+    origine:'segmentatore',
+    gruppi:gruppi
+  }));
+  window.location.href='/optimizer.html?tipo=ong&from=segmentatore';
+}
+</script>
+</body>
+</html>
