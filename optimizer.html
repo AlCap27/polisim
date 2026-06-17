@@ -641,21 +641,41 @@ function applicaBridge() {
 }
 
 function renderBridgeBanner(bridge, idx, g) {
-  let banner = document.getElementById('bridge-banner');
-  if (!banner) {
-    banner = document.createElement('div');
-    banner.id = 'bridge-banner';
-    banner.style.cssText = 'position:sticky;top:0;z-index:50;background:#1e3a5f;color:#fff;padding:12px 20px;font-family:monospace;font-size:12px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap';
-    document.body.insertBefore(banner, document.body.firstChild);
-  }
   const tot = bridge.gruppi.length;
   const altri = tot - idx - 1;
-  banner.innerHTML =
-    '<span>Dal segmentatore · <strong>Gruppo ' + (idx+1) + ' di ' + tot + '</strong> · ' +
-    (g.etichetta || '') + ' (' + (g.n_record||'?') + ' record) · scrivi il contesto e genera le varianti</span>' +
-    (altri > 0
-      ? '<button onclick="prossimoGruppoBridge()" style="background:#c8a96e;color:#1a1a18;border:none;padding:8px 16px;font-family:monospace;font-size:11px;letter-spacing:1px;cursor:pointer;text-transform:uppercase">Prossimo gruppo →</button>'
-      : '<button onclick="chiudiBridge()" style="background:transparent;color:#fff;border:1px solid #fff;padding:8px 16px;font-family:monospace;font-size:11px;letter-spacing:1px;cursor:pointer;text-transform:uppercase">Fine</button>');
+
+  const contenuto =
+    '<div style="display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;max-width:1100px;margin:0 auto">' +
+      '<span style="font-size:15px;line-height:1.5">Dal segmentatore · <strong style="font-size:17px">Gruppo ' + (idx+1) + ' di ' + tot + '</strong>' +
+      ' · <strong>' + (g.etichetta || '') + '</strong> (' + (g.n_record||'?') + ' record)<br>' +
+      '<span style="opacity:.85;font-size:13px">Scrivi il contesto qui sotto e genera le varianti' +
+      (altri > 0 ? ' · poi passa al gruppo successivo' : '') + '</span></span>' +
+      (altri > 0
+        ? '<button onclick="prossimoGruppoBridge()" style="background:#c8a96e;color:#1a1a18;border:none;padding:12px 22px;font-family:monospace;font-size:13px;letter-spacing:1px;cursor:pointer;text-transform:uppercase;white-space:nowrap">Prossimo gruppo (' + altri + ' rimast' + (altri===1?'o':'i') + ') →</button>'
+        : '<button onclick="chiudiBridge()" style="background:transparent;color:#fff;border:1px solid #fff;padding:12px 22px;font-family:monospace;font-size:13px;letter-spacing:1px;cursor:pointer;text-transform:uppercase;white-space:nowrap">Fine</button>') +
+    '</div>';
+
+  const stile = 'background:#1e3a5f;color:#fff;padding:16px 24px;font-family:monospace;z-index:50';
+
+  // banner in testa (sticky)
+  let top = document.getElementById('bridge-banner');
+  if (!top) {
+    top = document.createElement('div');
+    top.id = 'bridge-banner';
+    top.style.cssText = 'position:sticky;top:0;' + stile;
+    document.body.insertBefore(top, document.body.firstChild);
+  }
+  top.innerHTML = contenuto;
+
+  // banner in fondo (statico)
+  let bot = document.getElementById('bridge-banner-bottom');
+  if (!bot) {
+    bot = document.createElement('div');
+    bot.id = 'bridge-banner-bottom';
+    bot.style.cssText = stile;
+    document.body.appendChild(bot);
+  }
+  bot.innerHTML = contenuto;
 }
 
 function prossimoGruppoBridge() {
@@ -673,6 +693,8 @@ function chiudiBridge() {
   sessionStorage.removeItem('polisim_bridge_idx');
   const b = document.getElementById('bridge-banner');
   if (b) b.remove();
+  const bb = document.getElementById('bridge-banner-bottom');
+  if (bb) bb.remove();
 }
 window.addEventListener('DOMContentLoaded', () => {
   const p = new URLSearchParams(window.location.search);
