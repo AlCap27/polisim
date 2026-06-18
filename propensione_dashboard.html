@@ -201,6 +201,43 @@ nav{padding:20px 48px;border-bottom:1px solid var(--linea);display:flex;align-it
 .progress-bar-fill{height:4px;background:var(--blu);border-radius:2px;width:0;transition:width .3s}
 .progress-label{font-family:var(--mono);font-size:10px;color:var(--grigio);margin-top:8px}
 
+/* ── MAPPING COLONNE ── */
+.map-intro{max-width:760px;font-size:13px;color:var(--grigio);line-height:1.8;margin-bottom:32px}
+.map-intro strong{color:var(--testo);font-weight:500}
+.map-block{margin-bottom:44px}
+.map-block-title{font-family:var(--cg);font-size:26px;font-weight:300;color:var(--blu);margin-bottom:4px}
+.map-block-sub{font-family:var(--mono);font-size:11px;color:var(--grigio);margin-bottom:20px}
+.map-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.map-row{background:var(--bg2);border:1px solid var(--linea);padding:14px 16px;transition:border-color .15s}
+.map-row.mapped{border-color:rgba(45,122,79,.4)}
+.map-row.skipped{opacity:.65}
+.map-row-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:8px}
+.map-row-name{font-size:13px;font-weight:500;color:var(--testo);display:flex;align-items:center;gap:6px}
+.map-req-dot{width:6px;height:6px;border-radius:50%;background:var(--rosso);flex-shrink:0}
+.map-opt-dot{width:6px;height:6px;border-radius:50%;background:#ccc;flex-shrink:0}
+.map-row-status{font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:2px 8px;text-transform:uppercase;white-space:nowrap}
+.map-status-ok{background:#e8f5ee;color:var(--verde)}
+.map-status-miss{background:#fceaea;color:var(--rosso)}
+.map-status-opt{background:var(--bg3);color:var(--grigio)}
+.map-row-desc{font-size:12px;color:var(--grigio);line-height:1.5;margin-bottom:6px}
+.map-row-consequence{font-size:11px;color:var(--arancio);line-height:1.5;margin-bottom:8px}
+select.map-select{width:100%;background:#fff;border:1px solid var(--linea);color:var(--testo);font-family:var(--mono);font-size:12px;padding:7px 30px 7px 10px;cursor:pointer;outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;transition:border-color .15s}
+select.map-select:focus{border-color:var(--blu)}
+select.map-select.mapped{border-color:var(--verde);color:var(--verde)}
+.map-config-bar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:32px}
+.map-verify-box{background:var(--bg2);border:1px solid var(--linea);padding:24px;margin-top:8px}
+.map-verify-title{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--blu);margin-bottom:16px}
+.map-verify-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.map-verify-stat{background:#fff;border:1px solid var(--linea);padding:14px;text-align:center}
+.map-verify-num{font-family:var(--cg);font-size:26px;color:var(--blu);line-height:1}
+.map-verify-label{font-family:var(--mono);font-size:9px;color:var(--grigio);letter-spacing:.5px;margin-top:4px}
+.map-verify-warn{background:#fdf8f0;border:1px solid #e8d5a8;padding:10px 14px;font-family:var(--mono);font-size:11px;color:var(--arancio);line-height:1.8}
+.map-verify-ok{background:#f0faf4;border:1px solid #a7d7b8;padding:10px 14px;font-family:var(--mono);font-size:11px;color:var(--verde);line-height:1.8}
+.map-preview-wrap{margin-top:16px;overflow-x:auto}
+.map-preview-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px}
+.map-preview-table th{padding:6px 10px;text-align:left;color:var(--blu);border-bottom:1px solid var(--linea);white-space:nowrap;background:#fff}
+.map-preview-table td{padding:6px 10px;color:var(--grigio);border-bottom:1px solid var(--linea);white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis}
+
 /* ── RISULTATI ── */
 .metrics-header{padding:0 0 24px;border-bottom:1px solid var(--linea);margin-bottom:40px}
 .metrics-header h2{font-family:var(--cg);font-size:36px;font-weight:300;color:var(--blu);margin-bottom:24px}
@@ -259,7 +296,7 @@ footer{padding:24px 48px;border-top:1px solid var(--linea);display:flex;justify-
 
 @media(max-width:768px){
   nav,.hero,.panel,footer{padding-left:20px;padding-right:20px}
-  .upload-grid,.kpi-grid,.dyn-grid{grid-template-columns:1fr}
+  .upload-grid,.kpi-grid,.dyn-grid,.map-grid,.map-verify-grid{grid-template-columns:1fr}
   .lift-box{flex-direction:column;gap:16px}
   .step-btn span.step-label{display:none}
 }
@@ -275,7 +312,7 @@ footer{padding:24px 48px;border-top:1px solid var(--linea);display:flex;justify-
 <div class="hero">
   <div class="hero-eyebrow">Analisi donatori · Verticale ONG</div>
   <h1>Propensione<br><em>multi-obiettivo</em></h1>
-  <p class="hero-sub">Tre passi: anonimizza i tuoi dati, carica i CSV, ricevi 5 score di propensione per ogni donatore. Tutto elaborato localmente — nessun dato lascia il tuo browser.</p>
+  <p class="hero-sub">Quattro passi: anonimizza i tuoi dati, carica i CSV, associa le colonne ai campi del modello, ricevi 5 score di propensione per ogni donatore. Tutto elaborato localmente — nessun dato lascia il tuo browser.</p>
 </div>
 
 <!-- STEP NAV -->
@@ -290,6 +327,10 @@ footer{padding:24px 48px;border-top:1px solid var(--linea);display:flex;justify-
   </button>
   <button class="step-btn" id="step-btn-2" onclick="goStep(2)">
     <span class="step-num">3</span>
+    <span class="step-label">Mappa colonne</span>
+  </button>
+  <button class="step-btn" id="step-btn-3" onclick="goStep(3)">
+    <span class="step-num">4</span>
     <span class="step-label">Risultati</span>
   </button>
 </div>
@@ -597,12 +638,47 @@ footer{padding:24px 48px;border-top:1px solid var(--linea);display:flex;justify-
     </div>
   </details>
 
+  <div style="margin-top:32px">
+    <button class="btn-primary" id="btn-to-mapping" disabled onclick="apriMapping()">→ Vai al mapping colonne</button>
+  </div>
+</div>
+
+<!-- ═══ PANEL 2 — MAPPING COLONNE ═══ -->
+<div class="panel" id="panel-2">
+  <div class="section-label">Passo 3 — Associa le colonne</div>
+  <p class="map-intro">
+    Il motore si aspetta nomi colonna precisi. Se il tuo CSV usa nomi diversi, qui sotto li associ uno a uno:
+    per ogni campo trovi la conseguenza esatta se lo lasci <strong>non mappato</strong> — alcuni campi vengono semplicemente
+    imputati con un valore di default in modo silenzioso, altri impediscono il calcolo. Verifica anche il riquadro
+    di controllo qualità prima di procedere: associare i nomi giusti non basta se i <em>valori</em> di <code>donor_id</code>
+    non coincidono tra i due file.
+  </p>
+
+  <div class="map-config-bar">
+    <button class="btn-dl" onclick="document.getElementById('map-config-input').click()">↑ Carica configurazione mapping</button>
+    <input type="file" id="map-config-input" accept=".json" style="display:none" onchange="loadMappingConfig(this)">
+    <button class="btn-dl" onclick="saveMappingConfig()">↓ Salva configurazione mapping</button>
+  </div>
+
+  <div class="map-block">
+    <div class="map-block-title">Anagrafica donatori</div>
+    <div class="map-block-sub" id="map-ana-sub"></div>
+    <div class="map-grid" id="map-ana-grid"></div>
+  </div>
+
+  <div class="map-block">
+    <div class="map-block-title">Storico transazioni</div>
+    <div class="map-block-sub" id="map-tx-sub"></div>
+    <div class="map-grid" id="map-tx-grid"></div>
+  </div>
+
+  <div class="map-verify-box" id="map-verify-box" style="display:none"></div>
+
   <div style="margin-top:32px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <button class="btn-secondary" onclick="goStep(1)">← Torna al caricamento</button>
     <button class="btn-primary" id="btn-run" disabled onclick="eseguiCalcolo()">
       <span>▶</span> Calcola propensione
     </button>
-    <button class="btn-dl" id="btn-csv-inline" style="display:none" onclick="document.getElementById('btn-csv').click()">↓ CSV completo</button>
-    <button class="btn-dl" id="btn-top-inline" style="display:none" onclick="document.getElementById('btn-top').click()">↓ Top 20% per obiettivo</button>
   </div>
   <div id="progress-wrap">
     <div class="progress-bar-bg"><div class="progress-bar-fill" id="prog-fill"></div></div>
@@ -610,8 +686,8 @@ footer{padding:24px 48px;border-top:1px solid var(--linea);display:flex;justify-
   </div>
 </div>
 
-<!-- ═══ PANEL 2 — RISULTATI ═══ -->
-<div class="panel" id="panel-2">
+<!-- ═══ PANEL 3 — RISULTATI ═══ -->
+<div class="panel" id="panel-3">
   <div class="metrics-header">
     <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px">
       <h2 style="margin-bottom:0">Risultati analisi</h2>
@@ -650,7 +726,7 @@ footer{padding:24px 48px;border-top:1px solid var(--linea);display:flex;justify-
 // NAVIGAZIONE STEP
 // ═══════════════════════════════════════════════════════
 function goStep(n) {
-  [0,1,2].forEach(i => {
+  [0,1,2,3].forEach(i => {
     document.getElementById('panel-'+i).classList.toggle('active', i===n);
     const b = document.getElementById('step-btn-'+i);
     b.classList.toggle('active', i===n);
@@ -922,19 +998,286 @@ function molt(cap,ob){const pw=PESI_T[ob];if(!pw)return 1;const reg=capR(cap);co
 // ═══════════════════════════════════════════════════════
 // UPLOAD
 // ═══════════════════════════════════════════════════════
-let anaData=null, txData=null, risultati=null, liftPerOb={};
+let csvAna=null, csvTx=null, anaData=null, txData=null, risultati=null, liftPerOb={};
 
 function setupUp(inId,cardId,nmId,setter){
   const inp=document.getElementById(inId),card=document.getElementById(cardId),nm=document.getElementById(nmId);
-  const load=async f=>{const t=await f.text();setter(parseCSV(t).rows);nm.textContent='✓ '+f.name;card.classList.add('loaded');checkRdy();};
+  const load=async f=>{const t=await f.text();setter(parseCSV(t));nm.textContent='✓ '+f.name;card.classList.add('loaded');checkRdy();};
   inp.addEventListener('change',e=>{if(e.target.files[0])load(e.target.files[0]);});
   card.addEventListener('dragover',e=>{e.preventDefault();card.classList.add('dragover');});
   card.addEventListener('dragleave',()=>card.classList.remove('dragover'));
   card.addEventListener('drop',e=>{e.preventDefault();card.classList.remove('dragover');if(e.dataTransfer.files[0])load(e.dataTransfer.files[0]);});
 }
-function checkRdy(){document.getElementById('btn-run').disabled=!(anaData&&txData);}
-setupUp('file-ana','card-ana','name-ana',d=>{anaData=d;});
-setupUp('file-tx','card-tx','name-tx',d=>{txData=d;});
+function checkRdy(){document.getElementById('btn-to-mapping').disabled=!(csvAna&&csvTx);}
+setupUp('file-ana','card-ana','name-ana',d=>{csvAna=d;});
+setupUp('file-tx','card-tx','name-tx',d=>{csvTx=d;});
+
+// ═══════════════════════════════════════════════════════
+// MAPPING COLONNE — definizione campi, auto-detect, verifica
+// ═══════════════════════════════════════════════════════
+// req:true  → senza questo campo il calcolo per quel file è impossibile o privo di senso.
+// req:false → il motore prosegue comunque: 'consequence' descrive ESATTAMENTE cosa viene
+//             imputato in silenzio, per evitare l'errore che questo wizard nasce per prevenire.
+const ANA_FIELDS = [
+  { key:'donor_id', label:'ID donatore', req:true,
+    desc:'Chiave di join con il file transazioni.',
+    consequence:'Senza questo campo nessun donatore può essere associato alle sue transazioni: il calcolo non può proseguire.' },
+  { key:'anzianita_anni', label:'Anzianità (anni)', req:false,
+    desc:'Anni dal primo contatto con la ONG. Alimenta il segnale L (Longevity).',
+    consequence:'Se non mappato: L = 0 per tutti i donatori. Pesa 45% su lasciti e 20% su riattivazione — questi due punteggi risultano sistematicamente sottostimati, senza alcun avviso a calcolo concluso.' },
+  { key:'fascia_eta', label:'Fascia età', req:false,
+    desc:'Fascia anagrafica (es. 35-44, 65-74, 75+).',
+    consequence:'Se non mappato: nessun bonus demografico lasciti per le fasce 65-74/75+ (+12 punti) — score lasciti sottostimato per i donatori senior.' },
+  { key:'cap', label:'CAP', req:false,
+    desc:'Codice postale a 5 cifre. Abilita il moltiplicatore territoriale ISTAT.',
+    consequence:'Se non mappato: nessun moltiplicatore territoriale (range ±5/15% secondo obiettivo) e regione mostrata come "n/d" nei risultati.' },
+  { key:'canale_acquisizione', label:'Canale acquisizione', req:false,
+    desc:'web / direct_mail / eventi / passaparola / telefono / agenzia.',
+    consequence:'Se non mappato: il tag "engagement" (digitale/cartaceo/misto) viene stimato solo dal metodo di pagamento — meno preciso, solo informativo.' },
+  { key:'tipo_sostegno_prevalente', label:'Tipo sostegno prevalente', req:false,
+    desc:'Donazione ricorrente, singola, adozione a distanza.',
+    consequence:'Se non mappato: il tag di contesto resta vuoto nei risultati — non incide sui punteggi.' },
+  { key:'metodo_pagamento_prevalente', label:'Metodo pagamento prevalente', req:false,
+    desc:'RID_SEPA / bonifico_ricorrente → bonus regolarità nel segnale F.',
+    consequence:'Se non mappato: nessun bonus di regolarità (+0.25) al segnale F per pagamento ricorrente — F leggermente sottostimato.' },
+  { key:'volontariato', label:'Volontariato (0/1)', req:false,
+    desc:'Flag binario: il donatore fa anche volontariato.',
+    consequence:'Se non mappato: il tag "coinvolgimento" non riconosce i volontari — solo informativo, non incide sui punteggi.' },
+  { key:'eventi_partecipati', label:'Partecipazione eventi (0/1)', req:false,
+    desc:'Flag binario: ha partecipato a eventi dell\'organizzazione.',
+    consequence:'Se non mappato: il tag "coinvolgimento" non riconosce chi partecipa a eventi — solo informativo.' },
+  { key:'ha_risposto_campagna_lasciti', label:'Esito campagna — Lasciti (0/1)', req:false,
+    desc:'Variabile-esito: non entra nel modello, serve solo a misurare il lift.',
+    consequence:'Se non mappato (e assente anche "lascito_dichiarato"): il lift di validazione per Lasciti resta "non disponibile".' },
+  { key:'ha_risposto_campagna_upgrade', label:'Esito campagna — Upgrade (0/1)', req:false,
+    desc:'Variabile-esito: non entra nel modello, serve solo a misurare il lift.',
+    consequence:'Se non mappato: il lift di validazione per Upgrade resta "non disponibile".' },
+  { key:'ha_risposto_campagna_continuativo', label:'Esito campagna — Sostegno continuativo (0/1)', req:false,
+    desc:'Variabile-esito: non entra nel modello, serve solo a misurare il lift.',
+    consequence:'Se non mappato: il lift di validazione per Sostegno continuativo resta "non disponibile".' },
+  { key:'ha_risposto_campagna_riattivazione', label:'Esito campagna — Riattivazione (0/1)', req:false,
+    desc:'Variabile-esito: non entra nel modello, serve solo a misurare il lift.',
+    consequence:'Se non mappato: il lift di validazione per Riattivazione resta "non disponibile".' },
+  { key:'ha_risposto_campagna_oneoff', label:'Esito campagna — One-off emergenza (0/1)', req:false,
+    desc:'Variabile-esito: non entra nel modello, serve solo a misurare il lift.',
+    consequence:'Se non mappato: il lift di validazione per One-off emergenza resta "non disponibile".' },
+  { key:'lascito_dichiarato', label:'Lascito dichiarato — fallback (0/1)', req:false,
+    desc:'Usato solo se "Esito campagna — Lasciti" è assente.',
+    consequence:'Se non mappato e assente anche l\'esito campagna lasciti: nessun lift calcolabile per l\'obiettivo Lasciti.' },
+];
+
+const TX_FIELDS = [
+  { key:'donor_id', label:'ID donatore', req:true,
+    desc:'Deve corrispondere all\'ID nell\'anagrafica.',
+    consequence:'Senza questo campo le transazioni non possono essere associate a nessun donatore: il calcolo non può proseguire.' },
+  { key:'data_donazione', label:'Data donazione', req:true,
+    desc:'Formato YYYY-MM-DD o DD/MM/YYYY. Calcola R (recency) e M-trend.',
+    consequence:'Senza date valide le transazioni vengono scartate dal calcolo dei segnali: R e M-trend risultano vuoti per i donatori coinvolti.' },
+  { key:'importo_eur', label:'Importo (EUR)', req:true,
+    desc:'Importo numerico. Calcola M-livello (media) e M-trend (pendenza).',
+    consequence:'Senza importi numerici validi M-livello e M-trend vengono calcolati come 0 in modo silenzioso, falsando i punteggi.' },
+  { key:'metodo_pagamento', label:'Metodo pagamento (per transazione)', req:false,
+    desc:'Campo informativo per export/tracciabilità.',
+    consequence:'Non utilizzato dal motore di calcolo attuale — il segnale F usa solo il metodo prevalente dell\'anagrafica, non quello per singola transazione. Mappalo solo se ti serve nell\'export.' },
+  { key:'campagna', label:'Campagna / causale', req:false,
+    desc:'Nome della campagna associata alla transazione.',
+    consequence:'Non utilizzato dal motore di calcolo attuale — campo puramente informativo nell\'export.' },
+];
+
+// Alias come frasi leggibili (poi tokenizzate): coprono sia intestazioni "umane"
+// con spazi (es. "Anni di Anzianità") sia intestazioni concatenate da CRM
+// (es. "AnzianitaAnni", "donor_id", "ContactId").
+const MAP_ALIASES = {
+  donor_id:['donor id','id donatore','codice donatore','contact id','customer id','id cliente','member id','anagrafica id','id'],
+  anzianita_anni:['anzianita anni','anzianita','anni anzianita','tenure','tenure years','anni relazione','anni di relazione','years as donor'],
+  fascia_eta:['fascia eta','eta','age','classe eta','fascia anagrafica'],
+  cap:['cap','zip','zip code','postal code','codice postale','cap donatore'],
+  canale_acquisizione:['canale acquisizione','canale','source','lead source','acquisition channel'],
+  tipo_sostegno_prevalente:['tipo sostegno prevalente','tipo sostegno','tipologia donazione','donation type'],
+  metodo_pagamento_prevalente:['metodo pagamento prevalente','metodo pagamento','payment method','modalita pagamento'],
+  volontariato:['volontariato','volunteer','is volunteer'],
+  eventi_partecipati:['eventi partecipati','partecipazione eventi','events attended'],
+  ha_risposto_campagna_lasciti:['ha risposto campagna lasciti','risposta lasciti','campagna lasciti'],
+  ha_risposto_campagna_upgrade:['ha risposto campagna upgrade','risposta upgrade','campagna upgrade'],
+  ha_risposto_campagna_continuativo:['ha risposto campagna continuativo','risposta continuativo','campagna continuativo'],
+  ha_risposto_campagna_riattivazione:['ha risposto campagna riattivazione','risposta riattivazione','campagna riattivazione'],
+  ha_risposto_campagna_oneoff:['ha risposto campagna oneoff','risposta oneoff','campagna oneoff','campagna emergenza'],
+  lascito_dichiarato:['lascito dichiarato','has legacy','legacy declared'],
+  data_donazione:['data donazione','data','date','transaction date','data transazione'],
+  importo_eur:['importo eur','importo','amount','importo donazione','valore','eur'],
+  metodo_pagamento:['metodo pagamento','payment method','modalita pagamento'],
+  campagna:['campagna','campaign','causale','appeal'],
+};
+// Token normalizzati: minuscolo, accenti rimossi (NFD), separati su spazi/underscore/trattino/punto.
+// Necessario per intestazioni italiane reali (es. "Anzianità", "Età") e per non
+// dipendere dall'ordine esatto delle parole in colonne come "Anni di Anzianità".
+function mapTokens(s) {
+  return String(s||'')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase()
+    .split(/[\s_\-\.]+/)
+    .filter(Boolean);
+}
+function mapConcat(s) { return mapTokens(s).join(''); }
+
+function autoMatch(headers, key, used) {
+  const aliases = MAP_ALIASES[key]||[];
+  const cand = headers.filter(h=>!used.has(h)).map(h=>({h, concat:mapConcat(h), tokens:mapTokens(h)}));
+  // Passo 1 — match esatto su forma concatenata (gestisce snake_case/camelCase senza parole estranee).
+  for (const a of aliases) {
+    const aConcat = mapConcat(a);
+    const exact = cand.find(c=>c.concat===aConcat);
+    if (exact) return exact.h;
+  }
+  // Passo 2 — match a livello di token: tutti i token dell'alias devono comparire
+  // tra i token dell'intestazione, in qualsiasi ordine e con parole aggiuntive ammesse
+  // (es. alias "anni anzianita" trova "Anni di Anzianità").
+  for (const a of aliases) {
+    const aTokens = mapTokens(a);
+    const part = cand.find(c=>aTokens.every(t=>c.tokens.includes(t)));
+    if (part) return part.h;
+  }
+  return '';
+}
+
+function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+const mapState = { ana:{}, tx:{} };
+
+function apriMapping() {
+  buildMappingBlock('ana');
+  buildMappingBlock('tx');
+  updateMapGate();
+  goStep(2);
+}
+
+function buildMappingBlock(side) {
+  const fields = side==='ana' ? ANA_FIELDS : TX_FIELDS;
+  const csv = side==='ana' ? csvAna : csvTx;
+  document.getElementById('map-'+side+'-sub').textContent =
+    `${csv.rows.length.toLocaleString('it-IT')} righe · ${csv.headers.length} colonne rilevate`;
+  const used = new Set();
+  const grid = document.getElementById('map-'+side+'-grid');
+  grid.innerHTML = fields.map(f=>{
+    const existing = mapState[side][f.key];
+    const guess = (existing && csv.headers.includes(existing)) ? existing : autoMatch(csv.headers, f.key, used);
+    if (guess) used.add(guess);
+    mapState[side][f.key] = guess;
+    const mapped = !!guess;
+    const opts = ['<option value="">— non disponibile —</option>']
+      .concat(csv.headers.map(h=>`<option value="${escHtml(h)}"${h===guess?' selected':''}>${escHtml(h)}</option>`)).join('');
+    return `
+    <div class="map-row ${mapped?'mapped':(f.req?'':'skipped')}" id="maprow-${side}-${f.key}">
+      <div class="map-row-head">
+        <div class="map-row-name"><span class="${f.req?'map-req-dot':'map-opt-dot'}"></span>${escHtml(f.label)}</div>
+        <span class="map-row-status ${mapped?'map-status-ok':(f.req?'map-status-miss':'map-status-opt')}" id="mapstatus-${side}-${f.key}">${mapped?'mappato':(f.req?'mancante':'facoltativo')}</span>
+      </div>
+      <div class="map-row-desc">${escHtml(f.desc)}</div>
+      <div class="map-row-consequence">⚠ ${escHtml(f.consequence)}</div>
+      <select class="map-select ${mapped?'mapped':''}" id="mapsel-${side}-${f.key}" onchange="onMapChange('${side}','${f.key}',this)">${opts}</select>
+    </div>`;
+  }).join('');
+}
+
+function onMapChange(side, key, sel) {
+  const fields = side==='ana' ? ANA_FIELDS : TX_FIELDS;
+  const f = fields.find(x=>x.key===key);
+  mapState[side][key] = sel.value;
+  const row = document.getElementById(`maprow-${side}-${key}`);
+  const stat = document.getElementById(`mapstatus-${side}-${key}`);
+  const mapped = !!sel.value;
+  sel.classList.toggle('mapped', mapped);
+  row.classList.toggle('mapped', mapped);
+  row.classList.toggle('skipped', !mapped && !f.req);
+  stat.textContent = mapped ? 'mappato' : (f.req ? 'mancante' : 'facoltativo');
+  stat.className = `map-row-status ${mapped?'map-status-ok':(f.req?'map-status-miss':'map-status-opt')}`;
+  updateMapGate();
+}
+
+function mapRequiredOk() {
+  const anaOk = ANA_FIELDS.filter(f=>f.req).every(f=>mapState.ana[f.key]);
+  const txOk = TX_FIELDS.filter(f=>f.req).every(f=>mapState.tx[f.key]);
+  return anaOk && txOk;
+}
+
+function updateMapGate() {
+  const ok = mapRequiredOk();
+  document.getElementById('btn-run').disabled = !ok;
+  if (ok) runVerify(); else document.getElementById('map-verify-box').style.display='none';
+}
+
+// Costruisce un array di oggetti con chiavi canoniche a partire dal CSV grezzo + mapping.
+function buildRenamed(csv, mapping, fields) {
+  return csv.rows.map(row=>{
+    const o = {};
+    fields.forEach(f=>{ o[f.key] = mapping[f.key] ? (row[mapping[f.key]] ?? '') : ''; });
+    return o;
+  });
+}
+
+// Verifica a livello di VALORI (non solo di nomi colonna): tasso di join donor_id,
+// percentuale di date e importi effettivamente parsabili. Qui si intercetta il
+// secondo tipo di errore silenzioso — colonne mappate correttamente ma con dati
+// che non si incrociano o non sono nel formato atteso.
+function runVerify() {
+  const anaR = buildRenamed(csvAna, mapState.ana, ANA_FIELDS);
+  const txR = buildRenamed(csvTx, mapState.tx, TX_FIELDS);
+  const anaIds = new Set(anaR.map(r=>r.donor_id).filter(Boolean));
+  const txIds = new Set(txR.map(r=>r.donor_id).filter(Boolean));
+  const anaIdsValid = anaR.filter(r=>r.donor_id).length;
+  const txIdsValid = txR.filter(r=>r.donor_id).length;
+  const joinable = [...anaIds].filter(id=>txIds.has(id)).length;
+  const joinRate = anaIds.size ? Math.round(joinable/anaIds.size*1000)/10 : 0;
+  const dateOk = txR.filter(r=>r.data_donazione && pD(r.data_donazione)).length;
+  const dateRate = txR.length ? Math.round(dateOk/txR.length*1000)/10 : 0;
+  const importOk = txR.filter(r=>r.importo_eur!==''&&!isNaN(parseFloat(String(r.importo_eur).replace(',','.')))).length;
+  const importRate = txR.length ? Math.round(importOk/txR.length*1000)/10 : 0;
+
+  const warns = [];
+  if (joinRate < 80) warns.push(`Solo il ${joinRate}% dei donatori in anagrafica ha almeno una transazione associata. Se ti aspettavi una copertura più alta, controlla che il formato di donor_id sia identico nei due file (zero-padding, maiuscole, spazi).`);
+  if (dateRate < 95 && txR.length) warns.push(`Il ${(100-dateRate).toFixed(1)}% delle date transazione non è nel formato YYYY-MM-DD o DD/MM/YYYY e verrà scartato dal calcolo.`);
+  if (importRate < 95 && txR.length) warns.push(`Il ${(100-importRate).toFixed(1)}% degli importi non è numerico e verrà trattato come 0 nel calcolo di M-livello/M-trend.`);
+
+  const box = document.getElementById('map-verify-box');
+  box.style.display = 'block';
+  box.innerHTML = `
+    <div class="map-verify-title">Controllo qualità mapping</div>
+    <div class="map-verify-grid">
+      <div class="map-verify-stat"><div class="map-verify-num">${anaIdsValid.toLocaleString('it-IT')}</div><div class="map-verify-label">donatori anagrafica</div></div>
+      <div class="map-verify-stat"><div class="map-verify-num">${txIdsValid.toLocaleString('it-IT')}</div><div class="map-verify-label">transazioni</div></div>
+      <div class="map-verify-stat"><div class="map-verify-num">${joinRate}%</div><div class="map-verify-label">join donor_id riuscito</div></div>
+      <div class="map-verify-stat"><div class="map-verify-num">${dateRate}%</div><div class="map-verify-label">date parsate</div></div>
+    </div>
+    ${warns.length
+      ? `<div class="map-verify-warn">${warns.map(w=>'⚠ '+escHtml(w)).join('<br><br>')}</div>`
+      : `<div class="map-verify-ok">✓ Nessuna anomalia rilevata sui valori mappati.</div>`}
+  `;
+}
+
+function saveMappingConfig() {
+  const cfg = { version:'1.0', created:new Date().toISOString(), ana:mapState.ana, tx:mapState.tx };
+  const blob = new Blob([JSON.stringify(cfg,null,2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'polisim_mapping_config.json'; a.click();
+}
+
+function loadMappingConfig(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const cfg = JSON.parse(e.target.result);
+      mapState.ana = cfg.ana || {};
+      mapState.tx = cfg.tx || {};
+      if (csvAna) buildMappingBlock('ana');
+      if (csvTx) buildMappingBlock('tx');
+      updateMapGate();
+    } catch (err) {
+      alert('Configurazione non valida: ' + err.message);
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
+}
 
 // ═══════════════════════════════════════════════════════
 // MOTORE RFML
@@ -1017,9 +1360,12 @@ async function eseguiCalcolo(){
   pw.style.display='block';
   const sp=(p,l)=>{pf.style.width=p+'%';pl.textContent=l;};
   const tick=()=>new Promise(r=>setTimeout(r,50));
-  await tick();sp(20,'Calcolo segnali RFML...');await tick();
+  await tick();sp(10,'Applico il mapping colonne...');await tick();
+  anaData=buildRenamed(csvAna,mapState.ana,ANA_FIELDS);
+  txData=buildRenamed(csvTx,mapState.tx,TX_FIELDS);
+  sp(20,'Calcolo segnali RFML...');await tick();
   const fascia=Object.fromEntries(anaData.map(r=>[r.donor_id,(r.fascia_eta||'').trim()]));
-  const cap=Object.fromEntries(anaData.map(r=>[r.donor_id,(r.cap||r.cap_donatore||'').trim()]));
+  const cap=Object.fromEntries(anaData.map(r=>[r.donor_id,(r.cap||'').trim()]));
   const sg=calcolaSegnali(anaData,txData);
   sp(50,'Calcolo propensione multi-obiettivo...');await tick();
   const prop=calcolaProp(sg,fascia,cap);
@@ -1033,10 +1379,7 @@ async function eseguiCalcolo(){
   sp(100,`Completato — ${risultati.length} donatori analizzati`);
   renderAll();
   btn.disabled=false;
-  // Mostra bottoni download anche nel pannello upload
-  document.getElementById('btn-csv-inline').style.display='inline-flex';
-  document.getElementById('btn-top-inline').style.display='inline-flex';
-  goStep(2);
+  goStep(3);
 }
 
 // ═══════════════════════════════════════════════════════
