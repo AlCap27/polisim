@@ -1334,11 +1334,14 @@ function calcolaCtx(ana){
 }
 
 function calcolaLift(dati,ob){
-  // Usa ha_risposto_campagna_* se disponibile, altrimenti lascito_dichiarato per lascito
+  // Usa ha_risposto_campagna_* se disponibile, altrimenti lascito_dichiarato per lascito.
+  // NB: il controllo di presenza si basa su mapState (cosa l'utente ha effettivamente
+  // mappato), non sulla presenza della chiave in anaData — dopo il wizard di mapping
+  // ogni riga ha sempre tutte le chiavi canoniche definite (anche vuote), quindi un
+  // controllo r[col]!==undefined non distingue più "non mappato" da "mappato e vuoto".
   const col=ESITO_COL[ob];const colFb=ESITO_FALLBACK[ob];
-  // Controlla se la colonna esiste nei dati originali anagrafica
-  const haCol=anaData.some(r=>r[col]!==undefined);
-  const haFb=colFb&&anaData.some(r=>r[colFb]!==undefined);
+  const haCol=!!mapState.ana[col];
+  const haFb=!!(colFb&&mapState.ana[colFb]);
   if(!haCol&&!haFb)return null;
   const useCol=haCol?col:colFb;
   const posSet=new Set(anaData.filter(r=>r[useCol]==='1').map(r=>r.donor_id));
