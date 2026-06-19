@@ -241,12 +241,14 @@ select.map-select.mapped{border-color:var(--verde);color:var(--verde)}
 /* ── RISULTATI ── */
 .metrics-header{padding:0 0 24px;border-bottom:1px solid var(--linea);margin-bottom:40px}
 .metrics-header h2{font-family:var(--cg);font-size:36px;font-weight:300;color:var(--blu);margin-bottom:24px}
-.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px}
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 .kpi{background:var(--bg2);padding:20px;border-left:3px solid var(--linea);transition:border-color .2s}
 .kpi:hover{border-color:var(--blu)}
 .kpi-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--grigio);text-transform:uppercase;margin-bottom:8px}
 .kpi-val{font-family:var(--cg);font-size:32px;font-weight:300;color:var(--blu);line-height:1}
 .kpi-sub{font-family:var(--mono);font-size:9px;color:var(--grigio);margin-top:4px}
+.kpi.kpi-ob{background:#eef3f9;border-left-color:var(--blu)}
+.kpi.kpi-ob .kpi-label{color:var(--blu2)}
 
 .lift-box{background:var(--blu);color:#fff;padding:24px 32px;display:flex;align-items:center;gap:32px;margin-bottom:40px;transition:opacity .3s}
 .lift-val{font-family:var(--cg);font-size:56px;font-weight:300;color:var(--accento);line-height:1;min-width:100px}
@@ -713,8 +715,8 @@ footer{padding:24px 48px;border-top:1px solid var(--linea);display:flex;justify-
   <div class="download-bar">
     <button class="btn-dl" id="btn-csv">↓ CSV completo</button>
     <button class="btn-dl" id="btn-top">↓ Top 20% per obiettivo</button>
+    <button class="btn-dl" id="btn-bridge-opt" style="border-color:var(--accento);color:var(--accento)" onclick="bridgeVersoOptimizer()">→ Ottimizza messaggio per il Top 20% di questo obiettivo</button>
   </div>
-</div>
 
 <footer>
   <span class="footer-logo">PoliSim</span>
@@ -1389,12 +1391,41 @@ async function eseguiCalcolo(){
 // RENDER
 // ═══════════════════════════════════════════════════════
 let tabAttiva='lascito';
+// ── Bridge RFML → Message Optimizer (formato comune polisim_bridge) ──
+const OBIETTIVO_MAP_OPT = {
+  lascito:               {engagement_level:'legacy_prospect',     tipo_campagna:'ong_lasciti'},
+  upgrade:               {engagement_level:'donatore_ricorrente', tipo_campagna:'ong_raccolta_fondi'},
+  sostegno_continuativo: {engagement_level:'sostenitore',         tipo_campagna:'ong_fidelizzazione'},
+  riattivazione:         {engagement_level:'a_rischio',           tipo_campagna:'ong_fidelizzazione'},
+  one_off_emergenza:     {engagement_level:'prospect',            tipo_campagna:'ong_raccolta_fondi'}
+};
 
+function bridgeVersoOptimizer(){
+  if(!risultati || risultati.length===0){alert('Calcola prima la propensione.');return;}
+  const ob = tabAttiva;
+  const map = OBIETTIVO_MAP_OPT[ob];
+  if(!map){alert('Obiettivo non riconosciuto.');return;}
+  // Top 20% per l'obiettivo del tab attivo
+  const sorted = [...risultati].sort((a,b)=>b[ob]-a[ob]);
+  const cut = Math.max(1, Math.floor(sorted.length/5));
+  sessionStorage.setItem('polisim_bridge', JSON.stringify({
+    origine: 'propensione',
+    gruppi: [{
+      engagement_level: map.engagement_level,
+      tipo_campagna: map.tipo_campagna,
+      contesto: '',
+      etichetta: 'Top 20% propensione ' + OB_LBL[ob],
+      n_record: cut
+    }]
+  }));
+  window.location.href = '/optimizer.html?tipo=ong&from=propensione';
+}
 function renderAll(){
   // KPI
   const kg=document.getElementById('kpi-grid');kg.innerHTML='';
-  const conCap=risultati.filter(r=>r.regione_istat&&r.regione_istat!=='n/d').length;
-  [{label:'Donatori',val:risultati.length,sub:'analizzati'},{label:'Con CAP',val:conCap,sub:'layer territoriale'},...OBIETTIVI.map(o=>({label:OB_LBL[o],val:risultati.filter(r=>r.obiettivo_top===o).length,sub:'obiettivo dominante'}))].slice(0,5).forEach(k=>{kg.innerHTML+=`<div class="kpi"><div class="kpi-label">${k.label}</div><div class="kpi-val">${k.val}</div><div class="kpi-sub">${k.sub}</div></div>`;});
+  [{label:'Anagrafiche totali',val:risultati.length,sub:'analizzate',ob:false},
+   ...OBIETTIVI.map(o=>({label:OB_LBL[o],val:risultati.filter(r=>r.obiettivo_top===o).length,sub:'obiettivo dominante',ob:true}))
+  ].forEach(k=>{kg.innerHTML+=`<div class="kpi ${k.ob?'kpi-ob':''}"><div class="kpi-label">${k.label}</div><div class="kpi-val">${k.val}</div><div class="kpi-sub">${k.sub}</div></div>`;});
   // Tab nav
   const tn=document.getElementById('tab-nav');
   tn.innerHTML=OBIETTIVI.map(o=>`<button class="tab-btn ${o===tabAttiva?'active':''}" data-ob="${o}">${OB_LBL[o]} (${risultati.filter(r=>r.obiettivo_top===o).length})</button>`).join('');
