@@ -696,6 +696,1496 @@ footer{padding:24px 48px;border-top:1px solid var(--linea);display:flex;justify-
       <div style="display:flex;gap:10px">
         <button class="btn-dl" onclick="document.getElementById('btn-csv').click()">↓ CSV completo</button>
         <button class="btn-dl" onclick="document.getElementById('btn-top').click()">↓ Top 20% per obiettivo</button>
+        <button class="btn-dl" style="border-color:var(--accento);color:var(--accento)" onclick="bridgeVersoOptimizer()">→ Ottimizza per questo obiettivo</button>
+      </div>
+    </div>
+    <div class="kpi-grid" id="kpi-grid"></div>
+  </div>
+
+  <div id="lift-container"></div>
+
+  <div class="section-label">Donatori per obiettivo</div>
+  <div class="tab-nav" id="tab-nav"></div>
+  <div class="table-wrap"><table><thead id="table-head"></thead><tbody id="table-body"></tbody></table></div>
+
+  <div class="territorio-section" id="territorio-section">
+    <h3>Distribuzione territoriale</h3>
+    <div class="regioni-grid" id="regioni-grid"></div>
+  </div>
+
+  <div class="download-bar">
+    <button class="btn-dl" id="btn-csv">↓ CSV completo</button>
+    <button class="btn-dl" id="btn-top">↓ Top 20% per obiettivo</button>
+    <button class="btn-dl" id="btn-bridge-opt" style="border-color:var(--accento);color:var(--accento)" onclick="bridgeVersoOptimizer()">→ Ottimizza messaggio per il Top 20% di questo obiettivo</button>
+  </div>
+
+<footer>
+  <span class="footer-logo">PoliSim</span>
+  <span class="footer-copy">© 2026 PoliSim · Elaborazione locale · Nessun dato trasmesso</span>
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// NAVIGAZIONE STEP
+// ═══════════════════════════════════════════════════════
+function goStep(n) {
+  [0,1,2,3].forEach(i => {
+    document.getElementById('panel-'+i).classList.toggle('active', i===n);
+    const b = document.getElementById('step-btn-'+i);
+    b.classList.toggle('active', i===n);
+  });
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ═══════════════════════════════════════════════════════
+// DATA SHIELD — logica completa da anonimizza.html
+// ═══════════════════════════════════════════════════════
+
+const DS_ID_PATTERNS = {
+  remove:     ['nome','cognome','name','surname','email','mail','telefono','phone','tel',
+               'indirizzo','address','codicefiscale','cf','ssn','fiscal','iban','carta',
+               'passaporto','passport','pec','contatto'],
+  hash:       ['id','uid','userid','clienteid','memberid','codice','code','matricola',
+               'numero','token','ref','chiave','key'],
+  generalize: ['eta','age','anno','year','nascita','birth','reddito','income',
+               'stipendio','salary','cap','zip','postal','provincia','region',
+               'fatturato','budget'],
+};
+
+function dsDetectAction(col) {
+  const low = col.toLowerCase().replace(/[_\s\-\.]/g,'');
+  for (const [action, pats] of Object.entries(DS_ID_PATTERNS)) {
+    if (pats.some(p => low.includes(p))) return action;
+  }
+  return 'keep';
+}
+
+function dsHashVal(val) {
+  let h = 0;
+  for (let i = 0; i < String(val).length; i++) {
+    h = ((h << 5) - h) + String(val).charCodeAt(i); h |= 0;
+  }
+  return 'ID_' + Math.abs(h).toString(36).toUpperCase().padStart(8,'0');
+}
+
+function dsGeneralizeVal(val, col) {
+  const low = col.toLowerCase();
+  const num = parseFloat(String(val).replace(',','.'));
+  if (!isNaN(num)) {
+    if (low.includes('eta')||low.includes('age')||low.includes('nascita')||low.includes('birth')) {
+      const d = Math.floor(num/10)*10; return `${d}-${d+9}`;
+    }
+    if (low.includes('reddito')||low.includes('income')||low.includes('stipendio')||low.includes('salary')||low.includes('fatturato')) {
+      if (num<15000) return '<15k'; if (num<30000) return '15k-30k';
+      if (num<60000) return '30k-60k'; if (num<100000) return '60k-100k'; return '>100k';
+    }
+    if (low.includes('cap')||low.includes('zip')||low.includes('postal')) {
+      return String(Math.floor(num)).slice(0,2)+'XXX';
+    }
+    const b=Math.floor(num/10)*10; return `${b}-${b+9}`;
+  }
+  return val ? String(val).slice(0,2)+'***' : '';
+}
+
+function parseCSV(text) {
+  const lines = text.trim().split(/\r?\n/);
+  const sep = lines[0].includes(';') ? ';' : ',';
+  const headers = lines[0].split(sep).map(h => h.trim().replace(/^"|"$/g,''));
+  return {
+    headers,
+    rows: lines.slice(1).filter(l=>l.trim()).map(line => {
+      const vals = line.split(sep).map(v => v.trim().replace(/^"|"$/g,''));
+      const obj = {};
+      headers.forEach((h,i) => obj[h] = vals[i]||'');
+      return obj;
+    })
+  };
+}
+
+function dsParseCSVRaw(text) {
+  const lines = text.trim().split(/\r?\n/);
+  const sep = lines[0].includes(';') ? ';' : ',';
+  const headers = lines[0].split(sep).map(h=>h.trim().replace(/^"|"$/g,''));
+  const rows = lines.slice(1).filter(l=>l.trim()).map(l=>l.split(sep).map(v=>v.trim().replace(/^"|"$/g,'')));
+  return {headers,rows};
+}
+
+function dsParseXLSX(buffer) {
+  const wb = XLSX.read(buffer, {type:'array'});
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const data = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+  const headers = data[0].map(h=>String(h).trim());
+  const rows = data.slice(1).filter(r=>r.some(v=>v!=='')).map(r=>r.map(v=>String(v===null||v===undefined?'':v)));
+  return {headers,rows};
+}
+
+let dsState = {parsed:null, actions:[], result:null, fileName:'', fileType:'csv'};
+const DS_ACTION_LABELS = {remove:'RIMUOVI', hash:'HASH', generalize:'GENERALIZZA', keep:'MANTIENI'};
+const DS_ACTION_CLASS  = {remove:'ds-s-remove', hash:'ds-s-hash', generalize:'ds-s-gen', keep:'ds-s-keep'};
+
+function dsRenderCols() {
+  const grid = document.getElementById('ds-colGrid');
+  grid.innerHTML = '';
+  dsState.parsed.headers.forEach((col,i) => {
+    const act = dsState.actions[i];
+    const sample = dsState.parsed.rows.slice(0,2).map(r=>r[i]||'—').join(' · ');
+    const div = document.createElement('div');
+    div.className = 'ds-col-row';
+    div.innerHTML = `
+      <div>
+        <div class="ds-col-name">${col}</div>
+        <div class="ds-col-sample">es. ${sample}</div>
+      </div>
+      <div class="ds-status-badge ${DS_ACTION_CLASS[act]}" id="ds-badge-${i}">${DS_ACTION_LABELS[act]}</div>
+      <div class="ds-col-action">
+        <button class="ds-action-btn ds-btn-remove ${act==='remove'?'active':''}" onclick="dsSetAction(${i},'remove')">RIM</button>
+        <button class="ds-action-btn ds-btn-hash   ${act==='hash'?'active':''}"   onclick="dsSetAction(${i},'hash')">HSH</button>
+        <button class="ds-action-btn ds-btn-gen    ${act==='generalize'?'active':''}" onclick="dsSetAction(${i},'generalize')">GEN</button>
+        <button class="ds-action-btn ds-btn-keep   ${act==='keep'?'active':''}"   onclick="dsSetAction(${i},'keep')">MAN</button>
+      </div>`;
+    grid.appendChild(div);
+  });
+  dsUpdateStats();
+}
+
+function dsSetAction(i, action) {
+  dsState.actions[i] = action;
+  const badge = document.getElementById(`ds-badge-${i}`);
+  badge.className = `ds-status-badge ${DS_ACTION_CLASS[action]}`;
+  badge.textContent = DS_ACTION_LABELS[action];
+  const row = document.getElementById('ds-colGrid').children[i];
+  if (row) {
+    row.querySelectorAll('.ds-action-btn').forEach(btn => {
+      const acts = ['remove','hash','generalize','keep'];
+      const labels = ['RIM','HSH','GEN','MAN'];
+      const idx = labels.indexOf(btn.textContent.trim());
+      btn.classList.toggle('active', idx>=0 && acts[idx]===action);
+    });
+  }
+  dsUpdateStats();
+}
+
+function dsUpdateStats() {
+  const counts = {remove:0,hash:0,generalize:0,keep:0};
+  dsState.actions.forEach(a=>{counts[a]=(counts[a]||0)+1;});
+  document.getElementById('ds-cntRemove').textContent = counts.remove;
+  document.getElementById('ds-cntHash').textContent   = counts.hash;
+  document.getElementById('ds-cntGen').textContent    = counts.generalize;
+  document.getElementById('ds-cntKeep').textContent   = counts.keep;
+  const p = dsState.parsed;
+  const gdpr = (counts.remove>0||counts.hash>0) ? '✓ Pseudonimizzazione applicata' : '⚠ Nessuna trasformazione selezionata';
+  document.getElementById('ds-reportText').innerHTML = `
+    File: <span>${dsState.fileName}</span><br>
+    Formato: <span>${dsState.fileType.toUpperCase()}</span> · <span>${p.rows.length}</span> record · <span>${p.headers.length}</span> colonne<br>
+    Colonne rimosse: <span>${counts.remove}</span> — identificatori diretti eliminati<br>
+    Colonne hash: <span>${counts.hash}</span> — ID pseudonimizzati (GDPR Art. 4.5)<br>
+    Colonne generalizzate: <span>${counts.generalize}</span> — riduzione granularità<br>
+    Elaborazione: <span>100% locale — nessun dato inviato a server</span><br>
+    Conformità GDPR: <span>${gdpr}</span>
+  `;
+}
+
+function dsRunAnon() {
+  const {headers,rows} = dsState.parsed;
+  const acts = dsState.actions;
+  const outHeaders = headers.filter((_,i)=>acts[i]!=='remove');
+  const outRows = rows.map(row =>
+    headers.map((col,i) => {
+      const val = row[i]||'';
+      if (acts[i]==='remove') return null;
+      if (acts[i]==='hash') return dsHashVal(val);
+      if (acts[i]==='generalize') return dsGeneralizeVal(val,col);
+      return val;
+    }).filter(v=>v!==null)
+  );
+  dsState.result = {outHeaders,outRows};
+  document.getElementById('ds-resultCard').classList.remove('ds-hidden');
+  document.getElementById('ds-resultReport').innerHTML = `
+    Record elaborati: <span>${outRows.length}</span><br>
+    Colonne output: <span>${outHeaders.length}</span> (da ${headers.length} originali)<br>
+    File originale: <span>NON modificato — rimane invariato sul tuo computer</span><br>
+    Dati inviati a PoliSim: <span>nessuno — solo il CSV anonimizzato scaricato localmente</span><br>
+    Pronto per caricamento: <span>✓</span>
+  `;
+  const table = document.getElementById('ds-previewTable');
+  const preview = outRows.slice(0,6);
+  table.innerHTML = `<thead><tr>${outHeaders.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+    <tbody>${preview.map(row=>`<tr>${row.map(v=>`<td>${v||'—'}</td>`).join('')}</tr>`).join('')}</tbody>`;
+  const more = document.getElementById('ds-moreRows');
+  if (outRows.length>6){more.textContent=`+ ${outRows.length-6} record non mostrati`;more.classList.remove('ds-hidden');}
+  document.getElementById('ds-resultCard').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function dsDownloadCSV() {
+  if (!dsState.result) return;
+  const {outHeaders,outRows} = dsState.result;
+  const csv = ['\uFEFF'+outHeaders.join(','), ...outRows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','))].join('\n');
+  const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = dsState.fileName.replace(/\.(xlsx?|csv|txt)$/i,'')+'_anonimizzato.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function dsHandleFile(file) {
+  if (!file) return;
+  dsState.fileName = file.name;
+  dsState.result = null;
+  const isXLSX = /\.(xlsx?|xls)$/i.test(file.name);
+  dsState.fileType = isXLSX ? 'excel' : 'csv';
+  document.getElementById('ds-dropText').innerHTML = `<strong>${file.name}</strong> — caricamento...`;
+  const reader = new FileReader();
+  if (isXLSX) {
+    reader.onload = e => {
+      try { dsState.parsed = dsParseXLSX(new Uint8Array(e.target.result)); dsFinishLoad(); }
+      catch(err) { document.getElementById('ds-dropText').innerHTML = `<strong>Errore lettura Excel</strong> — ${err.message}`; }
+    };
+    reader.readAsArrayBuffer(file);
+  } else {
+    reader.onload = e => { dsState.parsed = dsParseCSVRaw(e.target.result); dsFinishLoad(); };
+    reader.readAsText(file,'UTF-8');
+  }
+}
+
+function dsFinishLoad() {
+  const p = dsState.parsed;
+  dsState.actions = p.headers.map(h=>dsDetectAction(h));
+  document.getElementById('ds-dropText').innerHTML = `<strong>${dsState.fileName}</strong> — ${p.rows.length} righe · ${p.headers.length} colonne`;
+  document.getElementById('ds-dropZone').style.borderStyle = 'solid';
+  document.getElementById('ds-dropZone').style.borderColor = 'var(--verde)';
+  document.getElementById('ds-colCard').classList.remove('ds-hidden');
+  document.getElementById('ds-statsCard').classList.remove('ds-hidden');
+  document.getElementById('ds-resultCard').classList.add('ds-hidden');
+  dsRenderCols();
+}
+
+const dsDz = document.getElementById('ds-dropZone');
+dsDz.addEventListener('dragover', e=>{e.preventDefault();dsDz.classList.add('drag-over');});
+dsDz.addEventListener('dragleave', ()=>dsDz.classList.remove('drag-over'));
+dsDz.addEventListener('drop', e=>{e.preventDefault();dsDz.classList.remove('drag-over');dsHandleFile(e.dataTransfer.files[0]);});
+document.getElementById('ds-fileInput').addEventListener('change', e=>dsHandleFile(e.target.files[0]));
+
+// ═══════════════════════════════════════════════════════
+// COSTANTI RFML
+// ═══════════════════════════════════════════════════════
+const PESI={lascito:{R:.05,F:.30,M_livello:.05,M_trend:.15,L:.45},upgrade:{R:.20,F:.20,M_livello:.15,M_trend:.35,L:.10},sostegno_continuativo:{R:.30,F:.35,M_livello:.10,M_trend:.10,L:.15},riattivazione:{R:.45,F:.25,M_livello:.05,M_trend:.05,L:.20},one_off_emergenza:{R:.45,F:.30,M_livello:.15,M_trend:.05,L:.05}};
+const OBIETTIVI=Object.keys(PESI);
+const R_INV=new Set(['riattivazione']);
+const MET_RIC=new Set(['RID_SEPA','bonifico_ricorrente']);
+const L_SAT=20;
+const BONUS_DEM={lascito:{'35-44':0,'45-54':0,'55-64':0,'65-74':12,'75+':12}};
+const PESI_T={lascito:{o:.50,r:.30,g:-.20,c:.15},upgrade:{o:.00,r:.60,g:-.40,c:.10},sostegno_continuativo:{o:-.10,r:.60,g:-.30,c:.10},riattivazione:{o:.05,r:.60,g:-.35,c:.05},one_off_emergenza:{o:.15,r:.50,g:-.35,c:.12}};
+const ISTAT={Piemonte:{o:25.2,r:28500,g:.312},"Valle d'Aosta":{o:24.3,r:31200,g:.298},Lombardia:{o:23.7,r:33100,g:.315},Liguria:{o:28.7,r:26800,g:.321},'Trentino-Alto Adige':{o:22.1,r:34400,g:.289},Veneto:{o:23.7,r:29600,g:.305},'Friuli-Venezia Giulia':{o:26.0,r:27100,g:.308},'Emilia-Romagna':{o:24.6,r:31800,g:.307},Toscana:{o:26.2,r:28100,g:.318},Umbria:{o:27.1,r:23600,g:.323},Marche:{o:26.6,r:23800,g:.318},Lazio:{o:23.9,r:28600,g:.334},Abruzzo:{o:26.3,r:21800,g:.329},Molise:{o:28.7,r:18700,g:.331},Campania:{o:21.2,r:17100,g:.365},Puglia:{o:22.9,r:18100,g:.352},Basilicata:{o:27.8,r:17600,g:.334},Calabria:{o:23.0,r:16500,g:.368},Sicilia:{o:21.9,r:17100,g:.371},Sardegna:{o:25.8,r:20800,g:.341}};
+const ISTAT_NAZ={o:24.1,r:24700,g:.328};
+const CAP_REG={'00':'Lazio','01':'Lazio','02':'Lazio','03':'Lazio','04':'Lazio','05':'Umbria','06':'Umbria','07':'Sardegna','08':'Sardegna','09':'Sardegna','10':'Piemonte','11':"Valle d'Aosta",'12':'Piemonte','13':'Piemonte','14':'Piemonte','15':'Piemonte','16':'Liguria','17':'Liguria','18':'Liguria','19':'Liguria','20':'Lombardia','21':'Lombardia','22':'Lombardia','23':'Lombardia','24':'Lombardia','25':'Lombardia','26':'Lombardia','27':'Lombardia','28':'Piemonte','29':'Emilia-Romagna','30':'Veneto','31':'Veneto','32':'Veneto','33':'Friuli-Venezia Giulia','34':'Friuli-Venezia Giulia','35':'Veneto','36':'Veneto','37':'Veneto','38':'Trentino-Alto Adige','39':'Trentino-Alto Adige','40':'Emilia-Romagna','41':'Emilia-Romagna','42':'Emilia-Romagna','43':'Emilia-Romagna','44':'Emilia-Romagna','45':'Emilia-Romagna','46':'Emilia-Romagna','47':'Emilia-Romagna','48':'Emilia-Romagna','50':'Toscana','51':'Toscana','52':'Toscana','53':'Toscana','54':'Toscana','55':'Toscana','56':'Toscana','57':'Toscana','58':'Toscana','59':'Toscana','60':'Marche','61':'Marche','62':'Marche','63':'Marche','64':'Abruzzo','65':'Abruzzo','66':'Abruzzo','67':'Abruzzo','68':'Molise','69':'Molise','70':'Puglia','71':'Puglia','72':'Puglia','73':'Puglia','74':'Puglia','75':'Basilicata','76':'Puglia','80':'Campania','81':'Campania','82':'Campania','83':'Campania','84':'Campania','85':'Basilicata','86':'Molise','87':'Calabria','88':'Calabria','89':'Calabria','90':'Sicilia','91':'Sicilia','92':'Sicilia','93':'Sicilia','94':'Sicilia','95':'Sicilia','96':'Sicilia','97':'Sicilia','98':'Sicilia'};
+
+// Mapping obiettivo → colonna esito campagna
+const ESITO_COL={lascito:'ha_risposto_campagna_lasciti',upgrade:'ha_risposto_campagna_upgrade',sostegno_continuativo:'ha_risposto_campagna_continuativo',riattivazione:'ha_risposto_campagna_riattivazione',one_off_emergenza:'ha_risposto_campagna_oneoff'};
+// Fallback: lascito_dichiarato per lascito se ha_risposto non c'è
+const ESITO_FALLBACK={lascito:'lascito_dichiarato'};
+
+const OB_LBL={lascito:'Lasciti',upgrade:'Upgrade',sostegno_continuativo:'Sostegno cont.',riattivazione:'Riattivazione',one_off_emergenza:'One-off'};
+const OB_CLR={lascito:'badge-blu',upgrade:'badge-verde',sostegno_continuativo:'badge-verde',riattivazione:'badge-arancio',one_off_emergenza:'badge-rosso'};
+
+// ═══════════════════════════════════════════════════════
+// UTILITY
+// ═══════════════════════════════════════════════════════
+function pD(s){if(!s)return null;const m=s.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);if(m)return new Date(+m[1],+m[2]-1,+m[3]);const m2=s.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);if(m2)return new Date(+m2[3],+m2[2]-1,+m2[1]);return null;}
+function pF(s,d=0){const v=parseFloat(String(s||'').replace(',','.').trim());return isNaN(v)?d:v;}
+function avg(a){return a.length?a.reduce((x,y)=>x+y,0)/a.length:0;}
+function pstd(a){const m=avg(a);return Math.sqrt(a.reduce((x,y)=>x+(y-m)**2,0)/a.length);}
+function capR(cap){if(!cap)return null;return CAP_REG[String(cap).trim().padStart(5,'0').slice(0,2)]||null;}
+function molt(cap,ob){const pw=PESI_T[ob];if(!pw)return 1;const reg=capR(cap);const d=(reg&&ISTAT[reg])?ISTAT[reg]:ISTAT_NAZ;const on=(d.o-24.1)/4.5,rn=(d.r-24700)/9000,gn=-(d.g-.328)/.04;const sc=pw.o*on+pw.r*rn+pw.g*gn;return Math.round((1+Math.max(-pw.c,Math.min(pw.c,sc*pw.c)))*1e4)/1e4;}
+
+// ═══════════════════════════════════════════════════════
+// UPLOAD
+// ═══════════════════════════════════════════════════════
+let csvAna=null, csvTx=null, anaData=null, txData=null, risultati=null, liftPerOb={};
+
+function setupUp(inId,cardId,nmId,setter){
+  const inp=document.getElementById(inId),card=document.getElementById(cardId),nm=document.getElementById(nmId);
+  const load=async f=>{const t=await f.text();setter(parseCSV(t));nm.textContent='✓ '+f.name;card.classList.add('loaded');checkRdy();};
+  inp.addEventListener('change',e=>{if(e.target.files[0])load(e.target.files[0]);});
+  card.addEventListener('dragover',e=>{e.preventDefault();card.classList.add('dragover');});
+  card.addEventListener('dragleave',()=>card.classList.remove('dragover'));
+  card.addEventListener('drop',e=>{e.preventDefault();card.classList.remove('dragover');if(e.dataTransfer.files[0])load(e.dataTransfer.files[0]);});
+}
+function checkRdy(){document.getElementById('btn-to-mapping').disabled=!(csvAna&&csvTx);}
+setupUp('file-ana','card-ana','name-ana',d=>{csvAna=d;});
+setupUp('file-tx','card-tx','name-tx',d=>{csvTx=d;});
+
+// ═══════════════════════════════════════════════════════
+// MAPPING COLONNE — definizione campi, auto-detect, verifica
+// ═══════════════════════════════════════════════════════
+// req:true  → senza questo campo il calcolo per quel file è impossibile o privo di senso.
+// req:false → il motore prosegue comunque: 'consequence' descrive ESATTAMENTE cosa viene
+//             imputato in silenzio, per evitare l'errore che questo wizard nasce per prevenire.
+const ANA_FIELDS = [
+  { key:'donor_id', label:'ID donatore', req:true,
+    desc:'Chiave di join con il file transazioni.',
+    consequence:'Senza questo campo nessun donatore può essere associato alle sue transazioni: il calcolo non può proseguire.' },
+  { key:'anzianita_anni', label:'Anzianità (anni)', req:false,
+    desc:'Anni dal primo contatto con la ONG. Alimenta il segnale L (Longevity).',
+    consequence:'Se non mappato: L = 0 per tutti i donatori. Pesa 45% su lasciti e 20% su riattivazione — questi due punteggi risultano sistematicamente sottostimati, senza alcun avviso a calcolo concluso.' },
+  { key:'fascia_eta', label:'Fascia età', req:false,
+    desc:'Fascia anagrafica (es. 35-44, 65-74, 75+).',
+    consequence:'Se non mappato: nessun bonus demografico lasciti per le fasce 65-74/75+ (+12 punti) — score lasciti sottostimato per i donatori senior.' },
+  { key:'cap', label:'CAP', req:false,
+    desc:'Codice postale a 5 cifre. Abilita il moltiplicatore territoriale ISTAT.',
+    consequence:'Se non mappato: nessun moltiplicatore territoriale (range ±5/15% secondo obiettivo) e regione mostrata come "n/d" nei risultati.' },
+  { key:'canale_acquisizione', label:'Canale acquisizione', req:false,
+    desc:'web / direct_mail / eventi / passaparola / telefono / agenzia.',
+    consequence:'Se non mappato: il tag "engagement" (digitale/cartaceo/misto) viene stimato solo dal metodo di pagamento — meno preciso, solo informativo.' },
+  { key:'tipo_sostegno_prevalente', label:'Tipo sostegno prevalente', req:false,
+    desc:'Donazione ricorrente, singola, adozione a distanza.',
+    consequence:'Se non mappato: il tag di contesto resta vuoto nei risultati — non incide sui punteggi.' },
+  { key:'metodo_pagamento_prevalente', label:'Metodo pagamento prevalente', req:false,
+    desc:'RID_SEPA / bonifico_ricorrente → bonus regolarità nel segnale F.',
+    consequence:'Se non mappato: nessun bonus di regolarità (+0.25) al segnale F per pagamento ricorrente — F leggermente sottostimato.' },
+  { key:'volontariato', label:'Volontariato (0/1)', req:false,
+    desc:'Flag binario: il donatore fa anche volontariato.',
+    consequence:'Se non mappato: il tag "coinvolgimento" non riconosce i volontari — solo informativo, non incide sui punteggi.' },
+  { key:'eventi_partecipati', label:'Partecipazione eventi (0/1)', req:false,
+    desc:'Flag binario: ha partecipato a eventi dell\'organizzazione.',
+    consequence:'Se non mappato: il tag "coinvolgimento" non riconosce chi partecipa a eventi — solo informativo.' },
+  { key:'ha_risposto_campagna_lasciti', label:'Esito campagna — Lasciti (0/1)', req:false,
+    desc:'Variabile-esito: non entra nel modello, serve solo a misurare il lift.',
+    consequence:'Se non mappato (e assente anche "lascito_dichiarato"): il lift di validazione per Lasciti resta "non disponibile".' },
+  { key:'ha_risposto_campagna_upgrade', label:'Esito campagna — Upgrade (0/1)', req:false,
+    desc:'Variabile-esito: non entra nel modello, serve solo a misurare il lift.',
+    consequence:'Se non mappato: il lift di validazione per Upgrade resta "non disponibile".' },
+  { key:'ha_risposto_campagna_continuativo', label:'Esito campagna — Sostegno continuativo (0/1)', req:false,
+    desc:'Variabile-esito: non entra nel modello, serve solo a misurare il lift.',
+    consequence:'Se non mappato: il lift di validazione per Sostegno continuativo resta "non disponibile".' },
+  { key:'ha_risposto_campagna_riattivazione', label:'Esito campagna — Riattivazione (0/1)', req:false,
+    desc:'Variabile-esito: non entra nel modello, serve solo a misurare il lift.',
+    consequence:'Se non mappato: il lift di validazione per Riattivazione resta "non disponibile".' },
+  { key:'ha_risposto_campagna_oneoff', label:'Esito campagna — One-off emergenza (0/1)', req:false,
+    desc:'Variabile-esito: non entra nel modello, serve solo a misurare il lift.',
+    consequence:'Se non mappato: il lift di validazione per One-off emergenza resta "non disponibile".' },
+  { key:'lascito_dichiarato', label:'Lascito dichiarato — fallback (0/1)', req:false,
+    desc:'Usato solo se "Esito campagna — Lasciti" è assente.',
+    consequence:'Se non mappato e assente anche l\'esito campagna lasciti: nessun lift calcolabile per l\'obiettivo Lasciti.' },
+];
+
+const TX_FIELDS = [
+  { key:'donor_id', label:'ID donatore', req:true,
+    desc:'Deve corrispondere all\'ID nell\'anagrafica.',
+    consequence:'Senza questo campo le transazioni non possono essere associate a nessun donatore: il calcolo non può proseguire.' },
+  { key:'data_donazione', label:'Data donazione', req:true,
+    desc:'Formato YYYY-MM-DD o DD/MM/YYYY. Calcola R (recency) e M-trend.',
+    consequence:'Senza date valide le transazioni vengono scartate dal calcolo dei segnali: R e M-trend risultano vuoti per i donatori coinvolti.' },
+  { key:'importo_eur', label:'Importo (EUR)', req:true,
+    desc:'Importo numerico. Calcola M-livello (media) e M-trend (pendenza).',
+    consequence:'Senza importi numerici validi M-livello e M-trend vengono calcolati come 0 in modo silenzioso, falsando i punteggi.' },
+  { key:'metodo_pagamento', label:'Metodo pagamento (per transazione)', req:false,
+    desc:'Campo informativo per export/tracciabilità.',
+    consequence:'Non utilizzato dal motore di calcolo attuale — il segnale F usa solo il metodo prevalente dell\'anagrafica, non quello per singola transazione. Mappalo solo se ti serve nell\'export.' },
+  { key:'campagna', label:'Campagna / causale', req:false,
+    desc:'Nome della campagna associata alla transazione.',
+    consequence:'Non utilizzato dal motore di calcolo attuale — campo puramente informativo nell\'export.' },
+];
+
+// Alias come frasi leggibili (poi tokenizzate): coprono sia intestazioni "umane"
+// con spazi (es. "Anni di Anzianità") sia intestazioni concatenate da CRM
+// (es. "AnzianitaAnni", "donor_id", "ContactId").
+const MAP_ALIASES = {
+  donor_id:['donor id','id donatore','codice donatore','contact id','customer id','id cliente','member id','anagrafica id','id'],
+  anzianita_anni:['anzianita anni','anzianita','anni anzianita','tenure','tenure years','anni relazione','anni di relazione','years as donor'],
+  fascia_eta:['fascia eta','eta','age','classe eta','fascia anagrafica'],
+  cap:['cap','zip','zip code','postal code','codice postale','cap donatore'],
+  canale_acquisizione:['canale acquisizione','canale','source','lead source','acquisition channel'],
+  tipo_sostegno_prevalente:['tipo sostegno prevalente','tipo sostegno','tipologia donazione','donation type'],
+  metodo_pagamento_prevalente:['metodo pagamento prevalente','metodo pagamento','payment method','modalita pagamento'],
+  volontariato:['volontariato','volunteer','is volunteer'],
+  eventi_partecipati:['eventi partecipati','partecipazione eventi','events attended'],
+  ha_risposto_campagna_lasciti:['ha risposto campagna lasciti','risposta lasciti','campagna lasciti'],
+  ha_risposto_campagna_upgrade:['ha risposto campagna upgrade','risposta upgrade','campagna upgrade'],
+  ha_risposto_campagna_continuativo:['ha risposto campagna continuativo','risposta continuativo','campagna continuativo'],
+  ha_risposto_campagna_riattivazione:['ha risposto campagna riattivazione','risposta riattivazione','campagna riattivazione'],
+  ha_risposto_campagna_oneoff:['ha risposto campagna oneoff','risposta oneoff','campagna oneoff','campagna emergenza'],
+  lascito_dichiarato:['lascito dichiarato','has legacy','legacy declared'],
+  data_donazione:['data donazione','data','date','transaction date','data transazione'],
+  importo_eur:['importo eur','importo','amount','importo donazione','valore','eur'],
+  metodo_pagamento:['metodo pagamento','payment method','modalita pagamento'],
+  campagna:['campagna','campaign','causale','appeal'],
+};
+// Token normalizzati: minuscolo, accenti rimossi (NFD), separati su spazi/underscore/trattino/punto.
+// Necessario per intestazioni italiane reali (es. "Anzianità", "Età") e per non
+// dipendere dall'ordine esatto delle parole in colonne come "Anni di Anzianità".
+function mapTokens(s) {
+  return String(s||'')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase()
+    .split(/[\s_\-\.]+/)
+    .filter(Boolean);
+}
+function mapConcat(s) { return mapTokens(s).join(''); }
+
+function autoMatch(headers, key, used) {
+  const aliases = MAP_ALIASES[key]||[];
+  const cand = headers.filter(h=>!used.has(h)).map(h=>({h, concat:mapConcat(h), tokens:mapTokens(h)}));
+  // Passo 1 — match esatto su forma concatenata (gestisce snake_case/camelCase senza parole estranee).
+  for (const a of aliases) {
+    const aConcat = mapConcat(a);
+    const exact = cand.find(c=>c.concat===aConcat);
+    if (exact) return exact.h;
+  }
+  // Passo 2 — match a livello di token: tutti i token dell'alias devono comparire
+  // tra i token dell'intestazione, in qualsiasi ordine e con parole aggiuntive ammesse
+  // (es. alias "anni anzianita" trova "Anni di Anzianità").
+  for (const a of aliases) {
+    const aTokens = mapTokens(a);
+    const part = cand.find(c=>aTokens.every(t=>c.tokens.includes(t)));
+    if (part) return part.h;
+  }
+  return '';
+}
+
+function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+const mapState = { ana:{}, tx:{} };
+
+function apriMapping() {
+  buildMappingBlock('ana');
+  buildMappingBlock('tx');
+  updateMapGate();
+  goStep(2);
+}
+
+function buildMappingBlock(side) {
+  const fields = side==='ana' ? ANA_FIELDS : TX_FIELDS;
+  const csv = side==='ana' ? csvAna : csvTx;
+  document.getElementById('map-'+side+'-sub').textContent =
+    `${csv.rows.length.toLocaleString('it-IT')} righe · ${csv.headers.length} colonne rilevate`;
+  const used = new Set();
+  const grid = document.getElementById('map-'+side+'-grid');
+  grid.innerHTML = fields.map(f=>{
+    const existing = mapState[side][f.key];
+    const guess = (existing && csv.headers.includes(existing)) ? existing : autoMatch(csv.headers, f.key, used);
+    if (guess) used.add(guess);
+    mapState[side][f.key] = guess;
+    const mapped = !!guess;
+    const opts = ['<option value="">— non disponibile —</option>']
+      .concat(csv.headers.map(h=>`<option value="${escHtml(h)}"${h===guess?' selected':''}>${escHtml(h)}</option>`)).join('');
+    return `
+    <div class="map-row ${mapped?'mapped':(f.req?'':'skipped')}" id="maprow-${side}-${f.key}">
+      <div class="map-row-head">
+        <div class="map-row-name"><span class="${f.req?'map-req-dot':'map-opt-dot'}"></span>${escHtml(f.label)}</div>
+        <span class="map-row-status ${mapped?'map-status-ok':(f.req?'map-status-miss':'map-status-opt')}" id="mapstatus-${side}-${f.key}">${mapped?'mappato':(f.req?'mancante':'facoltativo')}</span>
+      </div>
+      <div class="map-row-desc">${escHtml(f.desc)}</div>
+      <div class="map-row-consequence">⚠ ${escHtml(f.consequence)}</div>
+      <select class="map-select ${mapped?'mapped':''}" id="mapsel-${side}-${f.key}" onchange="onMapChange('${side}','${f.key}',this)">${opts}</select>
+    </div>`;
+  }).join('');
+}
+
+function onMapChange(side, key, sel) {
+  const fields = side==='ana' ? ANA_FIELDS : TX_FIELDS;
+  const f = fields.find(x=>x.key===key);
+  mapState[side][key] = sel.value;
+  const row = document.getElementById(`maprow-${side}-${key}`);
+  const stat = document.getElementById(`mapstatus-${side}-${key}`);
+  const mapped = !!sel.value;
+  sel.classList.toggle('mapped', mapped);
+  row.classList.toggle('mapped', mapped);
+  row.classList.toggle('skipped', !mapped && !f.req);
+  stat.textContent = mapped ? 'mappato' : (f.req ? 'mancante' : 'facoltativo');
+  stat.className = `map-row-status ${mapped?'map-status-ok':(f.req?'map-status-miss':'map-status-opt')}`;
+  updateMapGate();
+}
+
+function mapRequiredOk() {
+  const anaOk = ANA_FIELDS.filter(f=>f.req).every(f=>mapState.ana[f.key]);
+  const txOk = TX_FIELDS.filter(f=>f.req).every(f=>mapState.tx[f.key]);
+  return anaOk && txOk;
+}
+
+function updateMapGate() {
+  const ok = mapRequiredOk();
+  document.getElementById('btn-run').disabled = !ok;
+  if (ok) runVerify(); else document.getElementById('map-verify-box').style.display='none';
+}
+
+// Costruisce un array di oggetti con chiavi canoniche a partire dal CSV grezzo + mapping.
+function buildRenamed(csv, mapping, fields) {
+  return csv.rows.map(row=>{
+    const o = {};
+    fields.forEach(f=>{ o[f.key] = mapping[f.key] ? (row[mapping[f.key]] ?? '') : ''; });
+    return o;
+  });
+}
+
+// Verifica a livello di VALORI (non solo di nomi colonna): tasso di join donor_id,
+// percentuale di date e importi effettivamente parsabili. Qui si intercetta il
+// secondo tipo di errore silenzioso — colonne mappate correttamente ma con dati
+// che non si incrociano o non sono nel formato atteso.
+function runVerify() {
+  const anaR = buildRenamed(csvAna, mapState.ana, ANA_FIELDS);
+  const txR = buildRenamed(csvTx, mapState.tx, TX_FIELDS);
+  const anaIds = new Set(anaR.map(r=>r.donor_id).filter(Boolean));
+  const txIds = new Set(txR.map(r=>r.donor_id).filter(Boolean));
+  const anaIdsValid = anaR.filter(r=>r.donor_id).length;
+  const txIdsValid = txR.filter(r=>r.donor_id).length;
+  const joinable = [...anaIds].filter(id=>txIds.has(id)).length;
+  const joinRate = anaIds.size ? Math.round(joinable/anaIds.size*1000)/10 : 0;
+  const dateOk = txR.filter(r=>r.data_donazione && pD(r.data_donazione)).length;
+  const dateRate = txR.length ? Math.round(dateOk/txR.length*1000)/10 : 0;
+  const importOk = txR.filter(r=>r.importo_eur!==''&&!isNaN(parseFloat(String(r.importo_eur).replace(',','.')))).length;
+  const importRate = txR.length ? Math.round(importOk/txR.length*1000)/10 : 0;
+
+  const warns = [];
+  if (joinRate < 80) warns.push(`Solo il ${joinRate}% dei donatori in anagrafica ha almeno una transazione associata. Se ti aspettavi una copertura più alta, controlla che il formato di donor_id sia identico nei due file (zero-padding, maiuscole, spazi).`);
+  if (dateRate < 95 && txR.length) warns.push(`Il ${(100-dateRate).toFixed(1)}% delle date transazione non è nel formato YYYY-MM-DD o DD/MM/YYYY e verrà scartato dal calcolo.`);
+  if (importRate < 95 && txR.length) warns.push(`Il ${(100-importRate).toFixed(1)}% degli importi non è numerico e verrà trattato come 0 nel calcolo di M-livello/M-trend.`);
+
+  const box = document.getElementById('map-verify-box');
+  box.style.display = 'block';
+  box.innerHTML = `
+    <div class="map-verify-title">Controllo qualità mapping</div>
+    <div class="map-verify-grid">
+      <div class="map-verify-stat"><div class="map-verify-num">${anaIdsValid.toLocaleString('it-IT')}</div><div class="map-verify-label">donatori anagrafica</div></div>
+      <div class="map-verify-stat"><div class="map-verify-num">${txIdsValid.toLocaleString('it-IT')}</div><div class="map-verify-label">transazioni</div></div>
+      <div class="map-verify-stat"><div class="map-verify-num">${joinRate}%</div><div class="map-verify-label">join donor_id riuscito</div></div>
+      <div class="map-verify-stat"><div class="map-verify-num">${dateRate}%</div><div class="map-verify-label">date parsate</div></div>
+    </div>
+    ${warns.length
+      ? `<div class="map-verify-warn">${warns.map(w=>'⚠ '+escHtml(w)).join('<br><br>')}</div>`
+      : `<div class="map-verify-ok">✓ Nessuna anomalia rilevata sui valori mappati.</div>`}
+  `;
+}
+
+function saveMappingConfig() {
+  const cfg = { version:'1.0', created:new Date().toISOString(), ana:mapState.ana, tx:mapState.tx };
+  const blob = new Blob([JSON.stringify(cfg,null,2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'polisim_mapping_config.json'; a.click();
+}
+
+function loadMappingConfig(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const cfg = JSON.parse(e.target.result);
+      mapState.ana = cfg.ana || {};
+      mapState.tx = cfg.tx || {};
+      if (csvAna) buildMappingBlock('ana');
+      if (csvTx) buildMappingBlock('tx');
+      updateMapGate();
+    } catch (err) {
+      alert('Configurazione non valida: ' + err.message);
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+// ═══════════════════════════════════════════════════════
+// MOTORE RFML
+// ═══════════════════════════════════════════════════════
+function calcolaSegnali(ana,tx){
+  const txD={};for(const t of tx){if(!txD[t.donor_id])txD[t.donor_id]=[];txD[t.donor_id].push(t);}
+  const allD=tx.map(t=>pD(t.data_donazione)).filter(Boolean);
+  const ref=allD.length?new Date(Math.max(...allD)):new Date();
+  const gr={};
+  for(const r of ana){
+    const did=r.donor_id;const raw=(txD[did]||[]).filter(t=>pD(t.data_donazione));if(!raw.length)continue;
+    const s=raw.sort((a,b)=>pD(a.data_donazione)-pD(b.data_donazione));
+    const dates=s.map(t=>pD(t.data_donazione));const imp=s.map(t=>pF(t.importo_eur));
+    const rd=Math.round((ref-dates[dates.length-1])/864e5);
+    let f=.3;if(dates.length>=3){const gap=dates.slice(1).map((d,i)=>Math.round((d-dates[i])/864e5)).filter(g=>g>0);if(gap.length&&avg(gap)>0){const cv=pstd(gap)/avg(gap);f=1/(1+cv);}else f=.5;}
+    f=Math.min(1,f+(MET_RIC.has((r.metodo_pagamento_prevalente||'').trim())?.25:0));
+    const ml=avg(imp);
+    let mt=0;if(imp.length>=3){const n=imp.length,xs=[...Array(n).keys()],mx=avg(xs),my=avg(imp);const num=xs.reduce((s,x,i)=>s+(x-mx)*(imp[i]-my),0),den=xs.reduce((s,x)=>s+(x-mx)**2,0);mt=den&&my?(num/den)/my:0;}
+    gr[did]={rd,F:f,M_livello:ml,M_trend:mt,L:Math.min(pF(r.anzianita_anni),L_SAT),n:s.length};
+  }
+  const kk=['rd','M_livello','M_trend','L'];const rng={};
+  for(const k of kk){const vs=Object.values(gr).map(g=>g[k]);const mn=Math.min(...vs),mx=Math.max(...vs);rng[k]={mn,rng:mx-mn};}
+  const nm=(v,k)=>rng[k].rng>0?(v-rng[k].mn)/rng[k].rng:.5;
+  const sg={};
+  for(const[did,g]of Object.entries(gr)){sg[did]={R:Math.round((1-nm(g.rd,'rd'))*1e4)/1e4,F:Math.round(g.F*1e4)/1e4,M_livello:Math.round(nm(g.M_livello,'M_livello')*1e4)/1e4,M_trend:Math.round(nm(g.M_trend,'M_trend')*1e4)/1e4,L:Math.round(nm(g.L,'L')*1e4)/1e4,_rd:g.rd,_n:g.n};}
+  return sg;
+}
+
+function calcolaProp(sg,fascia,cap){
+  const res={};
+  for(const[did,s]of Object.entries(sg)){
+    const sc={};const c=cap[did]||'';
+    for(const[ob,pw]of Object.entries(PESI)){
+      const rv=R_INV.has(ob)?(1-s.R):s.R;
+      let v=(pw.R*rv+pw.F*s.F+pw.M_livello*s.M_livello+pw.M_trend*s.M_trend+pw.L*s.L)*100;
+      v+=(BONUS_DEM[ob]||{})[fascia[did]]||0;
+      v*=molt(c,ob);
+      sc[ob]=Math.round(Math.min(v,100)*10)/10;
+    }
+    res[did]=sc;
+  }
+  return res;
+}
+
+function calcolaCtx(ana){
+  const ctx={};
+  for(const r of ana){
+    const cn=(r.canale_acquisizione||'').trim(),mt=(r.metodo_pagamento_prevalente||'').trim();
+    const dig=cn==='web'||['carta_credito','RID_SEPA'].includes(mt);
+    const cart=cn==='direct_mail'||['bollettino','assegno'].includes(mt);
+    ctx[r.donor_id]={canale_acquisizione:cn,tipo_sostegno:(r.tipo_sostegno_prevalente||'').trim(),engagement:dig&&!cart?'digitale':cart&&!dig?'cartaceo':'misto',coinvolgimento:pF(r.volontariato)>0?'volontario':pF(r.eventi_partecipati)>0?'partecipa_eventi':'solo_donatore',regione_istat:capR(r.cap||'')||'n/d'};
+  }
+  return ctx;
+}
+
+function calcolaLift(dati,ob){
+  // Usa ha_risposto_campagna_* se disponibile, altrimenti lascito_dichiarato per lascito.
+  // NB: il controllo di presenza si basa su mapState (cosa l'utente ha effettivamente
+  // mappato), non sulla presenza della chiave in anaData — dopo il wizard di mapping
+  // ogni riga ha sempre tutte le chiavi canoniche definite (anche vuote), quindi un
+  // controllo r[col]!==undefined non distingue più "non mappato" da "mappato e vuoto".
+  const col=ESITO_COL[ob];const colFb=ESITO_FALLBACK[ob];
+  const haCol=!!mapState.ana[col];
+  const haFb=!!(colFb&&mapState.ana[colFb]);
+  if(!haCol&&!haFb)return null;
+  const useCol=haCol?col:colFb;
+  const posSet=new Set(anaData.filter(r=>r[useCol]==='1').map(r=>r.donor_id));
+  if(!posSet.size)return null;
+  const sorted=[...dati].sort((a,b)=>b[ob]-a[ob]);
+  const cut=Math.max(1,Math.floor(sorted.length/5));
+  const top=sorted.slice(0,cut),rest=sorted.slice(cut);
+  const tt=top.filter(r=>posSet.has(r.donor_id)).length/top.length;
+  const tr=rest.length?rest.filter(r=>posSet.has(r.donor_id)).length/rest.length:0;
+  return{positivi:posSet.size,totale:dati.length,tassoTop:Math.round(tt*1000)/10,tassoResto:Math.round(tr*1000)/10,lift:tr?Math.round(tt/tr*100)/100:null,colUsata:useCol};
+}
+
+// ═══════════════════════════════════════════════════════
+// CALCOLO PRINCIPALE
+// ═══════════════════════════════════════════════════════
+async function eseguiCalcolo(){
+  const btn=document.getElementById('btn-run');btn.disabled=true;
+  const pw=document.getElementById('progress-wrap'),pf=document.getElementById('prog-fill'),pl=document.getElementById('prog-label');
+  pw.style.display='block';
+  const sp=(p,l)=>{pf.style.width=p+'%';pl.textContent=l;};
+  const tick=()=>new Promise(r=>setTimeout(r,50));
+  await tick();sp(10,'Applico il mapping colonne...');await tick();
+  anaData=buildRenamed(csvAna,mapState.ana,ANA_FIELDS);
+  txData=buildRenamed(csvTx,mapState.tx,TX_FIELDS);
+  sp(20,'Calcolo segnali RFML...');await tick();
+  const fascia=Object.fromEntries(anaData.map(r=>[r.donor_id,(r.fascia_eta||'').trim()]));
+  const cap=Object.fromEntries(anaData.map(r=>[r.donor_id,(r.cap||'').trim()]));
+  const sg=calcolaSegnali(anaData,txData);
+  sp(50,'Calcolo propensione multi-obiettivo...');await tick();
+  const prop=calcolaProp(sg,fascia,cap);
+  sp(70,'Layer territoriale e contesto...');await tick();
+  const ctx=calcolaCtx(anaData);
+  sp(90,'Composizione risultati...');await tick();
+  risultati=Object.keys(sg).map(did=>({donor_id:did,...prop[did],obiettivo_top:OBIETTIVI.reduce((a,b)=>prop[did][a]>prop[did][b]?a:b),score_top:Math.max(...OBIETTIVI.map(o=>prop[did][o])),...sg[did],...ctx[did],molt_lascito:molt(cap[did],'lascito'),molt_upgrade:molt(cap[did],'upgrade'),molt_sostegno_continuativo:molt(cap[did],'sostegno_continuativo'),molt_riattivazione:molt(cap[did],'riattivazione'),molt_one_off:molt(cap[did],'one_off_emergenza')}));
+  // Pre-calcola lift per tutti gli obiettivi
+  liftPerOb={};
+  for(const ob of OBIETTIVI) liftPerOb[ob]=calcolaLift(risultati,ob);
+  sp(100,`Completato — ${risultati.length} donatori analizzati`);
+  renderAll();
+  btn.disabled=false;
+  goStep(3);
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════
+let tabAttiva='lascito';
+// ── Bridge RFML → Message Optimizer (formato comune polisim_bridge) ──
+const OBIETTIVO_MAP_OPT = {
+  lascito:               {engagement_level:'legacy_prospect',     tipo_campagna:'ong_lasciti'},
+  upgrade:               {engagement_level:'donatore_ricorrente', tipo_campagna:'ong_raccolta_fondi'},
+  sostegno_continuativo: {engagement_level:'sostenitore',         tipo_campagna:'ong_fidelizzazione'},
+  riattivazione:         {engagement_level:'a_rischio',           tipo_campagna:'ong_fidelizzazione'},
+  one_off_emergenza:     {engagement_level:'prospect',            tipo_campagna:'ong_raccolta_fondi'}
+};
+
+function bridgeVersoOptimizer(){
+  if(!risultati || risultati.length===0){alert('Calcola prima la propensione.');return;}
+  const ob = tabAttiva;
+  const map = OBIETTIVO_MAP_OPT[ob];
+  if(!map){alert('Obiettivo non riconosciuto.');return;}
+  // Top 20% per l'obiettivo del tab attivo
+  const sorted = [...risultati].sort((a,b)=>b[ob]-a[ob]);
+  const cut = Math.max(1, Math.floor(sorted.length/5));
+  sessionStorage.setItem('polisim_bridge', JSON.stringify({
+    origine: 'propensione',
+    gruppi: [{
+      engagement_level: map.engagement_level,
+      tipo_campagna: map.tipo_campagna,
+      contesto: '',
+      etichetta: 'Top 20% propensione ' + OB_LBL[ob],
+      n_record: cut
+    }]
+  }));
+  window.location.href = '/optimizer.html?tipo=ong&from=propensione';
+}
+function renderAll(){
+  // KPI
+  const kg=document.getElementById('kpi-grid');kg.innerHTML='';
+  [{label:'Anagrafiche totali',val:risultati.length,sub:'analizzate',ob:false},
+   ...OBIETTIVI.map(o=>({label:OB_LBL[o],val:risultati.filter(r=>r.obiettivo_top===o).length,sub:'obiettivo dominante',ob:true}))
+  ].forEach(k=>{kg.innerHTML+=`<div class="kpi ${k.ob?'kpi-ob':''}"><div class="kpi-label">${k.label}</div><div class="kpi-val">${k.val}</div><div class="kpi-sub">${k.sub}</div></div>`;});
+  // Tab nav
+  const tn=document.getElementById('tab-nav');
+  tn.innerHTML=OBIETTIVI.map(o=>`<button class="tab-btn ${o===tabAttiva?'active':''}" data-ob="${o}">${OB_LBL[o]} (${risultati.filter(r=>r.obiettivo_top===o).length})</button>`).join('');
+  tn.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>{tabAttiva=b.dataset.ob;tn.querySelectorAll('.tab-btn').forEach(x=>x.classList.toggle('active',x===b));renderLift(tabAttiva);renderTabella(tabAttiva);}));
+  renderLift(tabAttiva);
+  renderTabella(tabAttiva);
+  renderTerritorio();
+  setupDownload();
+}
+
+function renderLift(ob){
+  const lc=document.getElementById('lift-container');
+  const l=liftPerOb[ob];
+  if(l&&l.lift){
+    lc.innerHTML=`<div class="lift-box">
+      <div class="lift-val">${l.lift}×</div>
+      <div class="lift-desc">
+        <strong>Lift validazione — ${OB_LBL[ob]}</strong><br>
+        Il top 20% per score contiene il <strong>${l.tassoTop}%</strong> dei positivi dichiarati vs ${l.tassoResto}% nel resto.<br>
+        <small>${l.positivi} positivi storici su ${l.totale} donatori · fonte: <em>${l.colUsata}</em></small>
+      </div></div>`;
+  } else {
+    lc.innerHTML=`<div class="lift-none">Lift non disponibile per ${OB_LBL[ob]} — colonna esito non presente nel CSV. Aggiungi <em>${ESITO_COL[ob]}</em> per abilitare la validazione.</div>`;
+  }
+}
+
+function renderTabella(ob){
+  const sorted=[...risultati].sort((a,b)=>b[ob]-a[ob]);
+  const mk=ob==='one_off_emergenza'?'molt_one_off':'molt_'+ob;
+  document.getElementById('table-head').innerHTML=`<tr><th>#</th><th>Donor ID</th><th>${OB_LBL[ob]}</th><th>Obiettivo top</th><th>R</th><th>F</th><th>M liv.</th><th>M trend</th><th>L</th><th>Regione</th><th>Molt.</th><th>Engagement</th></tr>`;
+  document.getElementById('table-body').innerHTML=sorted.map((r,i)=>{
+    const sc=r[ob],m=r[mk]||1,mc=m>1.01?'molt-pos':m<.99?'molt-neg':'molt-neu',ms=m>1.01?`+${Math.round((m-1)*100)}%`:m<.99?`${Math.round((m-1)*100)}%`:'±0%';
+    return`<tr><td class="donor-id">${i+1}</td><td class="donor-id">${r.donor_id}</td><td><div class="score-bar-wrap"><span class="score-cell">${sc}</span><div class="score-bar"><div class="score-bar-fill" style="width:${sc}%"></div></div></div></td><td><span class="badge ${OB_CLR[r.obiettivo_top]}">${OB_LBL[r.obiettivo_top]}</span></td><td class="donor-id">${r.R}</td><td class="donor-id">${r.F}</td><td class="donor-id">${r.M_livello}</td><td class="donor-id">${r.M_trend}</td><td class="donor-id">${r.L}</td><td style="font-family:var(--mono);font-size:10px;color:var(--grigio)">${r.regione_istat||'n/d'}</td><td class="molt-val ${mc}">${ms}</td><td><span class="badge badge-blu">${r.engagement||'—'}</span></td></tr>`;
+  }).join('');
+}
+
+function renderTerritorio(){
+  const con=risultati.filter(r=>r.regione_istat&&r.regione_istat!=='n/d');
+  if(!con.length){document.getElementById('territorio-section').style.display='none';return;}
+  const pr={};for(const r of con){if(!pr[r.regione_istat])pr[r.regione_istat]=[];pr[r.regione_istat].push(r);}
+  document.getElementById('regioni-grid').innerHTML=Object.entries(pr).sort((a,b)=>b[1].length-a[1].length).map(([reg,don])=>{
+    const c=Object.entries(CAP_REG).find(([,v])=>v===reg)?.[0]+'000'||'';
+    const m=molt(c,'lascito'),mc=m>1.01?'molt-pos':m<.99?'molt-neg':'molt-neu',ms=m>1.01?`+${Math.round((m-1)*100)}%`:m<.99?`${Math.round((m-1)*100)}%`:'±0%';
+    return`<div class="regione-card"><div class="rname">${reg}</div><div class="rcount">${don.length} donatori</div><div class="rmolt ${mc}">Molt. lascito: ${ms}</div></div>`;
+  }).join('');
+}
+
+function toCSV(rows){if(!rows.length)return'';const h=Object.keys(rows[0]);return[h.join(','),...rows.map(r=>h.map(k=>`"${r[k]??''}"`).join(','))].join('\n');}
+function dlCSV(c,n){const b=new Blob([c],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=n;a.click();}
+
+function setupDownload(){
+  document.getElementById('btn-csv').onclick=()=>dlCSV(toCSV(risultati),`polisim_propensione_${new Date().toISOString().slice(0,10)}.csv`);
+  document.getElementById('btn-top').onclick=()=>{
+    const top=[];
+    for(const ob of OBIETTIVI){const s=[...risultati].sort((a,b)=>b[ob]-a[ob]);const cut=Math.max(1,Math.floor(s.length/5));s.slice(0,cut).forEach(r=>{if(!top.find(x=>x.donor_id===r.donor_id&&x._ob===ob))top.push({...r,_ob:ob});});}
+    dlCSV(toCSV(top),`polisim_top20pct_${new Date().toISOString().slice(0,10)}.csv`);
+  };
+}
+</script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PoliSim — Modulo Propensione RFML</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#faf9f7;--bg2:#f3f1ee;--bg3:#eae7e2;
+  --blu:#1e3a5f;--blu2:#2d5289;--accento:#c8a96e;
+  --testo:#1a1a18;--grigio:#6b6860;--linea:#ddd9d3;
+  --rosso:#b83232;--verde:#2d7a4f;--arancio:#c47a2a;
+  --cg:'Cormorant Garamond',Georgia,serif;
+  --sans:'DM Sans',system-ui,sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--testo);font-family:var(--sans);font-weight:300;line-height:1.6}
+
+nav{padding:20px 48px;border-bottom:1px solid var(--linea);display:flex;align-items:center;justify-content:space-between;background:var(--bg);position:sticky;top:0;z-index:100}
+.nav-logo{font-family:var(--cg);font-size:22px;font-weight:600;color:var(--blu);text-decoration:none}
+.nav-tag{font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--grigio);text-transform:uppercase;padding:4px 10px;border:1px solid var(--linea)}
+
+.hero{padding:56px 48px 40px;border-bottom:1px solid var(--linea);background:linear-gradient(135deg,var(--bg) 60%,#eef2f8 100%)}
+.hero-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:4px;color:var(--accento);text-transform:uppercase;margin-bottom:12px}
+.hero h1{font-family:var(--cg);font-size:clamp(36px,5vw,60px);font-weight:300;color:var(--blu);line-height:1.1;margin-bottom:12px}
+.hero h1 em{font-style:italic;color:var(--accento)}
+.hero-sub{max-width:600px;font-size:14px;color:var(--grigio);line-height:1.8}
+
+/* ══ DATA SHIELD — palette chiara ══ */
+.ds-gdpr-shield{
+  max-width:100%;margin:0 0 28px;padding:20px 24px;
+  background:#f0faf4;border:1px solid #a7d7b8;
+  display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start;
+}
+.ds-gdpr-icon{width:44px;height:44px;background:#e0f5e8;border:1px solid #a7d7b8;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.ds-gdpr-title{font-family:var(--mono);font-size:11px;color:var(--verde);letter-spacing:2px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.ds-gdpr-dot{width:7px;height:7px;border-radius:50%;background:var(--verde);animation:dspulse 2s infinite;flex-shrink:0}
+@keyframes dspulse{0%,100%{opacity:1}50%{opacity:.25}}
+.ds-gdpr-pillars{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.ds-gdpr-pill{padding:3px 10px;font-family:var(--mono);font-size:10px;letter-spacing:.5px;background:#e0f5e8;border:1px solid #a7d7b8;color:var(--verde)}
+.ds-gdpr-desc{font-size:13px;color:var(--grigio);line-height:1.7}
+.ds-gdpr-desc strong{color:var(--testo);font-weight:500}
+.ds-gdpr-articles{margin-top:8px;padding-top:8px;border-top:1px solid #c5e8d0;font-family:var(--mono);font-size:10px;color:#5a8a6a;line-height:1.8}
+.ds-gdpr-articles span{color:var(--verde)}
+
+.ds-card{background:var(--bg);border:1px solid var(--linea);padding:28px;margin-bottom:16px}
+.ds-card-title{font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--blu);text-transform:uppercase;margin-bottom:20px}
+
+.ds-drop-zone{border:2px dashed var(--linea);padding:36px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg2)}
+.ds-drop-zone:hover,.ds-drop-zone.drag-over{border-color:var(--blu);background:#f0f4f9}
+.ds-drop-icon{font-size:28px;margin-bottom:12px}
+.ds-drop-text{font-size:14px;color:var(--grigio);margin-bottom:10px}
+.ds-drop-text strong{color:var(--blu)}
+.ds-drop-formats{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:6px}
+.ds-fmt-badge{padding:3px 10px;font-family:var(--mono);font-size:10px;letter-spacing:.5px}
+.ds-fmt-excel{background:#e8f5ee;border:1px solid #a7d7b8;color:var(--verde)}
+.ds-fmt-csv{background:#e8eef6;border:1px solid #b8cce8;color:var(--blu)}
+.ds-drop-hint{font-size:11px;color:var(--grigio);font-family:var(--mono)}
+.ds-local-badge{display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:4px 12px;background:#e0f5e8;border:1px solid #a7d7b8;font-family:var(--mono);font-size:10px;color:var(--verde);letter-spacing:.5px}
+
+.ds-legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.ds-legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--grigio);font-family:var(--mono)}
+.ds-legend-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.ds-warn-box{background:#fdf8f0;border:1px solid #e8d5a8;padding:10px 14px;font-family:var(--mono);font-size:11px;color:var(--arancio);margin-bottom:16px;line-height:1.6}
+.ds-col-grid{display:flex;flex-direction:column;gap:8px}
+.ds-col-row{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:10px 14px;background:var(--bg2);border:1px solid var(--linea);transition:border-color .2s}
+.ds-col-row:hover{border-color:var(--blu2)}
+.ds-col-name{font-family:var(--mono);font-size:12px;color:var(--testo);font-weight:400}
+.ds-col-sample{font-size:11px;color:var(--grigio);margin-top:2px}
+.ds-col-action{display:flex;gap:4px}
+.ds-action-btn{padding:4px 8px;font-family:var(--mono);font-size:10px;cursor:pointer;border:1px solid;transition:all .15s;letter-spacing:.5px;opacity:.4;background:transparent}
+.ds-action-btn.active{opacity:1}
+.ds-btn-remove{border-color:#e8a8a8;color:var(--rosso)}
+.ds-btn-remove:hover,.ds-btn-remove.active{background:#fceaea;opacity:1}
+.ds-btn-hash{border-color:#c5b8e8;color:#7c5cbf}
+.ds-btn-hash:hover,.ds-btn-hash.active{background:#f0ebfa;opacity:1}
+.ds-btn-gen{border-color:#e8d5a8;color:var(--arancio)}
+.ds-btn-gen:hover,.ds-btn-gen.active{background:#fdf3e3;opacity:1}
+.ds-btn-keep{border-color:#a7d7b8;color:var(--verde)}
+.ds-btn-keep:hover,.ds-btn-keep.active{background:#e8f5ee;opacity:1}
+.ds-status-badge{padding:3px 10px;font-family:var(--mono);font-size:9px;letter-spacing:1px;white-space:nowrap;text-transform:uppercase}
+.ds-s-remove{background:#fceaea;color:var(--rosso)}
+.ds-s-hash{background:#f0ebfa;color:#7c5cbf}
+.ds-s-gen{background:#fdf3e3;color:var(--arancio)}
+.ds-s-keep{background:#e8f5ee;color:var(--verde)}
+
+.ds-stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.ds-stat-card{background:var(--bg2);border:1px solid var(--linea);padding:16px;text-align:center}
+.ds-stat-num{font-family:var(--cg);font-size:32px;font-weight:300;margin-bottom:4px}
+.ds-stat-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--grigio)}
+.ds-c-red{color:var(--rosso)}.ds-c-purple{color:#7c5cbf}.ds-c-yellow{color:var(--arancio)}.ds-c-green{color:var(--verde)}
+
+.ds-report-box{background:#f0faf4;border:1px solid #a7d7b8;padding:20px;margin-bottom:16px}
+.ds-report-title{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--verde);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.ds-report-line{font-family:var(--mono);font-size:11px;color:var(--grigio);line-height:2}
+.ds-report-line span{color:var(--testo);font-weight:500}
+
+.ds-run-btn{width:100%;padding:14px;background:var(--blu);border:none;color:#fff;font-family:var(--sans);font-size:14px;font-weight:400;cursor:pointer;transition:background .2s;letter-spacing:.3px;margin-bottom:8px}
+.ds-run-btn:hover{background:var(--blu2)}
+.ds-dl-btn{width:100%;padding:12px;background:transparent;border:1px solid var(--blu);color:var(--blu);font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.ds-dl-btn:hover{background:var(--blu);color:#fff}
+
+.ds-preview-wrap{overflow-x:auto;margin-bottom:16px}
+.ds-preview-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px}
+.ds-preview-table th{padding:8px 12px;text-align:left;color:var(--blu);border-bottom:1px solid var(--linea);white-space:nowrap;font-weight:500;background:var(--bg2)}
+.ds-preview-table td{padding:7px 12px;color:var(--grigio);border-bottom:1px solid var(--linea);white-space:nowrap}
+.ds-preview-table tr:hover td{background:var(--bg2)}
+.ds-more-rows{font-family:var(--mono);font-size:11px;color:var(--grigio);padding:8px 12px}
+
+.ds-gdpr-footer{margin-top:24px;padding:12px 16px;background:#f0faf4;border:1px solid #c5e8d0;font-family:var(--mono);font-size:10px;color:#5a8a6a;text-align:center;line-height:1.8}
+.ds-gdpr-footer span{color:var(--verde);font-weight:500}
+.ds-hidden{display:none}
+
+/* ── STEP NAV ── */
+.step-nav{display:flex;border-bottom:1px solid var(--linea);background:var(--bg2)}
+.step-btn{
+  flex:1;padding:18px 24px;border:none;background:none;cursor:pointer;
+  font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--grigio);border-bottom:3px solid transparent;transition:all .2s;
+  display:flex;align-items:center;gap:10px;justify-content:center;
+}
+.step-btn:hover{color:var(--blu);background:var(--bg)}
+.step-btn.active{color:var(--blu);border-bottom-color:var(--blu);background:var(--bg);font-weight:500}
+.step-btn.done{color:var(--verde)}
+.step-num{
+  width:22px;height:22px;border-radius:50%;border:1px solid currentColor;
+  display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;
+}
+
+/* ── PANNELLI ── */
+.panel{display:none;padding:48px}
+.panel.active{display:block}
+.section-label{font-family:var(--mono);font-size:9px;letter-spacing:4px;color:var(--blu);text-transform:uppercase;margin-bottom:24px}
+
+/* ── DATA SHIELD ── */
+.shield-intro{max-width:680px;margin-bottom:32px}
+.shield-intro p{font-size:14px;color:var(--grigio);line-height:1.8;margin-bottom:12px}
+.shield-intro .nota{font-family:var(--mono);font-size:11px;color:var(--accento);padding:12px 16px;border-left:3px solid var(--accento);background:#fdf8f0}
+.shield-upload{border:2px dashed var(--linea);padding:32px;text-align:center;max-width:500px;cursor:pointer;position:relative;transition:all .2s}
+.shield-upload:hover,.shield-upload.dragover{border-color:var(--blu);background:#f0f4f9}
+.shield-upload.loaded{border-color:var(--verde);border-style:solid;background:#f0faf4}
+.shield-upload input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.shield-upload h3{font-family:var(--cg);font-size:20px;font-weight:400;color:var(--blu);margin-bottom:6px}
+.shield-upload p{font-size:12px;color:var(--grigio)}
+.shield-cols{margin-top:24px;max-width:680px}
+.cols-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:12px}
+.col-toggle{
+  display:flex;align-items:center;gap:10px;padding:10px 14px;
+  background:var(--bg2);border:1px solid var(--linea);cursor:pointer;
+  font-family:var(--mono);font-size:11px;color:var(--testo);transition:all .2s;
+  user-select:none;
+}
+.col-toggle input{accent-color:var(--rosso);width:14px;height:14px;flex-shrink:0}
+.col-toggle.selected{background:#fceaea;border-color:var(--rosso);color:var(--rosso)}
+.shield-preview{margin-top:24px;max-width:100%;overflow-x:auto}
+.shield-preview table{width:100%;border-collapse:collapse;font-size:12px}
+.shield-preview th{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--grigio);text-transform:uppercase;padding:8px 10px;background:var(--bg2);border-bottom:1px solid var(--linea);white-space:nowrap}
+.shield-preview td{padding:7px 10px;border-bottom:1px solid var(--linea);font-family:var(--mono);font-size:11px}
+.shield-preview td.masked{color:var(--rosso);text-decoration:line-through}
+.shield-preview td.hashed{color:var(--verde)}
+
+/* ── UPLOAD ── */
+.upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:800px}
+.upload-card{border:2px dashed var(--linea);padding:28px 24px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg);position:relative}
+.upload-card:hover,.upload-card.dragover{border-color:var(--blu);background:#f0f4f9}
+.upload-card.loaded{border-color:var(--verde);border-style:solid;background:#f0faf4}
+.upload-icon{font-size:26px;margin-bottom:10px;display:block}
+.upload-card h3{font-family:var(--cg);font-size:18px;font-weight:400;color:var(--blu);margin-bottom:6px}
+.upload-card p{font-size:11px;color:var(--grigio);line-height:1.6}
+.upload-card .file-name{font-family:var(--mono);font-size:10px;color:var(--verde);margin-top:8px;font-weight:500}
+.upload-card input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+
+/* Mapping hint Dynamics */
+.dynamics-hint{margin-top:32px;max-width:800px;border:1px solid var(--linea);background:var(--bg2)}
+.dynamics-hint summary{
+  font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--blu);padding:14px 20px;cursor:pointer;
+}
+.dynamics-hint-body{padding:0 20px 20px}
+.dyn-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;font-size:12px}
+.dyn-row{display:contents}
+.dyn-cell{padding:8px 10px;border-bottom:1px solid var(--linea);font-family:var(--mono);font-size:11px}
+.dyn-cell.header{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--grigio);background:var(--bg3);font-weight:500}
+.dyn-cell.csv{color:var(--blu)}
+.dyn-cell.dyn{color:var(--arancio)}
+.dyn-cell.note{color:var(--grigio)}
+
+.btn-primary{margin-top:32px;padding:14px 40px;background:var(--blu);color:#fff;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;border:none;cursor:pointer;transition:background .2s;display:inline-flex;align-items:center;gap:10px}
+.btn-primary:hover{background:var(--blu2)}
+.btn-primary:disabled{background:var(--grigio);cursor:not-allowed}
+.btn-secondary{margin-top:16px;margin-left:12px;padding:14px 32px;background:transparent;color:var(--blu);font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;border:1px solid var(--blu);cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:10px}
+.btn-secondary:hover{background:var(--blu);color:#fff}
+
+#progress-wrap{display:none;margin-top:24px;max-width:800px}
+.progress-bar-bg{height:4px;background:var(--linea);border-radius:2px}
+.progress-bar-fill{height:4px;background:var(--blu);border-radius:2px;width:0;transition:width .3s}
+.progress-label{font-family:var(--mono);font-size:10px;color:var(--grigio);margin-top:8px}
+
+/* ── MAPPING COLONNE ── */
+.map-intro{max-width:760px;font-size:13px;color:var(--grigio);line-height:1.8;margin-bottom:32px}
+.map-intro strong{color:var(--testo);font-weight:500}
+.map-block{margin-bottom:44px}
+.map-block-title{font-family:var(--cg);font-size:26px;font-weight:300;color:var(--blu);margin-bottom:4px}
+.map-block-sub{font-family:var(--mono);font-size:11px;color:var(--grigio);margin-bottom:20px}
+.map-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.map-row{background:var(--bg2);border:1px solid var(--linea);padding:14px 16px;transition:border-color .15s}
+.map-row.mapped{border-color:rgba(45,122,79,.4)}
+.map-row.skipped{opacity:.65}
+.map-row-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:8px}
+.map-row-name{font-size:13px;font-weight:500;color:var(--testo);display:flex;align-items:center;gap:6px}
+.map-req-dot{width:6px;height:6px;border-radius:50%;background:var(--rosso);flex-shrink:0}
+.map-opt-dot{width:6px;height:6px;border-radius:50%;background:#ccc;flex-shrink:0}
+.map-row-status{font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:2px 8px;text-transform:uppercase;white-space:nowrap}
+.map-status-ok{background:#e8f5ee;color:var(--verde)}
+.map-status-miss{background:#fceaea;color:var(--rosso)}
+.map-status-opt{background:var(--bg3);color:var(--grigio)}
+.map-row-desc{font-size:12px;color:var(--grigio);line-height:1.5;margin-bottom:6px}
+.map-row-consequence{font-size:11px;color:var(--arancio);line-height:1.5;margin-bottom:8px}
+select.map-select{width:100%;background:#fff;border:1px solid var(--linea);color:var(--testo);font-family:var(--mono);font-size:12px;padding:7px 30px 7px 10px;cursor:pointer;outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;transition:border-color .15s}
+select.map-select:focus{border-color:var(--blu)}
+select.map-select.mapped{border-color:var(--verde);color:var(--verde)}
+.map-config-bar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:32px}
+.map-verify-box{background:var(--bg2);border:1px solid var(--linea);padding:24px;margin-top:8px}
+.map-verify-title{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--blu);margin-bottom:16px}
+.map-verify-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.map-verify-stat{background:#fff;border:1px solid var(--linea);padding:14px;text-align:center}
+.map-verify-num{font-family:var(--cg);font-size:26px;color:var(--blu);line-height:1}
+.map-verify-label{font-family:var(--mono);font-size:9px;color:var(--grigio);letter-spacing:.5px;margin-top:4px}
+.map-verify-warn{background:#fdf8f0;border:1px solid #e8d5a8;padding:10px 14px;font-family:var(--mono);font-size:11px;color:var(--arancio);line-height:1.8}
+.map-verify-ok{background:#f0faf4;border:1px solid #a7d7b8;padding:10px 14px;font-family:var(--mono);font-size:11px;color:var(--verde);line-height:1.8}
+.map-preview-wrap{margin-top:16px;overflow-x:auto}
+.map-preview-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px}
+.map-preview-table th{padding:6px 10px;text-align:left;color:var(--blu);border-bottom:1px solid var(--linea);white-space:nowrap;background:#fff}
+.map-preview-table td{padding:6px 10px;color:var(--grigio);border-bottom:1px solid var(--linea);white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis}
+
+/* ── RISULTATI ── */
+.metrics-header{padding:0 0 24px;border-bottom:1px solid var(--linea);margin-bottom:40px}
+.metrics-header h2{font-family:var(--cg);font-size:36px;font-weight:300;color:var(--blu);margin-bottom:24px}
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.kpi{background:var(--bg2);padding:20px;border-left:3px solid var(--linea);transition:border-color .2s}
+.kpi:hover{border-color:var(--blu)}
+.kpi-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--grigio);text-transform:uppercase;margin-bottom:8px}
+.kpi-val{font-family:var(--cg);font-size:32px;font-weight:300;color:var(--blu);line-height:1}
+.kpi-sub{font-family:var(--mono);font-size:9px;color:var(--grigio);margin-top:4px}
+.kpi.kpi-ob{background:#eef3f9;border-left-color:var(--blu)}
+.kpi.kpi-ob .kpi-label{color:var(--blu2)}
+
+.lift-box{background:var(--blu);color:#fff;padding:24px 32px;display:flex;align-items:center;gap:32px;margin-bottom:40px;transition:opacity .3s}
+.lift-val{font-family:var(--cg);font-size:56px;font-weight:300;color:var(--accento);line-height:1;min-width:100px}
+.lift-desc{font-size:14px;line-height:1.7;opacity:.9}
+.lift-desc strong{font-weight:500;color:#fff}
+.lift-none{background:var(--bg2);padding:16px 24px;margin-bottom:40px;font-family:var(--mono);font-size:11px;color:var(--grigio);border-left:3px solid var(--linea)}
+
+.tab-nav{display:flex;gap:0;border-bottom:1px solid var(--linea);margin-bottom:32px;overflow-x:auto}
+.tab-btn{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:12px 20px;border:none;background:none;cursor:pointer;color:var(--grigio);border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
+.tab-btn:hover{color:var(--blu)}
+.tab-btn.active{color:var(--blu);border-bottom-color:var(--blu);font-weight:500}
+
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--grigio);text-transform:uppercase;padding:10px 12px;text-align:left;background:var(--bg2);border-bottom:1px solid var(--linea);white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--linea);transition:background .15s}
+tbody tr:hover{background:var(--bg2)}
+tbody td{padding:10px 12px;vertical-align:middle}
+.donor-id{font-family:var(--mono);font-size:11px;color:var(--grigio)}
+.score-cell{font-weight:500;font-family:var(--mono);font-size:13px}
+.score-bar-wrap{display:flex;align-items:center;gap:8px}
+.score-bar{height:4px;background:var(--linea);flex:1;max-width:80px;border-radius:2px}
+.score-bar-fill{height:4px;border-radius:2px;background:var(--blu)}
+.badge{display:inline-block;padding:2px 8px;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase}
+.badge-verde{background:#e8f5ee;color:var(--verde)}
+.badge-arancio{background:#fdf3e3;color:var(--arancio)}
+.badge-blu{background:#e8eef6;color:var(--blu)}
+.badge-rosso{background:#fceaea;color:var(--rosso)}
+.molt-val{font-family:var(--mono);font-size:11px}
+.molt-pos{color:var(--verde)}.molt-neg{color:var(--rosso)}.molt-neu{color:var(--grigio)}
+
+.territorio-section{margin-top:48px;padding-top:32px;border-top:1px solid var(--linea)}
+.territorio-section h3{font-family:var(--cg);font-size:28px;font-weight:300;color:var(--blu);margin-bottom:24px}
+.regioni-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.regione-card{background:var(--bg2);padding:16px;border-left:3px solid var(--linea)}
+.regione-card .rname{font-family:var(--sans);font-size:13px;font-weight:500;color:var(--blu);margin-bottom:6px}
+.regione-card .rcount{font-family:var(--mono);font-size:11px;color:var(--grigio)}
+.regione-card .rmolt{font-family:var(--mono);font-size:11px;margin-top:4px}
+
+.download-bar{background:var(--bg2);padding:24px 0;border-top:1px solid var(--linea);margin-top:48px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.btn-dl{padding:10px 24px;background:transparent;border:1px solid var(--blu);color:var(--blu);font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.btn-dl:hover{background:var(--blu);color:#fff}
+
+footer{padding:24px 48px;border-top:1px solid var(--linea);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.footer-logo{font-family:var(--cg);font-size:16px;color:var(--grigio)}
+.footer-copy{font-family:var(--mono);font-size:9px;color:#aaa}
+
+@media(max-width:768px){
+  nav,.hero,.panel,footer{padding-left:20px;padding-right:20px}
+  .upload-grid,.kpi-grid,.dyn-grid,.map-grid,.map-verify-grid{grid-template-columns:1fr}
+  .lift-box{flex-direction:column;gap:16px}
+  .step-btn span.step-label{display:none}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="https://polisim.dev">PoliSim</a>
+  <span class="nav-tag">Modulo Propensione RFML · Beta</span>
+</nav>
+
+<div class="hero">
+  <div class="hero-eyebrow">Analisi donatori · Verticale ONG</div>
+  <h1>Propensione<br><em>multi-obiettivo</em></h1>
+  <p class="hero-sub">Quattro passi: anonimizza i tuoi dati, carica i CSV, associa le colonne ai campi del modello, ricevi 5 score di propensione per ogni donatore. Tutto elaborato localmente — nessun dato lascia il tuo browser.</p>
+</div>
+
+<!-- STEP NAV -->
+<div class="step-nav">
+  <button class="step-btn active" id="step-btn-0" onclick="goStep(0)">
+    <span class="step-num">1</span>
+    <span class="step-label">Anonimizza</span>
+  </button>
+  <button class="step-btn" id="step-btn-1" onclick="goStep(1)">
+    <span class="step-num">2</span>
+    <span class="step-label">Carica file</span>
+  </button>
+  <button class="step-btn" id="step-btn-2" onclick="goStep(2)">
+    <span class="step-num">3</span>
+    <span class="step-label">Mappa colonne</span>
+  </button>
+  <button class="step-btn" id="step-btn-3" onclick="goStep(3)">
+    <span class="step-num">4</span>
+    <span class="step-label">Risultati</span>
+  </button>
+</div>
+
+<!-- ═══ PANEL 0 — DATA SHIELD ═══ -->
+<div class="panel active" id="panel-0">
+
+  <!-- GDPR SHIELD -->
+  <div class="ds-gdpr-shield">
+    <div class="ds-gdpr-icon">🛡</div>
+    <div class="ds-gdpr-content">
+      <div class="ds-gdpr-title"><div class="ds-gdpr-dot"></div>GARANZIA DI SICUREZZA E PRIVACY</div>
+      <div class="ds-gdpr-pillars">
+        <span class="ds-gdpr-pill">◆ ZERO SERVER</span>
+        <span class="ds-gdpr-pill">◆ ZERO UPLOAD</span>
+        <span class="ds-gdpr-pill">◆ ZERO TRACCIAMENTO</span>
+        <span class="ds-gdpr-pill">◆ GDPR COMPLIANT</span>
+      </div>
+      <div class="ds-gdpr-desc">
+        <strong>Il tuo file non lascia mai il tuo computer.</strong> L'elaborazione avviene interamente nel browser, in memoria locale. PoliSim non riceve, non vede, non archivia nessun dato. Il file originale non viene mai modificato. Puoi verificarlo disattivando la connessione internet prima di caricare il file — il tool funzionerà comunque.
+      </div>
+      <div class="ds-gdpr-articles">
+        <span>GDPR Art. 4(5) — pseudonimizzazione</span> ·
+        <span>GDPR Art. 89 — trattamento per fini statistici</span> ·
+        <span>GDPR Art. 25 — privacy by design</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 01: CARICA -->
+  <div class="ds-card" id="ds-card-upload">
+    <div class="ds-card-title">01 · CARICA IL FILE</div>
+    <div class="ds-drop-zone" id="ds-dropZone" onclick="document.getElementById('ds-fileInput').click()">
+      <div class="ds-drop-icon">📂</div>
+      <div class="ds-drop-text" id="ds-dropText"><strong>Trascina il file qui</strong> oppure clicca per selezionare</div>
+      <div class="ds-drop-formats">
+        <span class="ds-fmt-badge ds-fmt-excel">Excel .xlsx</span>
+        <span class="ds-fmt-badge ds-fmt-excel">Excel .xls</span>
+        <span class="ds-fmt-badge ds-fmt-csv">CSV .csv</span>
+        <span class="ds-fmt-badge ds-fmt-csv">Testo .txt</span>
+      </div>
+      <div class="ds-drop-hint">Separatori supportati: virgola e punto e virgola</div>
+      <div class="ds-local-badge"><span class="ds-gdpr-dot"></span> Elaborazione locale — nessun upload</div>
+    </div>
+    <input type="file" id="ds-fileInput" accept=".csv,.txt,.xlsx,.xls" style="display:none">
+  </div>
+
+  <!-- STEP 02: CONFIGURA COLONNE -->
+  <div class="ds-card ds-hidden" id="ds-colCard">
+    <div class="ds-card-title">02 · CONFIGURA OGNI COLONNA</div>
+    <div class="ds-legend">
+      <div class="ds-legend-item"><div class="ds-legend-dot" style="background:#b83232"></div>Rimuovi — elimina la colonna</div>
+      <div class="ds-legend-item"><div class="ds-legend-dot" style="background:#7c5cbf"></div>Hash — ID anonimo non reversibile</div>
+      <div class="ds-legend-item"><div class="ds-legend-dot" style="background:#c47a2a"></div>Generalizza — fasce (es. 34→30-39)</div>
+      <div class="ds-legend-item"><div class="ds-legend-dot" style="background:#2d7a4f"></div>Mantieni — dato non sensibile</div>
+    </div>
+    <div class="ds-warn-box">Auto-rilevamento attivo — controlla e correggi ogni colonna prima di procedere.</div>
+    <div class="ds-col-grid" id="ds-colGrid"></div>
+  </div>
+
+  <!-- STEP 03: RIEPILOGO -->
+  <div class="ds-card ds-hidden" id="ds-statsCard">
+    <div class="ds-card-title">03 · RIEPILOGO E AVVIO</div>
+    <div class="ds-stats-row">
+      <div class="ds-stat-card"><div class="ds-stat-num ds-c-red" id="ds-cntRemove">0</div><div class="ds-stat-label">RIMOSSE</div></div>
+      <div class="ds-stat-card"><div class="ds-stat-num ds-c-purple" id="ds-cntHash">0</div><div class="ds-stat-label">HASH</div></div>
+      <div class="ds-stat-card"><div class="ds-stat-num ds-c-yellow" id="ds-cntGen">0</div><div class="ds-stat-label">GENERALIZZATE</div></div>
+      <div class="ds-stat-card"><div class="ds-stat-num ds-c-green" id="ds-cntKeep">0</div><div class="ds-stat-label">MANTENUTE</div></div>
+    </div>
+    <div class="ds-report-box">
+      <div class="ds-report-title"><span class="ds-gdpr-dot"></span>REPORT CONFORMITÀ</div>
+      <div class="ds-report-line" id="ds-reportText"></div>
+    </div>
+    <button class="ds-run-btn" id="ds-runBtn" onclick="dsRunAnon()">Avvia anonimizzazione →</button>
+  </div>
+
+  <!-- STEP 04: RISULTATO -->
+  <div class="ds-card ds-hidden" id="ds-resultCard">
+    <div class="ds-card-title">04 · RISULTATO — ANTEPRIMA</div>
+    <div class="ds-report-box">
+      <div class="ds-report-title"><span class="ds-gdpr-dot"></span>ANONIMIZZAZIONE COMPLETATA</div>
+      <div class="ds-report-line" id="ds-resultReport"></div>
+    </div>
+    <div class="ds-preview-wrap"><table class="ds-preview-table" id="ds-previewTable"></table></div>
+    <div class="ds-more-rows ds-hidden" id="ds-moreRows"></div>
+    <button class="ds-dl-btn" onclick="dsDownloadCSV()">↓ Scarica CSV anonimizzato</button>
+  </div>
+
+  <!-- FOOTER GDPR -->
+  <div class="ds-gdpr-footer">
+    <span>Verifica tecnica:</span> disconnetti internet e ricarica la pagina — il tool funziona identicamente. Nessun dato transita su rete.<br>
+    <span>File originale:</span> mai modificato. <span>Dati in memoria:</span> cancellati alla chiusura del browser. <span>Log server:</span> nessuno.
+  </div>
+
+  <div style="margin-top:32px;padding-bottom:8px">
+    <button class="btn-primary" onclick="goStep(1)">→ Vai al Passo 2 — Carica file</button>
+  </div>
+</div>
+
+<!-- ═══ PANEL 1 — UPLOAD ═══ -->
+<div class="panel" id="panel-1">
+  <div class="section-label">Passo 2 — Carica i file</div>
+  <div class="upload-grid">
+    <div class="upload-card" id="card-ana">
+      <input type="file" accept=".csv" id="file-ana">
+      <span class="upload-icon">📋</span>
+      <h3>Anagrafica donatori</h3>
+      <p>donor_id, fascia_eta, anzianita_anni,<br>canale_acquisizione, tipo_sostegno,<br>metodo_pagamento, cap (opz.),<br>ha_risposto_campagna_* (opz.)</p>
+      <div class="file-name" id="name-ana"></div>
+    </div>
+    <div class="upload-card" id="card-tx">
+      <input type="file" accept=".csv" id="file-tx">
+      <span class="upload-icon">💳</span>
+      <h3>Storico transazioni</h3>
+      <p>donor_id, data_donazione, importo_eur,<br>metodo_pagamento, campagna<br>Min. 3 anni di storico</p>
+      <div class="file-name" id="name-tx"></div>
+    </div>
+  </div>
+
+  <!-- Mapping Dynamics -->
+  <details class="dynamics-hint" style="margin-top:32px;max-width:800px">
+    <summary>📊 Guida mapping CRM — Dynamics 365 · Salesforce · Raiser's Edge · myDonor · GestONG · HubSpot</summary>
+    <div class="dynamics-hint-body">
+      <p style="font-size:13px;color:var(--grigio);margin-bottom:16px;margin-top:8px">Corrispondenza tra i campi CSV PoliSim e le entità dei principali CRM usati dalle ONG in Italia. Espandi per trovare il tuo sistema.</p>
+      <div class="dyn-grid">
+        <div class="dyn-cell header">Campo CSV PoliSim</div>
+        <div class="dyn-cell header">Dynamics 365 / CRM</div>
+        <div class="dyn-cell header">Note</div>
+
+        <div class="dyn-cell csv">donor_id</div>
+        <div class="dyn-cell dyn">contact.contactid</div>
+        <div class="dyn-cell note">GUID anonimizzato con Data Shield</div>
+
+        <div class="dyn-cell csv">fascia_eta</div>
+        <div class="dyn-cell dyn">contact.birthdate → calcola età</div>
+        <div class="dyn-cell note">Fasce: 35-44, 45-54, 55-64, 65-74, 75+</div>
+
+        <div class="dyn-cell csv">anzianita_anni</div>
+        <div class="dyn-cell dyn">contact.createdon → anni da oggi</div>
+        <div class="dyn-cell note">Anni dal primo contatto registrato</div>
+
+        <div class="dyn-cell csv">cap</div>
+        <div class="dyn-cell dyn">contact.address1_postalcode</div>
+        <div class="dyn-cell note">5 cifre — abilita layer territoriale ISTAT</div>
+
+        <div class="dyn-cell csv">canale_acquisizione</div>
+        <div class="dyn-cell dyn">contact.msnfp_originatingcampaignid</div>
+        <div class="dyn-cell note">web / direct_mail / eventi / passaparola</div>
+
+        <div class="dyn-cell csv">tipo_sostegno_prevalente</div>
+        <div class="dyn-cell dyn">msnfp_transaction.msnfp_transactiontype</div>
+        <div class="dyn-cell note">donazione_ricorrente / one_off / adozione_distanza</div>
+
+        <div class="dyn-cell csv">metodo_pagamento_prevalente</div>
+        <div class="dyn-cell dyn">msnfp_paymentmethod.msnfp_type</div>
+        <div class="dyn-cell note">RID_SEPA / carta_credito / bollettino</div>
+
+        <div class="dyn-cell csv">volontariato</div>
+        <div class="dyn-cell dyn">msnfp_volunteerpreference.msnfp_volunteer</div>
+        <div class="dyn-cell note">1 = ha fatto almeno un'ora di volontariato</div>
+
+        <div class="dyn-cell csv">ha_risposto_campagna_lasciti</div>
+        <div class="dyn-cell dyn">msnfp_appeal_response + tag "planned_giving"</div>
+        <div class="dyn-cell note">1 = risposta positiva a campagna legacy</div>
+
+        <div class="dyn-cell csv">ha_risposto_campagna_upgrade</div>
+        <div class="dyn-cell dyn">msnfp_giftamount aumentato vs anno prec.</div>
+        <div class="dyn-cell note">1 = importo medio cresciuto ≥ 20%</div>
+
+        <div class="dyn-cell csv">ha_risposto_campagna_continuativo</div>
+        <div class="dyn-cell dyn">msnfp_recurringgiftschedule creato</div>
+        <div class="dyn-cell note">1 = convertito a donazione ricorrente</div>
+
+        <div class="dyn-cell csv">ha_risposto_campagna_riattivazione</div>
+        <div class="dyn-cell dyn">nuova transazione dopo gap &gt; 18 mesi</div>
+        <div class="dyn-cell note">1 = donatore lapsed riattivato</div>
+
+        <div class="dyn-cell css">ha_risposto_campagna_oneoff</div>
+        <div class="dyn-cell dyn">msnfp_appeal_response tag "emergency"</div>
+        <div class="dyn-cell note">1 = risposta a campagna emergenza</div>
+      </div>
+
+      <p style="font-family:var(--mono);font-size:10px;color:var(--grigio);margin:20px 0 12px;letter-spacing:2px;text-transform:uppercase">Altri CRM diffusi in Italia</p>
+      <div class="dyn-grid">
+        <div class="dyn-cell header">Campo CSV PoliSim</div>
+        <div class="dyn-cell header">Salesforce NPSP</div>
+        <div class="dyn-cell header">Note</div>
+
+        <div class="dyn-cell csv">donor_id</div>
+        <div class="dyn-cell dyn">Contact.Id (anonimizzato)</div>
+        <div class="dyn-cell note">Salesforce for Nonprofits — NPSP</div>
+
+        <div class="dyn-cell csv">anzianita_anni</div>
+        <div class="dyn-cell dyn">npo02__FirstCloseDate__c → anni da oggi</div>
+        <div class="dyn-cell note">Prima data donazione nel record NPSP</div>
+
+        <div class="dyn-cell csv">ha_risposto_campagna_lasciti</div>
+        <div class="dyn-cell dyn">npsp__Opportunity.RecordType = PlannedGift</div>
+        <div class="dyn-cell note">Opportunity con tipo Lascito / Planned Gift</div>
+
+        <div class="dyn-cell css">cap</div>
+        <div class="dyn-cell dyn">Contact.MailingPostalCode</div>
+        <div class="dyn-cell note">Campo indirizzo standard Salesforce</div>
+      </div>
+
+      <div class="dyn-grid" style="margin-top:16px">
+        <div class="dyn-cell header">Campo CSV PoliSim</div>
+        <div class="dyn-cell header">Raiser's Edge NXT (Blackbaud)</div>
+        <div class="dyn-cell header">Note</div>
+
+        <div class="dyn-cell csv">donor_id</div>
+        <div class="dyn-cell dyn">Constituent.Id (anonimizzato)</div>
+        <div class="dyn-cell note">Diffuso in ONG internazionali con sede IT</div>
+
+        <div class="dyn-cell csv">anzianita_anni</div>
+        <div class="dyn-cell dyn">Gifts.FirstGiftDate → anni da oggi</div>
+        <div class="dyn-cell note">Data prima donazione nel record constituent</div>
+
+        <div class="dyn-cell csv">ha_risposto_campagna_lasciti</div>
+        <div class="dyn-cell dyn">PlannedGifts → GiftType = Bequest</div>
+        <div class="dyn-cell note">Modulo Planned Giving di RE NXT</div>
+
+        <div class="dyn-cell css">cap</div>
+        <div class="dyn-cell dyn">Constituent.Address.PostalCode</div>
+        <div class="dyn-cell note">Campo indirizzo principale</div>
+      </div>
+
+      <div class="dyn-grid" style="margin-top:16px">
+        <div class="dyn-cell header">Campo CSV PoliSim</div>
+        <div class="dyn-cell header">GestONG / Rete del Dono (Italia)</div>
+        <div class="dyn-cell header">Note</div>
+
+        <div class="dyn-cell csv">donor_id</div>
+        <div class="dyn-cell dyn">Anagrafica.CodiceDonoatore (anonimizzato)</div>
+        <div class="dyn-cell note">CRM italiano specifico per ONG</div>
+
+        <div class="dyn-cell csv">metodo_pagamento_prevalente</div>
+        <div class="dyn-cell dyn">Pagamento.ModalitaPagamento</div>
+        <div class="dyn-cell note">Bonifico / RID / Carta / Bollettino</div>
+
+        <div class="dyn-cell csv">tipo_sostegno_prevalente</div>
+        <div class="dyn-cell dyn">Donazione.TipologiaDonazione</div>
+        <div class="dyn-cell note">Ricorrente / Una Tantum / Adozione</div>
+
+        <div class="dyn-cell css">cap</div>
+        <div class="dyn-cell dyn">Anagrafica.CAP</div>
+        <div class="dyn-cell note">Campo standard anagrafica GestONG</div>
+      </div>
+
+      <div class="dyn-grid" style="margin-top:16px">
+        <div class="dyn-cell header">Campo CSV PoliSim</div>
+        <div class="dyn-cell header">HubSpot CRM (con ext. nonprofit)</div>
+        <div class="dyn-cell header">Note</div>
+
+        <div class="dyn-cell csv">donor_id</div>
+        <div class="dyn-cell dyn">contact.hs_object_id (anonimizzato)</div>
+        <div class="dyn-cell note">Usato da ONG digitali e startup sociali</div>
+
+        <div class="dyn-cell csv">canale_acquisizione</div>
+        <div class="dyn-cell dyn">contact.hs_lead_source</div>
+        <div class="dyn-cell note">Organic / Email / Event / Referral</div>
+
+        <div class="dyn-cell css">ha_risposto_campagna_*</div>
+        <div class="dyn-cell dyn">deal.pipeline + deal.dealstage</div>
+        <div class="dyn-cell note">Pipeline "Donazioni" — stage per obiettivo</div>
+
+        <div class="dyn-cell css">cap</div>
+        <div class="dyn-cell dyn">contact.zip</div>
+        <div class="dyn-cell note">Campo indirizzo standard HubSpot</div>
+      </div>
+
+      <div class="dyn-grid" style="margin-top:16px">
+        <div class="dyn-cell header">Campo CSV PoliSim</div>
+        <div class="dyn-cell header">myDonor® (italiano, specifico nonprofit)</div>
+        <div class="dyn-cell header">Note</div>
+
+        <div class="dyn-cell csv">donor_id</div>
+        <div class="dyn-cell dyn">Anagrafica.CodiceDonoatore (anonimizzato)</div>
+        <div class="dyn-cell note">Il CRM nonprofit italiano più diffuso — mydonor.org</div>
+
+        <div class="dyn-cell csv">anzianita_anni</div>
+        <div class="dyn-cell dyn">Donazioni.DataPrimaDonazione → anni da oggi</div>
+        <div class="dyn-cell note">Storico donazioni nel modulo Fundraising</div>
+
+        <div class="dyn-cell csv">tipo_sostegno_prevalente</div>
+        <div class="dyn-cell dyn">Donazioni.TipologiaDonazione</div>
+        <div class="dyn-cell note">Ricorrente SDD / Una Tantum / Sostegno a distanza</div>
+
+        <div class="dyn-cell csv">metodo_pagamento_prevalente</div>
+        <div class="dyn-cell dyn">Ricorrenti.ModalitaPagamento</div>
+        <div class="dyn-cell note">Banca SDD / Carta di credito / Bollettino postale</div>
+
+        <div class="dyn-cell csv">cap</div>
+        <div class="dyn-cell dyn">Anagrafica.CAP</div>
+        <div class="dyn-cell note">Campo standard anagrafica myDonor</div>
+
+        <div class="dyn-cell csv">ha_risposto_campagna_lasciti</div>
+        <div class="dyn-cell dyn">Lasciti.StatoLascito = interesse/confermato</div>
+        <div class="dyn-cell note">Modulo Gestione Lasciti integrato in myDonor NX</div>
+
+        <div class="dyn-cell csv">ha_risposto_campagna_oneoff</div>
+        <div class="dyn-cell dyn">Campagne.RispostaAppello = 1</div>
+        <div class="dyn-cell note">Risposta a campagna emergency nel modulo Online</div>
+      </div>
+    </div>
+  </details>
+
+  <div style="margin-top:32px">
+    <button class="btn-primary" id="btn-to-mapping" disabled onclick="apriMapping()">→ Vai al mapping colonne</button>
+  </div>
+</div>
+
+<!-- ═══ PANEL 2 — MAPPING COLONNE ═══ -->
+<div class="panel" id="panel-2">
+  <div class="section-label">Passo 3 — Associa le colonne</div>
+  <p class="map-intro">
+    Il motore si aspetta nomi colonna precisi. Se il tuo CSV usa nomi diversi, qui sotto li associ uno a uno:
+    per ogni campo trovi la conseguenza esatta se lo lasci <strong>non mappato</strong> — alcuni campi vengono semplicemente
+    imputati con un valore di default in modo silenzioso, altri impediscono il calcolo. Verifica anche il riquadro
+    di controllo qualità prima di procedere: associare i nomi giusti non basta se i <em>valori</em> di <code>donor_id</code>
+    non coincidono tra i due file.
+  </p>
+
+  <div class="map-config-bar">
+    <button class="btn-dl" onclick="document.getElementById('map-config-input').click()">↑ Carica configurazione mapping</button>
+    <input type="file" id="map-config-input" accept=".json" style="display:none" onchange="loadMappingConfig(this)">
+    <button class="btn-dl" onclick="saveMappingConfig()">↓ Salva configurazione mapping</button>
+  </div>
+
+  <div class="map-block">
+    <div class="map-block-title">Anagrafica donatori</div>
+    <div class="map-block-sub" id="map-ana-sub"></div>
+    <div class="map-grid" id="map-ana-grid"></div>
+  </div>
+
+  <div class="map-block">
+    <div class="map-block-title">Storico transazioni</div>
+    <div class="map-block-sub" id="map-tx-sub"></div>
+    <div class="map-grid" id="map-tx-grid"></div>
+  </div>
+
+  <div class="map-verify-box" id="map-verify-box" style="display:none"></div>
+
+  <div style="margin-top:32px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <button class="btn-secondary" onclick="goStep(1)">← Torna al caricamento</button>
+    <button class="btn-primary" id="btn-run" disabled onclick="eseguiCalcolo()">
+      <span>▶</span> Calcola propensione
+    </button>
+  </div>
+  <div id="progress-wrap">
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="prog-fill"></div></div>
+    <div class="progress-label" id="prog-label">Lettura dati...</div>
+  </div>
+</div>
+
+<!-- ═══ PANEL 3 — RISULTATI ═══ -->
+<div class="panel" id="panel-3">
+  <div class="metrics-header">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px">
+      <h2 style="margin-bottom:0">Risultati analisi</h2>
+      <div style="display:flex;gap:10px">
+        <button class="btn-dl" onclick="document.getElementById('btn-csv').click()">↓ CSV completo</button>
+        <button class="btn-dl" onclick="document.getElementById('btn-top').click()">↓ Top 20% per obiettivo</button>
       </div>
     </div>
     <div class="kpi-grid" id="kpi-grid"></div>
