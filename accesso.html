@@ -134,7 +134,18 @@ async function checkGate() {
     if (!res.ok) throw new Error('non valido');
     const data = await res.json();
     sessionStorage.setItem('polisim_token', data.token);
-    window.location.href = data.dest;
+
+    // La scheda scelta indirizza la destinazione, mantenendo lo stesso token.
+    // Se l'utente ha scelto un profilo esplicito, lo rispettiamo; altrimenti
+    // usiamo la dest naturale del codice dal backend.
+    const destPerProfilo = {
+      pol:   '/simulatore.html',
+      ong:   '/optimizer.html?tipo=ong',
+      prop:  '/propensione_dashboard.html',
+      civic: '/optimizer.html?tipo=civic'
+    };
+    const destScelta = (profiloSel && destPerProfilo[profiloSel]) ? destPerProfilo[profiloSel] : data.dest;
+    window.location.href = destScelta;
   } catch(e) {
     document.getElementById('gate-err').textContent = 'Codice non valido';
     setTimeout(() => document.getElementById('gate-err').textContent = '', 2500);
