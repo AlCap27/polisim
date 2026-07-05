@@ -643,7 +643,11 @@ async function esegui() {
     }
 
     const res = await fetch(`${API}/api/simulate`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization': 'Bearer ' + (sessionStorage.getItem('polisim_token')||'')
+      },
       body: JSON.stringify(body)
     });
     if (!res.ok) { const e = await res.json(); throw new Error(e.detail||'Errore API'); }
