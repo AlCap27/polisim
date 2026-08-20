@@ -76,6 +76,10 @@
       "dest": "/robots.txt"
     },
     {
+      "src": "/llms.txt",
+      "dest": "/llms.txt"
+    },
+    {
       "src": "/(.*\\.html)",
       "dest": "/$1"
     },

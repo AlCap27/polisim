@@ -1,0 +1,26 @@
+# PoliSim
+
+> Message Optimizer e modulo di propensione RFML per organizzazioni civiche — ONG, sindacati, movimenti — costruiti su un simulatore elettorale bayesiano (MRP) e dati pubblici italiani.
+
+PoliSim è pensato in primo luogo per chi comunica per un'organizzazione civica: il **Message Optimizer** valuta la coerenza di un messaggio con i valori dichiarati dell'organizzazione e con la realtà demografica del territorio target, misurando il framing (Entman 1993) con limiti dichiarati esplicitamente — nessun punteggio è spacciato per previsione di conversione. Il **modulo Propensione RFML** applica scoring di propensione (lascito, upgrade, riattivazione) ai donatori di ONG ed enti no-profit, elaborando i CSV interamente lato browser (Data Shield, zero upload server). Entrambi si appoggiano agli stessi dati pubblici — ISTAT 2021 (71M osservazioni), Eligendo OpenData, ITANES 2022, ESS, Tripol — che alimentano anche il simulatore elettorale bayesiano (MRP). Costruito per partiti, ONG, sindacati e movimenti civici, non per profilare singoli elettori. Licenza AGPL v3, nessuna fonte dati proprietaria. Live dall'aprile 2026.
+
+## Docs
+- [Metodologia](https://polisim.dev/metodologia.html): white paper IT/EN, modello MRP bayesiano, limitazioni dichiarate
+- [Fonti](https://polisim.dev/fonti.html): systematic review bibliografica, DOI verificati
+- [Validazione](https://polisim.dev/validazione.html): backtest e proof of concept su dati reali
+- [Per chi](https://polisim.dev/per-chi.html): partiti, ONG, sindacati, pilot partner
+- [GDPR](https://polisim.dev/gdpr.html): trattamento dati e privacy
+
+## Tools
+- [Previsioni MRP](https://polisim.dev/tool.html): modello bayesiano per collegio, RMSE 4.3pp out-of-sample
+- [Simulatore elettorale](https://polisim.dev/simulatore.html): simulazione Camera + Senato, 5 segmenti ITANES 2022
+- [Modulo Propensione](https://polisim.dev/propensione.html): scoring propensione donatori per organizzazioni no-profit
+- [Data Shield](https://polisim.dev/anonimizza.html): anonimizzazione CSV lato browser, nessun upload server
+- [Legenda collegi](https://polisim.dev/collegi.html): 147 collegi uninominali Camera, risultati storici 2022
+
+## Optional
+- [English](https://polisim.dev/en.html)
+- [Repository (AGPL v3)](https://github.com/AlCap27/polisim)
+
+## Note
+Alcune pagine del dominio richiedono un codice di accesso (incluso il Message Optimizer) e non sono pensate per l'uso automatico: non sono elencate qui e sono escluse dall'indicizzazione (`noindex`). Il file non documenta endpoint API autenticati.
