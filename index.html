@@ -65,6 +65,30 @@
         "@type": "Answer",
         "text": "Il modello MRP Dirichlet-Multinomial bayesiano (PyMC) è live su /previsioni. 252 osservazioni, 54 celle demografiche per collegio, RMSE 4.3pp out-of-sample (Lombardia 2023). Prossima evoluzione: integrazione shapefile per granularità a livello di singolo collegio."
       }
+    },
+    {
+      "@type": "Question",
+      "name": "Come fa PoliSim a evitare che l'AI generi messaggi generici?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Il sistema non lascia il modello libero di creare: applica vincoli progressivi — segmento specifico, obiettivo di campagna, canale di comunicazione — che restringono il campo prima della generazione. Il risultato è un messaggio calibrato su un contesto preciso, non un testo generico applicabile a chiunque."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Su quali basi teoriche si fonda l'analisi del framing dei messaggi?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Il Message Optimizer analizza ogni testo secondo le quattro funzioni del framing di Entman (1993) — definizione del problema, causa, giudizio morale, rimedio proposto — insieme a cinque misure linguistiche riproducibili basate su letteratura consolidata in psicologia cognitiva (carico cognitivo, vie di persuasione, effetti di framing, pensiero intuitivo/analitico, fluenza cognitiva)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "PoliSim garantisce che un messaggio funzionerà davvero?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No, e lo dichiariamo esplicitamente: i punteggi ordinano le varianti per efficacia stimata, non predicono quante persone risponderanno. Sono uno strumento di confronto relativo, non una previsione di conversione — e il sistema non è ancora stato validato sul campo in modo estensivo."
+      }
     }
   ]
 }
@@ -550,7 +574,7 @@ footer { border-top: 1px solid var(--border); padding: 40px; max-width: 1200px; 
     <a href="/api">API</a>
     <a href="/en.html">English</a>
   </div>
-  <div class="foot-note">Un progetto Q-Italia · qitalia.org<br><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5c35323a331c2c3330352f35317238392a">[email&#160;protected]</a> · Beta pubblica · Pilot partners benvenuti</div>
+  <div class="foot-note">PoliSim è uno strumento indipendente · Sperimentato nel movimento civico <a href="https://qitalia.org" target="_blank">Q-Italia</a> (qitalia.org) · Altri progetti: <a href="https://www.agentabile.dev" target="_blank">Agentabile</a> · <a href="https://www.editron.net" target="_blank">Editron</a><br><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5c35323a331c2c3330352f35317238392a">[email&#160;protected]</a> · Beta pubblica · Pilot partners benvenuti</div>
 </footer>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
