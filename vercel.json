@@ -20,6 +20,10 @@
     {
       "src": "**/*.csv",
       "use": "@vercel/static"
+    },
+    {
+      "src": "**/*.xml",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
