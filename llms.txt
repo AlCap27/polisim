@@ -12,10 +12,10 @@ Ogni pagina dichiara esplicitamente i propri limiti metodologici insieme ai risu
 
 ## Strumenti
 - [Simulatore elettorale](https://polisim.dev/simulatore.html): proiezione di seggi su scenari ipotetici, calibrato sul sistema elettorale vigente al momento della pubblicazione. In aggiornamento per riflettere la riforma elettorale 2026 (proporzionale con premio di maggioranza al 42%), non appena approvata in via definitiva.
-- [Previsioni MRP](https://polisim.dev/tool.html): modello MRP bayesiano Dirichlet-Multinomial per 147 collegi Camera — mediana posteriore, IC 90%, probabilità di vittoria per coalizione.
+- [Previsioni MRP](https://polisim.dev/tool.html): modello MRP bayesiano Dirichlet-Multinomial per 147 collegi Camera — mediana posteriore, IC 90% (copertura calibrata al 39,2%, vedi Metodologia), probabilità di vittoria per coalizione.
 - [Comunicazione politica](https://polisim.dev/comunicazione-politica.html): 30 domande e risposte, con fonti, su come testare un messaggio politico (Message Optimizer), come funziona un simulatore elettorale, cosa cambia con la nuova legge elettorale.
 - [Omni4](https://polisim.dev/omni4.html): estensione Chrome per bozze di post e risposte sui social, coerenti con un documento editoriale caricato dall'utente. Nessun account, nessun server: dati e chiave API restano nel browser dell'utente.
-- [Modulo Propensione](https://polisim.dev/propensione.html): analisi propensione donatori per ONG — lasciti, upgrade, riattivazione, sostegno continuativo, emergenze. Lift 1,97× su dati reali.
+- [Modulo Propensione](https://polisim.dev/propensione.html): analisi propensione donatori per ONG — lasciti, upgrade, riattivazione, sostegno continuativo, emergenze. Lift 1,65× su dataset sintetico, non ancora validato su campagne reali.
 - [Data Shield](https://polisim.dev/anonimizza.html): anonimizzazione CSV lato browser, nessun upload server.
 - [Legenda collegi](https://polisim.dev/collegi.html): collegi uninominali Camera, risultati storici 2022.
 
