@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Modulo Propensione — PoliSim · Analisi donatori per ONG</title>
-<meta name="description" content="Il Modulo Propensione di PoliSim analizza il tuo database donatori e risponde alla domanda: chi raggiungere, con quale obiettivo e come. Lasciti, upgrade, riattivazione, sostegno continuativo, emergenze. Lift 1.97× su dati reali.">
+<meta name="description" content="Il Modulo Propensione di PoliSim analizza il tuo database donatori e risponde alla domanda: chi raggiungere, con quale obiettivo e come. Lasciti, upgrade, riattivazione, sostegno continuativo, emergenze. Lift 1.65× su dataset sintetico.">
 <meta property="og:title" content="Modulo Propensione PoliSim — Analisi donatori NGO">
-<meta property="og:description" content="Analisi RFML multi-obiettivo per ONG. Chi contattare per lasciti, upgrade, riattivazione, sostegno continuativo. Lift misurato 1.97×.">
+<meta property="og:description" content="Analisi RFML multi-obiettivo per ONG. Chi contattare per lasciti, upgrade, riattivazione, sostegno continuativo. Lift misurato 1.65×.">
 <link rel="canonical" href="https://polisim.dev/propensione.html">
 <script type="application/ld+json">
 {
@@ -34,7 +34,7 @@
       "name": "Qual è il lift misurato del modello propensione lasciti?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Su dataset sintetico strutturato (600 donatori, 106 lasciti dichiarati), il top 20% per score lascito contiene il 29.2% dei lasciti dichiarati contro il 14.8% nel resto: lift 1.97×. I pesi sono expert-calibrated (Sargeant 2007 adattato), non ancora validati su A/B test propri. Il lift sarà aggiornato con i dati delle prime campagne reali."
+        "text": "Su dataset sintetico strutturato, il top 20% per score lascito ha una frequenza di lasciti dichiarati superiore al resto del database: lift 1.65×. I pesi sono expert-calibrated (Sargeant 2007 adattato), non ancora validati su A/B test propri. Il lift sarà aggiornato con i dati delle prime campagne reali."
       }
     }
   ]
@@ -310,7 +310,7 @@ footer{border-top:0.5px solid var(--border);padding:32px 40px;display:flex;justi
 
   <div class="hero-stats">
     <div class="hero-stat">
-      <span class="hero-stat-n">1.97×</span>
+      <span class="hero-stat-n">1.65×</span>
       <span class="hero-stat-l">Lift lasciti — top 20% score</span>
     </div>
     <div class="hero-stat">
@@ -362,7 +362,7 @@ footer{border-top:0.5px solid var(--border);padding:32px 40px;display:flex;justi
     <div class="ob-card ob-lascito">
       <span class="ob-label">Lascito</span>
       <div class="ob-title">Legacy prospect non identificati</div>
-      <p class="ob-desc">Donatori fedeli da anni, importi modesti, over 65. Il CRM li classifica come "medi". Il modello li separa dal resto con lift 1.97×.</p>
+      <p class="ob-desc">Donatori fedeli da anni, importi modesti, over 65. Il CRM li classifica come "medi". Il modello li separa dal resto con lift 1.65×.</p>
       <p class="ob-note">Pesi: L=0.45 · F=0.30 · M-trend=0.15 · R=0.05</p>
     </div>
     <div class="ob-card ob-upgrade">
@@ -492,7 +492,7 @@ footer{border-top:0.5px solid var(--border);padding:32px 40px;display:flex;justi
     </table>
   </div>
   <div class="disclaimer-box">
-    <strong>⚠ Expert-calibrated, non validato.</strong> I pesi derivano da Sargeant (2007) adattato al contesto italiano e calibrato sui tassi di risposta misurati sui dati. Non sono ancora stati validati su A/B test propri. Il lift lascito (1.97×) è misurato su dataset sintetico strutturato, non su campagne reali. I pesi saranno aggiornati automaticamente dopo le prime 20 campagne con esito misurato — questo è il feedback loop che trasforma il modello euristico in modello validato.
+    <strong>⚠ Expert-calibrated, non validato.</strong> I pesi derivano da Sargeant (2007) adattato al contesto italiano e calibrato sui tassi di risposta misurati sui dati. Non sono ancora stati validati su A/B test propri. Il lift lascito (1.65×) è misurato su dataset sintetico strutturato, non su campagne reali. I pesi saranno aggiornati automaticamente dopo le prime 20 campagne con esito misurato — questo è il feedback loop che trasforma il modello euristico in modello validato.
   </div>
 </section>
 
@@ -506,10 +506,9 @@ footer{border-top:0.5px solid var(--border);padding:32px 40px;display:flex;justi
   <div class="lift-block">
     <div>
       <div class="lift-label">Lift lasciti — top 20% per score</div>
-      <div class="lift-number">1.97×</div>
-      <p class="lift-desc">Il 20% dei donatori con il punteggio lascito più alto contiene il 29.2% dei lasciti dichiarati, contro il 14.8% nel resto del database.</p>
+      <div class="lift-number">1.65×</div>
+      <p class="lift-desc">Il 20% dei donatori con il punteggio lascito più alto ha una frequenza di lasciti dichiarati 1.65× superiore al resto del database.</p>
       <p class="lift-detail">
-        N=600 donatori · 106 lasciti dichiarati (17.7%)<br>
         Dataset sintetico con struttura causale reale<br>
         Segnali usati: RFML + fascia età · nessuna colonna-esito come input
       </p>
@@ -664,7 +663,7 @@ footer{border-top:0.5px solid var(--border);padding:32px 40px;display:flex;justi
       <p class="vert-desc">Lasciti, upgrade, sostegno continuativo, riattivazione, emergenze. Matrice pesi calibrata su Sargeant 2007. Integrazione diretta con Data Shield e Stage 3 message optimizer.</p>
       <ul class="vert-feats">
         <li>5 obiettivi di raccolta modellati</li>
-        <li>Lift lasciti misurato: 1.97×</li>
+        <li>Lift lasciti misurato: 1.65×</li>
         <li>Wizard mapping CSV 4-step</li>
         <li>Dashboard interattivo per esplorazione</li>
         <li>Bonus demografico per fascia età (lasciti)</li>
