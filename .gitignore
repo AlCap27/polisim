@@ -33,3 +33,6 @@ models/*.pkl
 models/*.h5
 
 pulizia_repo.sh
+
+# Agent session logs (local only, never commit)
+.letta/
