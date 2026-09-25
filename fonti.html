@@ -100,7 +100,7 @@ footer{border-top:0.5px solid var(--line);padding:32px 56px;display:flex;justify
   <div class="footer-copy">© 2026 PoliSim.dev — Powered by Claude Sonnet · Anthropic</div>
   <div class="footer-links">
     <a href="/metodologia.html">Metodologia</a>
-    <a href="/gdpr.html">Privacy</a>
+    <a href="/privacy.html">Privacy</a>
     <a href="/tool.html">Tool</a>
   </div>
 </footer>
@@ -118,12 +118,16 @@ const PAPERS = [
     category: 'mrp',
     tag: 'MRP · Forecasting non-rappresentativo',
     note: 'Riferimento per il forecasting elettorale con campioni non-probabilistici (studio Xbox). Dimostra RMSE 1.9pp su sottogruppi demografici — benchmark di riferimento per la validazione PoliSim.',
+    // OpenAlex espone l'anno di pubblicazione online anticipata (2014); il fascicolo ufficiale è 2015.
+    yearOverride: 2015,
   },
   {
     doi: '10.1111/j.1540-5907.2008.00360.x',
     category: 'mrp',
     tag: 'MRP · Opinione pubblica sub-statale',
     note: 'Consolida il metodo MRP per la stima dell\'opinione pubblica a livello sub-statale. Base teorica per la disaggregazione a livello di collegio uninominale italiano.',
+    // OpenAlex espone l'anno di pubblicazione online anticipata (2008); il fascicolo ufficiale è 2009.
+    yearOverride: 2009,
   },
   {
     doi: '10.1017/s0003055418000011',
@@ -137,6 +141,8 @@ const PAPERS = [
     category: 'mrp',
     tag: 'MRP · Calibrazione sub-nazionale',
     note: 'Tecniche di calibrazione MRP a livello di collegio elettorale. Metodo adottato per i 139 collegi Camera uninominale italiani con dati ISTAT 2021.',
+    // OpenAlex espone l'anno di pubblicazione online anticipata (2023); il fascicolo ufficiale è 2024.
+    yearOverride: 2024,
     oa: true,
   },
   {
@@ -166,6 +172,10 @@ const PAPERS = [
     note: 'Documenta che i LLM hanno un bias di conferma sistematico nell\'auto-annotazione del framing: il modello che genera una variante tende a valutarla positivamente sulla stessa dimensione. <strong>Limitazione dichiarata nel Message Optimizer.</strong>',
     oa: true,
     limit: 'Limite dichiarato: self-evaluation framing bias attivo nel Message Optimizer. Il punteggio Entman è calcolato dallo stesso LLM che genera le varianti.',
+    // OpenAlex espone l'anno di pubblicazione online anticipata (2023) e i nomi estesi degli autori;
+    // il fascicolo ufficiale è 2024 e i nomi brevi sono quelli usati dagli autori stessi.
+    yearOverride: 2024,
+    authorOverride: 'Caleb Ziems, William Held, Omar Shaikh +3',
   },
   {
     doi: '10.1017/pan.2023.2',
@@ -239,12 +249,12 @@ function renderSections() {
       html += `
         <div class="source-card loaded" data-category="${cat}">
           <div class="source-meta">
-            <span>${p.meta.publication_year}${journal ? ' · ' + journal : ''}</span>
+            <span>${p.def.yearOverride || p.meta.publication_year}${journal ? ' · ' + journal : ''}</span>
             <span class="source-cites">${citFmt(p.meta.cited_by_count)}<span>cit.</span></span>
           </div>
           <div class="source-tag">${p.def.tag}${isOA ? '<span class="oa-badge">Open Access</span>' : ''}</div>
           <div class="source-title"><a href="https://doi.org/${p.def.doi}" target="_blank" rel="noopener">${p.meta.title}</a></div>
-          <div class="source-authors">${authorStr(p.meta.authorships)}</div>
+          <div class="source-authors">${p.def.authorOverride || authorStr(p.meta.authorships)}</div>
           <div class="source-note">${p.def.note}</div>
           ${p.def.limit ? `<div class="limit-note">⚠ ${p.def.limit}</div>` : ''}
         </div>`;

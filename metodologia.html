@@ -285,6 +285,8 @@
   <nav>
     <a href="/simulatore.html">Simulatore</a>
     <a href="/validazione.html">Validazione</a>
+    <a href="/comunicazione-politica.html">Comunicazione</a>
+    <a href="/omni4.html">Omni4</a>
     <a href="/fonti.html">Fonti</a>
     <a href="/accesso.html">Accesso</a>
   </nav>
@@ -378,6 +380,209 @@
       <p>RFML a 5 obiettivi, calibrazione territoriale ISTAT, elaborazione client-side GDPR</p>
     </div>
   </div>
+
+  <h2>Il Message Optimizer: come restringe il campo prima di scrivere</h2>
+
+<p>Il sistema non genera un messaggio da un foglio bianco. Lo fa dentro un imbuto di quattro
+vincoli progressivi — ognuno raccoglie un'informazione diversa, e solo alla fine l'AI scrive.</p>
+
+<div class="pipeline">
+  <div class="stage">
+    <h4>1 — Organizzazione</h4>
+    <p>Nome, verticale (lasciti, raccolta fondi, advocacy, corporate, fidelizzazione,
+    volontariato) e — opzionale ma raccomandato — il corpus valoriale: statuto, carta dei
+    valori, mission statement. Senza corpus, la coerenza si valuta solo sul tipo di
+    organizzazione dichiarato.</p>
+  </div>
+  <div class="stage">
+    <h4>2 — Segmento target</h4>
+    <p>Tre livelli indipendenti e sovrapponibili: dati ISTAT 2021 (geografia o collegio
+    specifico), profili valoriali (ITANES + European Social Survey), e un indice di
+    polarizzazione che calibra il rischio di rigetto sui temi divisivi.</p>
+  </div>
+  <div class="stage">
+    <h4>3 — Storia con l'organizzazione</h4>
+    <p>Il profilo relazionale del destinatario — prospect, sostenitore, donatore ricorrente,
+    ex sostenitore, a rischio — che insieme alla verticale del passo 1 determina la funzione
+    comunicativa raccomandata: educazione alla causa, conversione, gratitudine, riattivazione.</p>
+  </div>
+  <div class="stage">
+    <h4>4 — Testo e canale</h4>
+    <p>Il messaggio da valutare o riscrivere, più il canale di destinazione — email, social,
+    volantino, discorso, video, comunicato. Ogni canale impone un formato diverso alle
+    varianti generate.</p>
+  </div>
+</div>
+
+<h3>Cosa produce l'analisi</h3>
+<p>L'output combina un nucleo deterministico con un livello generato dall'AI — la
+distinzione è dichiarata esplicitamente, non lasciata implicita:</p>
+<table>
+  <tr><th>Componente</th><th>Cosa misura</th><th>Natura</th></tr>
+  <tr><td>Score coerenza valoriale</td><td>Confronto tra il messaggio e il corpus del passo 1</td><td>Deterministico</td></tr>
+  <tr><td>Rischio di rigetto</td><td>Calibrato sull'indice di polarizzazione del segmento</td><td>Deterministico</td></tr>
+  <tr><td>Analisi Entman (1993)</td><td>Quattro dimensioni: problema, cause, giudizio morale, soluzione</td><td>Generata dall'AI</td></tr>
+  <tr><td>Layer cognitivo</td><td>Leggibilità, carico, elaborazione, fluenza, framing — v. sotto</td><td>Deterministico</td></tr>
+  <tr><td>Varianti nel formato del canale</td><td>Riscritture calibrate sul canale scelto al passo 4</td><td>Generata dall'AI</td></tr>
+</table>
+
+<div class="limit-box">
+  <p><strong>Un limite dichiarato sull'analisi Entman.</strong> Le quattro dimensioni di
+  framing sono prodotte dallo stesso modello che genera le varianti, nella stessa chiamata:
+  è un'autovalutazione, non una misura indipendente. La letteratura sui limiti
+  dell'auto-annotazione nei modelli linguistici documenta un bias di conferma sistematico in
+  questo tipo di compito — il modello tende a valutare positivamente ciò che ha appena
+  generato. È per questo che i punteggi vanno letti come un ordinamento relativo tra varianti,
+  non come una misura assoluta di qualità.</p>
+</div>
+
+<h3>Il layer cognitivo: la metà deterministica</h3>
+<p>A differenza dell'analisi Entman, cinque framework applicano una misura calcolata — non
+generata dall'AI — su basi teoriche citabili singolarmente:</p>
+<table>
+  <tr><th>Framework</th><th>Base teorica</th><th>Cosa misura</th></tr>
+  <tr><td>Carico cognitivo</td><td>Sweller (1988)</td><td>Indice Gulpease (Lucisano &amp; Piemontese, 1988) e lunghezza delle frasi</td></tr>
+  <tr><td>Processo duale</td><td>Kahneman (2011)</td><td>Rapporto tra linguaggio intuitivo e analitico</td></tr>
+  <tr><td>Via di elaborazione</td><td>Petty &amp; Cacioppo (1986)</td><td>Segnali di via centrale vs periferica — solo segnali, la decisione finale resta assistita dall'AI</td></tr>
+  <tr><td>Fluenza cognitiva</td><td>Reber et al. (1998)</td><td>Quanto il testo scorre senza attrito percepito</td></tr>
+  <tr><td>Effetti di framing</td><td>Tversky &amp; Kahneman (1981)</td><td>Guadagno/perdita, episodico/tematico</td></tr>
+</table>
+
+<h3>Cosa manca, dichiarato</h3>
+<ul class="check-list">
+  <li>L'analisi Entman è un'autovalutazione dell'AI, non una misura indipendente — bias di
+  conferma noto in letteratura, non ancora corretto strutturalmente</li>
+  <li>Il layer cognitivo è deterministico e non generato dall'AI, ma i suoi cinque punteggi
+  non sono ancora combinati con una calibrazione validata su esiti reali di campagna</li>
+  <li>Il canale video ha vincoli di formato più stretti degli altri (durata, struttura in
+  quattro tempi) ed è il più recente: verifica di conformità ancora in corso</li>
+</ul>
+
+  <h2>Il modulo RFML: priorità donatori</h2>
+
+<p>Il modulo ordina, per ciascun donatore in un database caricato, la priorità relativa
+verso cinque obiettivi diversi — lascito, upgrade, sostegno continuativo, riattivazione,
+richiesta d'emergenza one-off. È un prototipo sperimentale, non ancora un modello di
+propensione validato: una buona base per dare priorità ai contatti, non uno strumento su cui
+basare decisioni automatiche. Si fonda su RFM, il metodo di segmentazione donatori più
+consolidato in letteratura (Olson &amp; Chae, 2012; Durango-Cohen et al., 2013), esteso con
+una quinta dimensione.</p>
+
+<div class="limit-box">
+  <p><strong>Un punteggio, non una probabilità.</strong> Un valore 80 su un obiettivo non
+  significa "80% di probabilità" — è una somma pesata di indicatori più correzioni
+  dichiarate. Va letto come un indice di priorità che ordina i donatori tra loro, non come
+  una stima probabilistica del comportamento futuro. Un'interpretazione probabilistica
+  richiederebbe una calibrazione su esiti reali che oggi non esiste.</p>
+</div>
+
+<h3>Le cinque dimensioni</h3>
+<div class="pipeline">
+  <div class="stage">
+    <h4>R — Recency</h4>
+    <p>Quanto è recente l'ultima donazione. Il predittore più diretto di attività del
+    donatore: chi ha donato ieri è, in media, più raggiungibile di chi ha donato tre anni fa.</p>
+  </div>
+  <div class="stage">
+    <h4>F — Frequency</h4>
+    <p>Regolarità del pagamento, con un bonus per chi ha un metodo di donazione ricorrente
+    attivo (addebito automatico). Misura costanza, non solo conteggio.</p>
+  </div>
+  <div class="stage">
+    <h4>M — Monetary (livello + tendenza)</h4>
+    <p>Non un unico numero: l'importo medio normalizzato sul database (livello) e la sua
+    tendenza nel tempo — in crescita, stabile, in calo. Un donatore che aumenta gradualmente
+    l'importo racconta una storia diversa da uno che dona sempre la stessa cifra da anni.</p>
+  </div>
+  <div class="stage">
+    <h4>L — Longevity</h4>
+    <p>Anzianità del rapporto con l'organizzazione, con un effetto di saturazione: oltre una
+    certa soglia di anni, ulteriore anzianità non aggiunge peso. Pesa più per il lascito
+    che per gli altri obiettivi.</p>
+  </div>
+</div>
+
+<div class="limit-box">
+  <p><strong>Un'assunzione dichiarata, non un difetto nascosto.</strong> La dimensione
+  Longevity assegna un punteggio più alto a chi ha un rapporto più lungo con l'organizzazione.
+  La letteratura sul commitment del donatore documenta il legame personale con la causa e la
+  fiducia come fattori che guidano la fedeltà nel tempo (Sargeant &amp; Woodliffe, 2007) — una
+  base concettuale per includere l'anzianità della relazione come segnale. Ma è un salto dalla
+  teoria alla pratica: quella letteratura descrive <em>perché</em> la relazione conta, non
+  <em>quanto</em> debba pesare nel punteggio. I coefficienti numerici usati oggi restano
+  ipotesi di lavoro, non una derivazione documentata da quella ricerca. Un donatore di lunga
+  data non è automaticamente il miglior prospect per ogni obiettivo: per la riattivazione, ad
+  esempio, conta meno.</p>
+</div>
+
+<p>Per il solo obiettivo lascito, un secondo fattore — distinto da Longevity — entra in gioco:
+non l'anzianità del <em>rapporto</em>, ma la fascia d'<strong>età del donatore</strong>. È un
+correttivo dichiarato e isolato, non nascosto dentro i segnali RFML: nella logica attuale, le
+fasce d'età più giovani con pochi casi in banca dati vengono trattate come neutre — né premiate
+né penalizzate — proprio per evitare di premiare un segnale statisticamente troppo debole per
+essere affidabile.</p>
+
+<h3>Layer territoriale (dati ISTAT)</h3>
+<p>Dove il database include il CAP del donatore, il punteggio viene corretto con un
+moltiplicatore calcolato su dati ISTAT 2021 a livello regionale (incidenza over-65, reddito
+medio familiare, indice di disuguaglianza Gini) — diverso per ciascuno dei cinque obiettivi.
+I pesi esatti di questa correzione non sono pubblicati: fanno parte della configurazione
+interna del modello.</p>
+
+<h3>Come sono calibrati i pesi</h3>
+<p>I pesi che combinano le cinque dimensioni in un punteggio finale sono calibrati per
+giudizio esperto — non stimati con un fit statistico su esiti reali, perché quegli esiti,
+oggi, non esistono in quantità sufficiente. È una scelta dichiarata, non un limite nascosto:
+un fit statistico su poche centinaia di casi imparerebbe correlazioni spurie invece di un
+segnale reale.</p>
+
+<div class="metric-card warn" style="max-width:320px; margin:1.5rem 0;">
+  <div class="metric-value">1.65×</div>
+  <div class="metric-label">Lift lasciti, top 20% vs resto — dataset sintetico, non su campagne reali</div>
+</div>
+<p style="font-size:.9rem;">Questo numero va letto con una cautela in più: è calcolato sullo
+stesso insieme di dati usato per calibrare il fattore età descritto sopra. Una misura
+costruita e verificata sugli stessi dati tende a essere ottimistica — la verifica onesta
+richiede di calibrare su una parte dei dati e misurare il risultato su un'altra, tenuta
+separata. È il prossimo passo dichiarato, non ancora fatto.</p>
+
+<h3>Perché non machine learning avanzato — ora</h3>
+<p>Tecniche più sofisticate (reti neurali ricorrenti, gradient boosting su storici lunghi)
+esistono e in alcuni contesti raggiungono accuratezze elevate. Non sono nella roadmap del
+modulo, per una ragione di dati prima ancora che di scelta tecnica: quelle tecniche sono
+supervisionate — imparano da migliaia di casi con esito noto. Un'organizzazione che parte da
+zero, o quasi, non li ha. Addestrare un modello complesso su poche centinaia di record
+significa imparare il rumore, non il segnale: più opacità, senza guadagno reale di accuratezza.</p>
+
+<h3>Il confronto con gli strumenti enterprise</h3>
+<p>Una recensione indipendente universitaria (Carnegie Mellon University, corso 62-830,
+primavera 2022) di uno dei prodotti di scoring predittivo più diffusi nel settore no-profit
+riporta due dati utili a inquadrare il problema: il fornitore richiede tipicamente <strong>almeno
+cinque anni di storico e diecimila record attivi</strong> per attivare lo scoring, e il suo modello
+per il direct mail era addestrato su circa <strong>8,7 milioni di record</strong>. La stessa recensione
+osserva che questo tipo di requisito tende strutturalmente a favorire le organizzazioni già
+meglio dotate di dati e infrastruttura CRM — un problema di equità nell'accesso agli strumenti
+predittivi, non solo un dettaglio tecnico.</p>
+<p>È esattamente lo spazio in cui il modulo RFML si colloca: organizzazioni che lavorano con
+un CSV esportato dal proprio CRM, non con un data warehouse enterprise. Non è un tentativo di
+competere sullo stesso terreno degli strumenti con centinaia di migliaia di record storici —
+è uno strumento pensato per chi quei dati non li ha.</p>
+
+<h3>Cosa manca, dichiarato</h3>
+<ul class="check-list">
+  <li>Pesi calibrati per giudizio esperto, non ancora validati su A/B test reali</li>
+  <li>Lift misurato sullo stesso dataset sintetico usato per calibrare il fattore età —
+  calibrazione e verifica non sono ancora separate, quindi la misura è probabilmente
+  ottimistica</li>
+  <li>Il fattore età sul lascito è coerente con la pratica di settore, ma non ancora
+  verificato su dati italiani reali</li>
+  <li>Moltiplicatori territoriali ISTAT: ipotesi ragionate, non ancora validate su dati di
+  fundraising italiani reali</li>
+  <li>Calibrato solo per il verticale non-profit: sindacati ed enti locali non hanno ancora
+  pesi propri</li>
+  <li>Meccanismo di ricalibrazione sugli esiti reali: non ancora attivo — è la milestone
+  critica per passare da "calibrato per giudizio esperto" a "validato sui dati"</li>
+</ul>
 
   <h2>Limitazioni dichiarate</h2>
   <p>La credibilità scientifica richiede che i limiti siano dichiarati con la stessa prominenza dei risultati. Le limitazioni complete sono nella Sezione 6 del white paper. Le principali:</p>

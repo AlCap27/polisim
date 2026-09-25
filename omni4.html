@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Omni4 — L'assistente editoriale per la comunicazione politica</title>
+<meta name="description" content="Risposte e commenti coerenti con il tuo programma, nel formato del canale, con controllo di chiarezza prima di pubblicare. Nessun account, nessun server: i tuoi dati restano nel browser.">
+<link rel="canonical" href="https://polisim.dev/omni4.html">
+<style>
+  :root {
+    --bg: #0a0a0f; --bg2: #12121a; --bg3: #1a1a2e; --card: #16162a;
+    --border: #2a2a4a; --text: #e8e8f0; --muted: #9898b0; --faint: #a0a0b8;
+    --blue: #1d9bf0; --purple: #7856ff; --green: #00ba7c; --orange: #ffad1f;
+    --grad: linear-gradient(135deg, #1d9bf0, #7856ff);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+         background: var(--bg); color: var(--text); line-height: 1.65; font-size: 16px; }
+  ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-thumb { background: var(--border); }
+  a { color: var(--blue); text-decoration: none; } a:hover { text-decoration: underline; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 0 24px; }
+
+  nav { position: sticky; top: 0; z-index: 50; background: rgba(10,10,15,0.92);
+        backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); }
+  nav .wrap { display: flex; align-items: center; gap: 20px; height: 56px; }
+  .logo { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+  .logo .sq { width: 26px; height: 26px; border-radius: 6px; overflow: hidden;
+              display: flex; align-items: center; justify-content: center; }
+  .logo .sq img { width: 100%; height: 100%; display: block; }
+  nav a.nl { color: var(--muted); font-size: 13px; font-weight: 600; }
+  nav a.nl:hover { color: var(--text); text-decoration: none; }
+  nav .cta { margin-left: auto; background: var(--grad); color: #fff; padding: 7px 16px;
+             border-radius: 8px; font-size: 13px; font-weight: 600; }
+  nav .cta:hover { text-decoration: none; filter: brightness(1.1); }
+
+  header { padding: 88px 0 64px; }
+  h1 { font-size: 42px; line-height: 1.15; letter-spacing: -0.5px; max-width: 700px; }
+  h1 .g { background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .sub { margin-top: 22px; font-size: 19px; color: var(--muted); max-width: 640px; }
+  .badges { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
+  .badge { font-size: 12px; font-weight: 600; color: var(--faint); background: var(--bg3);
+           border: 1px solid var(--border); padding: 5px 12px; border-radius: 999px; }
+  .cta-row { display: flex; gap: 14px; margin-top: 36px; flex-wrap: wrap; }
+  .btn { display: inline-block; padding: 13px 26px; border-radius: 10px; font-weight: 700;
+         font-size: 15px; transition: transform .15s, filter .15s; }
+  .btn:hover { text-decoration: none; transform: translateY(-2px); }
+  .btn-p { background: var(--grad); color: #fff; }
+  .btn-s { border: 1px solid var(--border); color: var(--muted); }
+  .btn-s:hover { color: var(--text); border-color: var(--faint); }
+
+  section { padding: 56px 0; border-top: 1px solid var(--border); }
+  h2 { font-size: 26px; letter-spacing: -0.3px; margin-bottom: 8px; }
+  .kicker { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;
+            color: var(--purple); margin-bottom: 10px; }
+  .lead { color: var(--muted); font-size: 17px; max-width: 640px; margin-bottom: 32px; }
+
+  .grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 24px; }
+  .card h3 { font-size: 15px; margin-bottom: 10px; }
+  .card p { font-size: 14px; color: var(--muted); }
+  .card .n { display: inline-flex; width: 28px; height: 28px; border-radius: 8px; background: var(--grad);
+             color: #fff; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;
+             margin-bottom: 14px; }
+
+  .pull { border-left: 3px solid var(--purple); padding: 6px 0 6px 22px; margin: 36px 0;
+          font-size: 22px; font-weight: 600; color: var(--text); max-width: 560px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 8px; }
+  th { text-align: left; color: var(--faint); font-size: 11px; text-transform: uppercase;
+       letter-spacing: 1px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  td { padding: 12px; border-bottom: 1px solid var(--border); color: var(--muted); vertical-align: top; }
+  td:first-child { color: var(--text); font-weight: 600; white-space: nowrap; }
+  .ok { color: var(--green); font-weight: 700; } .tbd { color: var(--orange); font-weight: 700; }
+
+  ul.check { list-style: none; margin-top: 20px; }
+  ul.check li { padding: 9px 0 9px 30px; position: relative; color: var(--muted); font-size: 15px; }
+  ul.check li::before { content: "\2713"; position: absolute; left: 2px; color: var(--green); font-weight: 700; }
+  ul.check li strong { color: var(--text); }
+
+  .note { background: rgba(255,173,31,0.07); border: 1px solid rgba(255,173,31,0.25);
+          border-radius: 12px; padding: 20px 24px; margin-top: 28px; }
+  .note h4 { color: var(--orange); font-size: 14px; margin-bottom: 8px; }
+  .note p { font-size: 14px; color: var(--muted); }
+
+  .faq details { border: 1px solid var(--border); border-radius: 12px; padding: 18px 22px;
+                 margin-bottom: 12px; background: var(--card); }
+  .faq summary { cursor: pointer; font-weight: 600; font-size: 15px; }
+  .faq details p { margin-top: 12px; font-size: 14px; color: var(--muted); }
+
+  /* Ponte PoliSim rafforzato */
+  .bridge { background: linear-gradient(135deg, rgba(29,155,240,0.08), rgba(120,86,255,0.08));
+            border: 1px solid var(--border); border-radius: 16px; padding: 8px 4px 4px; }
+  .bridge .inner { padding: 28px 28px 8px; }
+  .bridge table td:first-child { color: var(--purple); }
+  .bridge-foot { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+                 gap: 16px; padding: 22px 28px; margin-top: 8px; border-top: 1px solid var(--border); }
+  .bridge-foot .line { font-size: 15px; color: var(--text); font-weight: 600; max-width: 520px; }
+  .bridge-foot a.btn { white-space: nowrap; }
+
+  footer { border-top: 1px solid var(--border); padding: 40px 0 60px; color: var(--faint); font-size: 13px; }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 24px; align-items: center; }
+  @media (max-width: 640px) { h1 { font-size: 32px; } header { padding: 56px 0 40px; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="logo"><div class="sq"><img src="data:image/png;base64,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" alt="Omni4"></div>Omni4</div>
+    <a class="nl" href="#come">Come funziona</a>
+    <a class="nl" href="#dati">Dati</a>
+    <a class="nl" href="#canali">Canali</a>
+    <a class="nl" href="#faq">Domande</a>
+    <!-- TODO: sostituire con l'URL reale del Chrome Web Store alla pubblicazione -->
+    <a class="cta" href="#installazione">Installa</a>
+  </div>
+</nav>
+
+<header>
+  <div class="wrap">
+    <h1>Puoi pianificare i messaggi.<br><span class="g">I momenti no.</span></h1>
+    <p class="sub">Omni4 è l'estensione Chrome per la parte della comunicazione che non passa dal piano:
+    risposte, commenti, post scritti tra un impegno e l'altro. Bozze coerenti con il tuo programma,
+    nel formato del canale, con il controllo della chiarezza prima di pubblicare.</p>
+    <div class="badges">
+      <span class="badge">Nessun account</span>
+      <span class="badge">Nessun server nel mezzo</span>
+      <span class="badge">I dati restano nel tuo browser</span>
+      <span class="badge">X · Bluesky · Facebook · Instagram · TikTok</span>
+      <span class="badge">+ qualunque testo, da qualunque fonte</span>
+    </div>
+    <div class="cta-row">
+      <!-- TODO: sostituire con l'URL reale del Chrome Web Store alla pubblicazione -->
+      <a class="btn btn-p" href="#installazione">Come si installa</a>
+      <a class="btn btn-s" href="#come">Come funziona, in tre passi</a>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════ IL PROBLEMA ═══════════ -->
+<section id="problema">
+  <div class="wrap">
+    <p class="kicker">Il problema</p>
+    <h2>Quasi tutta la tua comunicazione esce non verificata</h2>
+    <p class="lead">Il post programmato lo scrive lo staff, passa le revisioni, esce controllato.
+    La risposta al commento ostile la scrivi tu, alle 23:47, sul telefono. Tre asimmetrie rendono
+    il secondo tipo quello che decide le settimane di campagna.</p>
+    <div class="grid3">
+      <div class="card"><h3>Volume</h3><p>Pochi testi pianificati al giorno, decine di risposte e
+      commenti. Quasi tutto il controllo sta sui primi; quasi tutta la scrittura sta nei secondi.</p></div>
+      <div class="card"><h3>Rischio</h3><p>Un buon post raramente vince un'elezione. Una risposta
+      sbagliata può occupare un'intera settimana. La casella di risposta è sempre "on the record".</p></div>
+      <div class="card"><h3>Temperatura</h3><p>Le risposte si scrivono a mente calda, e a mente calda
+      non si vede come appariranno a mente fredda. La risposta perfetta delle 23:47 è raramente
+      quella che firmeresti alle 9.</p></div>
+    </div>
+    <div class="pull">Il pericolo non è il commento ostile. Sei tu, a quell'ora.</div>
+  </div>
+</section>
+
+<!-- ═══════════ COME FUNZIONA ═══════════ -->
+<section id="come">
+  <div class="wrap">
+    <p class="kicker">Come funziona</p>
+    <h2>Tre passi, un vincolo: la tua linea</h2>
+    <div class="grid3">
+      <div class="card"><span class="n">1</span><h3>Carica il tuo programma</h3>
+        <p>Incolla il testo — programma, statuto, manifesto, in qualsiasi formato. L'AI lo trasforma
+        in principi e lessico che rivedi in un'anteprima modificabile: nulla si attiva finché non
+        confermi tu. E senza un documento attivo, Omni4 rifiuta di generare. È una scelta: non c'è
+        linea, non c'è bozza.</p></div>
+      <div class="card"><span class="n">2</span><h3>Porta il testo nel pannello</h3>
+        <p>Dove il pulsante 📐 compare nella barra delle azioni, premi quello. Ovunque — Instagram,
+        TikTok, qualunque sito — seleziona il testo e scegli «Apri in Omni4» dal menu del tasto destro.
+        Oppure incolla direttamente nel pannello un testo qualsiasi: il canale lo scegli tu. Un testo
+        alla volta: un post, o un singolo commento.</p></div>
+      <div class="card"><span class="n">3</span><h3>Genera, controlla, decidi</h3>
+        <p>La bozza rispetta il formato del canale e mostra quali principi del tuo programma ha
+        applicato. Il controllo di chiarezza verifica l'indice Gulpease, le frasi troppo lunghe, i
+        termini astratti — e segnala numeri e fonti da verificare. Poi decidi tu: copia, incolla,
+        pubblica.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ NON SOLO SOCIAL ═══════════ -->
+<section id="ovunque">
+  <div class="wrap">
+    <p class="kicker">Non solo social</p>
+    <h2>Qualunque testo, non solo i cinque social</h2>
+    <p class="lead">Il pulsante 📐 e il tasto destro sono la via rapida dentro X, Bluesky, Facebook,
+    Instagram e TikTok. Ma il pannello ha anche un campo di inserimento libero: incolli lì un testo
+    da qualunque fonte — una mail, una bozza di comunicato, un messaggio WhatsApp o Telegram, il
+    paragrafo di una newsletter, il passaggio di un discorso — scegli il canale di destinazione, e
+    Omni4 lo elabora nello stesso modo, con lo stesso controllo di chiarezza.</p>
+    <ul class="check">
+      <li><strong>Newsletter, comunicati, discorsi:</strong> non tutto ciò che scrivi in campagna
+      vive dentro un social. Il campo manuale copre il resto.</li>
+      <li><strong>Messaggistica:</strong> una risposta su WhatsApp o Telegram a un elettore o a un
+      gruppo di militanti passa lo stesso vaglio di coerenza e chiarezza di un post pubblico.</li>
+      <li><strong>Il canale resta un parametro tuo:</strong> anche in modalità incolla, scegli tu
+      per quale canale formattare — così la bozza rispetta lunghezza e registro giusti.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════ DATI ═══════════ -->
+<section id="dati">
+  <div class="wrap">
+    <p class="kicker">Dati e privacy</p>
+    <h2>La mappa esatta dei tuoi dati</h2>
+    <p class="lead">Questo è il cuore della questione, quindi lo diciamo per intero: cosa parte dal
+    tuo browser, quando, e verso dove. Niente di più, niente di meno.</p>
+    <table>
+      <tr><th>Azione</th><th>Cosa parte dal browser</th><th>Verso dove</th><th>Cosa resta locale</th></tr>
+      <tr><td>Genera una bozza</td><td>Testo, canale, lingua, documento editoriale attivo</td>
+          <td>Anthropic (api.anthropic.com), con la tua chiave</td><td>Bozze e configurazione</td></tr>
+      <tr><td>Revisione per chiarezza</td><td>Solo il testo da rivedere — <strong>mai</strong> il documento editoriale</td>
+          <td>Anthropic</td><td>Tutto il resto</td></tr>
+      <tr><td>Trasforma il programma</td><td>Testo del programma + istruzioni</td>
+          <td>Anthropic</td><td>Bozza JSON in anteprima — non salvata finché non confermi</td></tr>
+      <tr><td>Sempre</td><td>Niente: nessuna telemetria, nessun tracciamento, nessuna pubblicità</td>
+          <td>—</td><td>Chiave API, documento, bozze, impostazioni</td></tr>
+    </table>
+    <ul class="check">
+      <li><strong>Nessun account.</strong> Non esiste un «account Omni4».</li>
+      <li><strong>Nessun server Omni4 nel mezzo.</strong> Le chiamate partono dal tuo browser verso
+      l'API di Anthropic, autenticate con la tua chiave.</li>
+      <li><strong>Nessuna raccolta di bio, follower o post di nessuno.</strong> Non profiliamo
+      l'interlocutore — nemmeno quello che ti attacca. È il divieto di microtargeting, applicato
+      fino in fondo.</li>
+      <li><strong>«Cancella tutti i dati» cancella tutto.</strong> Subito, senza attenuanti.</li>
+      <li><strong>Verificabile in dieci secondi.</strong> L'estensione dichiara accesso solo a cinque
+      piattaforme social più l'API di Anthropic. Apri la pagina delle estensioni di Chrome
+      (chrome://extensions) e controlla tu i permessi elencati.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════ MANIFESTO ═══════════ -->
+<section id="manifesto">
+  <div class="wrap">
+    <p class="kicker">Il documento editoriale</p>
+    <h2>Il tuo programma non è prigioniero dello strumento</h2>
+    <p class="lead">Lo schema del documento editoriale è aperto: un JSON leggibile — principi,
+    lessico preferito e vietato, tono, registro — che puoi esportare, modificare, cancellare. Se
+    domani cambi strumento, la tua linea editoriale viaggia con te.</p>
+    <div class="card" style="max-width:640px;">
+      <h3>Per le organizzazioni: una linea, cento penne</h3>
+      <p>Il partito prepara il documento della propria linea editoriale e lo distribuisce a chiunque
+      scriva a nome suo: consiglieri, segreterie locali, candidati. Coerenza distribuita volontaria,
+      non controllo centralizzato. Omni4 arma chi scrive, non lo sorveglia — lo stesso principio
+      per cui rifiutiamo il microtargeting verso gli elettori lo applichiamo verso i militanti.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ CANALI ═══════════ -->
+<section id="canali">
+  <div class="wrap">
+    <p class="kicker">Canali</p>
+    <h2>Dove funziona, e come</h2>
+    <p class="lead">Tre percorsi per ogni testo: il pulsante 📐 dove il contenitore della pagina
+    mappa un testo solo, la selezione con il tasto destro sui cinque social, e l'incollaggio libero
+    nel pannello per qualunque altra fonte. Aggiorniamo questa tabella a ogni verifica completata —
+    troverai sempre lo stato reale, non quello promesso.</p>
+    <table>
+      <tr><th>Canale</th><th>Pulsante 📐</th><th>Selezione + tasto destro</th><th>Incollaggio nel pannello</th></tr>
+      <tr><td>Bluesky</td><td class="ok">✓</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+      <tr><td>Facebook</td><td class="ok">✓ (post e commenti)</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+      <tr><td>Instagram</td><td>— (per progetto)</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+      <tr><td>TikTok</td><td>— (per progetto)</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+      <tr><td>X</td><td class="tbd">in verifica</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+      <tr><td>Qualunque testo (mail, comunicati, messaggistica…)</td><td>—</td><td>— (copia manuale)</td><td class="ok">✓</td></tr>
+    </table>
+    <div class="note">
+      <h4>La velocità di scrittura non è la velocità di pubblicazione</h4>
+      <p>Omni4 ti fa scrivere in trenta secondi ciò che prima richiedeva dieci minuti. Quel tempo
+      risparmiato non va riversato nella cadenza: una raffica di risposte rapide è il pattern che
+      le piattaforme associano all'automazione, anche quando dietro c'è una persona. Distribuisci
+      le risposte nel tempo, scrivi nel tuo registro (i campi tono e registro del documento servono
+      a questo), e ricordalo: non tutte le ostilità meritano risposta. Il freno più efficace resta
+      il più antico.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ INSTALLAZIONE ═══════════ -->
+<section id="installazione">
+  <div class="wrap">
+    <p class="kicker">Installazione</p>
+    <h2>Cinque minuti e una chiave</h2>
+    <div class="grid3">
+      <div class="card"><span class="n">1</span><h3>Installa l'estensione</h3>
+        <p>Dal Chrome Web Store, con un click. Serve Chrome 116 o successivo.
+        <em>(In arrivo: l'estensione è in fase di pubblicazione. Nel frattempo può essere caricata
+        in modalità sviluppatore — scrivici per la guida.)</em></p></div>
+      <div class="card"><span class="n">2</span><h3>Inserisci la tua chiave API</h3>
+        <p>La crei su console.anthropic.com in pochi minuti. Le chiamate si pagano a consumo sul
+        tuo account: una bozza costa tipicamente pochi centesimi. La chiave resta nel tuo browser.</p></div>
+      <div class="card"><span class="n">3</span><h3>Carica il tuo documento</h3>
+        <p>Incolla il programma, controlla l'anteprima, conferma. Da lì ogni bozza nasce dentro
+        la tua linea.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ FAQ ═══════════ -->
+<section id="faq" class="faq">
+  <div class="wrap">
+    <p class="kicker">Domande</p>
+    <h2>Le cinque che arrivano sempre</h2>
+    <details><summary>Può farmi bannare dai social?</summary>
+      <p>Nessuno strumento può garantirti rischio zero — ma il rischio non è dove sembra: le
+      piattaforme bannano per pattern comportamentali, non per strumenti. Omni4 non pubblica da
+      solo e non raccoglie dati su nessuno; il rischio reale è l'uso che ne fai. Distribuisci le
+      risposte nel tempo e scrivi nel tuo registro. <a href="https://polisim.dev/comunicazione-politica.html">La
+      risposta completa è nelle FAQ di PoliSim.</a></p></details>
+    <details><summary>Un'AI può scrivere i miei post politici?</summary>
+      <p>Può scriverne le bozze; non può firmarli. La responsabilità di un testo pubblico appartiene
+      a chi lo pubblica, e nessuno strumento la trasferisce. <a href="https://polisim.dev/comunicazione-politica.html#comunicazione">Di
+      più nelle FAQ.</a></p></details>
+    <details><summary>Che differenza c'è con il Message Optimizer di polisim.dev?</summary>
+      <p>Sono due livelli della stessa disciplina. L'Optimizer misura le varianti di un messaggio
+      quando c'è tempo di misurare; Omni4 porta la disciplina dove il tempo non c'è. Chi usa uno
+      incontra naturalmente l'altro.</p></details>
+    <details><summary>Funziona solo sui social?</summary>
+      <p>No. Sui cinque social (X, Bluesky, Facebook, Instagram, TikTok) hai la via rapida col
+      pulsante e col tasto destro; ma nel pannello puoi incollare qualunque testo — una mail, un
+      comunicato, un messaggio WhatsApp o Telegram, un paragrafo di newsletter — scegliere il canale
+      di destinazione e ottenere la stessa bozza con lo stesso controllo di chiarezza.</p></details>
+    <details><summary>Perché devo usare la mia chiave API?</summary>
+      <p>Perché è l'unica architettura in cui nessun tuo dato passa da noi: la chiave sta nel tuo
+      browser, le chiamate partono dal tuo browser. È più attrito al setup — ed è il prezzo della
+      privacy. Lo paghiamo volentieri.</p></details>
+  </div>
+</section>
+
+<!-- ═══════════ PONTE POLISIM (rafforzato) ═══════════ -->
+<section id="polisim">
+  <div class="wrap">
+    <p class="kicker">Un livello di una disciplina più grande</p>
+    <h2>Da quello che scrivi stasera a quello che decide la campagna</h2>
+    <p class="lead">Omni4 non è un prodotto isolato: è il livello esecutivo di PoliSim, la piattaforma
+    di intelligenza civica che copre l'intero arco della comunicazione politica — dalla strategia
+    alla singola risposta. Tre strumenti, un unico principio.</p>
+    <div class="bridge">
+      <div class="inner">
+        <table>
+          <tr><th>Livello</th><th>Strumento</th><th>Quando</th><th>Domanda a cui risponde</th></tr>
+          <tr><td>Strategia</td><td><a href="https://polisim.dev/simulatore.html">Simulatore elettorale</a></td><td>Prima della campagna</td>
+              <td>«Cosa succede ai seggi se…?»</td></tr>
+          <tr><td>Pianificazione</td><td><a href="https://polisim.dev/comunicazione-politica.html">Message Optimizer</a></td><td>Quando il messaggio si può ancora cambiare</td>
+              <td>«Quale variante? Quanto rischio?»</td></tr>
+          <tr><td>Esecuzione</td><td>Omni4</td><td>Nei secondi prima di pubblicare</td>
+              <td>«Questa risposta è dentro la mia linea e si capisce?»</td></tr>
+        </table>
+      </div>
+      <div class="bridge-foot">
+        <div class="line">Il principio che li tiene insieme: misurare quando si può, disciplinare
+        quando non si può, mai fingere di prevedere.</div>
+        <a class="btn btn-p" href="https://polisim.dev">Scopri la piattaforma →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="logo"><div class="sq"><img src="data:image/png;base64,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" alt="Omni4"></div>Omni4</div>
+    <span>Un progetto <a href="https://polisim.dev" style="color:var(--faint)">PoliSim</a></span>
+    <!-- TODO: l'URL della privacy policy deve coincidere con quello dichiarato nel Chrome Web Store -->
+    <a href="https://polisim.dev/omni4-privacy.html" style="color:var(--faint)">Privacy policy</a>
+    <span style="margin-left:auto">Le bozze sono generate con modelli Claude (Anthropic).
+    Ogni pubblicazione è decisione umana.</span>
+  </div>
+</footer>
+
+</body>
+</html>
