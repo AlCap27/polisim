@@ -6,6 +6,8 @@ Ogni pagina dichiara esplicitamente i propri limiti metodologici insieme ai risu
 
 ## Metodologia e validazione
 - [Metodologia](https://polisim.dev/metodologia.html): architettura del modello MRP bayesiano, del Message Optimizer e del modulo RFML; metriche di validazione (MAE, RMSE, winner accuracy); limitazioni dichiarate, incluso il limite aperto sulla calibrazione degli intervalli di confidenza (CI90 al 39,2% invece del 90% nominale).
+- [Metodo MRP: storia e verifiche (IT)](https://polisim.dev/metodo-storico.html): Backtest storici, calibrazione sintetica parziale in Stan, provenienza Layer 0 e limiti aperti.
+- [Territorial MRP: history and evidence (EN)](https://polisim.dev/method-history.html): Historical backtests, partial Stan SBC evidence, Layer 0 provenance and unresolved limitations.
 - [Validazione](https://polisim.dev/validazione.html): dettaglio dei backtest su elezioni reali.
 - [Fonti](https://polisim.dev/fonti.html): bibliografia accademica con DOI verificati via OpenAlex, per area (MRP, framing, LLM, RFML).
 - [Per chi](https://polisim.dev/per-chi.html): partiti, ONG, sindacati, pilot partner.
