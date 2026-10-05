@@ -24,6 +24,10 @@
     {
       "src": "**/*.xml",
       "use": "@vercel/static"
+    },
+    {
+      "src": "**/*.py",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
