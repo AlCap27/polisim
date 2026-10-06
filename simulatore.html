@@ -228,7 +228,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:10
 
     <!-- Modo -->
     <div class="mode-tabs">
-      <button class="mode-tab active" id="tab-B" onclick="setModo('B')">Sondaggio 2027</button>
+      <button class="mode-tab mode-tab-sospeso" id="tab-B" onclick="modalitaSospesaB()" title="Modalità ritirata, motore storico documentato">Sondaggio 2027</button>
       <button class="mode-tab mode-tab-sospeso" id="tab-C" onclick="modalitaSospesa('C')" title="Modalità sospesa in attesa della riforma elettorale">Partito esistente</button>
       <button class="mode-tab mode-tab-sospeso" id="tab-A" onclick="modalitaSospesa('A')" title="Modalità sospesa in attesa della riforma elettorale">Partito nuovo</button>
     </div>
@@ -240,11 +240,24 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:10
       sistema elettorale attualmente in discussione in Parlamento, che modifica l'impianto di voto
       (passaggio a sistema proporzionale, superamento dei collegi uninominali). Il modello verra
       ricalibrato sul nuovo sistema una volta definito in via definitiva.<br><br>
-      La modalita <strong>Sondaggio 2027</strong> resta disponibile a fini metodologici.
+      Anche la modalita <strong>Sondaggio 2027</strong>, basata sul motore storico Rosatellum, e stata ritirata:
+      il metodo resta documentato per intero su <a href="/metodo-storico.html" style="color:var(--blue-light)">metodo-storico.html</a>.
+    </div>
+
+    <!-- Avviso modalita sospesa (Tab B, motore Rosatellum ritirato) -->
+    <div id="panel-sospeso-b" style="display:block;background:var(--bg2);border:0.5px solid var(--line);border-left:3px solid var(--ink);padding:16px 18px;margin-top:4px;font-family:var(--sans);font-size:13px;line-height:1.55;color:var(--ink)">
+      <strong>Modalita Sondaggio 2027 ritirata.</strong><br>
+      La proiezione di seggi basata sul motore Rosatellum (147 collegi uninominali Camera +
+      quota proporzionale) presumeva l'impianto elettorale vigente al momento della pubblicazione.
+      La riforma in corso supera quell'impianto: la formula non ha piu un oggetto da calcolare,
+      non e solo diventata meno precisa.<br><br>
+      Backtest, limiti aperti e provenienza dei dati restano documentati per intero:<br>
+      → <a href="/metodo-storico.html" style="color:var(--blue-light)">Metodo storico (IT)</a> ·
+      <a href="/method-history.html" style="color:var(--blue-light)">Historical method (EN)</a>
     </div>
 
     <!-- Pannello B -->
-    <div id="panel-B">
+    <div id="panel-B" style="display:none">
       <div class="field">
         <label>Scenario</label>
         <select id="scenario">
@@ -385,8 +398,8 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:10
       </div>
     </div>
 
-    <hr class="divider" id="run-divider">
-    <button class="run-btn" id="run-btn" onclick="esegui()">
+    <hr class="divider" id="run-divider" style="display:none">
+    <button class="run-btn" id="run-btn" onclick="esegui()" style="display:none">
       <span id="btn-label">◆ &nbsp;Simula</span>
       <span id="btn-loading" style="display:none"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></span>
     </button>
@@ -453,11 +466,27 @@ function modalitaSospesa(which) {
   document.getElementById('panel-B').style.display = 'none';
   var pa = document.getElementById('panel-A'); if (pa) pa.style.display = 'none';
   document.getElementById('panel-sospeso').style.display = 'block';
+  var psb = document.getElementById('panel-sospeso-b'); if (psb) psb.style.display = 'none';
   var rb = document.getElementById('run-btn'); if (rb) rb.style.display = 'none';
   var rd = document.getElementById('run-divider'); if (rd) rd.style.display = 'none';
   document.getElementById('tab-B').classList.remove('active');
   document.getElementById('tab-C').classList.toggle('active', which==='C');
   document.getElementById('tab-A').classList.toggle('active', which==='A');
+}
+
+function modalitaSospesaB() {
+  // Gating onesto: motore Rosatellum ritirato (riforma elettorale), documentato
+  // in /metodo-storico.html + /method-history.html. Gemella di modalitaSospesa(),
+  // non riusata: messaggio e motivo diversi (ritirato, non "in attesa").
+  document.getElementById('panel-B').style.display = 'none';
+  var pa = document.getElementById('panel-A'); if (pa) pa.style.display = 'none';
+  document.getElementById('panel-sospeso').style.display = 'none';
+  document.getElementById('panel-sospeso-b').style.display = 'block';
+  var rb = document.getElementById('run-btn'); if (rb) rb.style.display = 'none';
+  var rd = document.getElementById('run-divider'); if (rd) rd.style.display = 'none';
+  document.getElementById('tab-B').classList.remove('active');
+  document.getElementById('tab-C').classList.remove('active');
+  document.getElementById('tab-A').classList.remove('active');
 }
 
 function setModo(m) {
