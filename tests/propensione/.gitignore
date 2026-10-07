@@ -1,0 +1,8 @@
+# dipendenze
+node_modules/
+package-lock.json
+
+# output rigenerabili (prodotti da equivalence_test.py)
+js_output.json
+py_output.json
+divergenze_report.txt

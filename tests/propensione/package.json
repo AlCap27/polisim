@@ -1,0 +1,13 @@
+{
+  "name": "polisim-propensione-equivalence",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Banco di prova equivalenza Python/JS per il motore RFML del Modulo Propensione",
+  "scripts": {
+    "run-js": "node run_js.mjs"
+  },
+  "dependencies": {
+    "jsdom": "^25.0.1"
+  }
+}
