@@ -54,33 +54,51 @@ tolleranza = avviso (livello-arrotondamento), non fanno fallire.
 
 Il dataset usa `;` come separatore, perché i casi-limite europei (`1.000,50`,
 `10,50`) contengono virgole che un file `,`-delimitato spezzerebbe. Il parser JS
-(`parseCSV`) **auto-rileva** `;` vs `,`; il modulo Python (`leggi_csv`) **hardcoda
-`,`** e sul file `;` collasserebbe tutto in un'unica colonna. È una divergenza
-reale (D0). Per isolare le divergenze *numeriche* da questo problema di I/O,
-`run_py.py` legge con `delimiter=';'` e chiama le funzioni pure del modulo.
+(`parseCSV`) **auto-rileva** `;` vs `,`.
+
+**D0 RISOLTO.** Il modulo Python (`leggi_csv`) prima hardcodava `,` e sul file `;`
+collassava tutto in un'unica colonna (errore silenzioso: "campi tutti vuoti", non
+un'eccezione). Ora `leggi_csv` **auto-rileva** il delimitatore con la stessa
+euristica del dashboard (`;` se presente nell'intestazione, altrimenti `,`), quindi
+`python polisim_propensione.py` gira direttamente sui CSV `;`-delimitati. Il
+workaround in `run_py.py` (`delimiter=';'` sulle funzioni pure) resta ma è ormai
+ridondante.
 
 ## Mappa dataset → divergenza stressata
 
-Il dataset è minimale (15 donatori) e ogni riga punta a un bersaglio preciso:
+> **STATO: tutte le divergenze D0–D7 sono risolte, il test PASSA (exit 0).** La
+> colonna "cosa stressava" documenta il bersaglio *originale* di ogni riga; la
+> colonna "esito dopo fix" descrive il comportamento attuale, ora identico fra
+> JS e Python. Vedi la storia delle correzioni in fondo.
 
-| donor | cosa stressa | effetto atteso |
+Ogni riga punta a un bersaglio preciso:
+
+| donor | cosa stressava | esito dopo fix (JS = PY) |
 |---|---|---|
-| D001-D005 | dati puliti, `lascito_dichiarato="1"` | controllo + 5 positivi "veri" |
-| D006 | date **tutte** `YYYY/MM/DD` (non supportato da `pD`) | JS scarta il donatore; PY lo tiene → **row-set divergente** |
-| D007 | date **miste** (2 valide + 2 `YYYY/MM/DD`) | JS 2 tx, PY 4 tx → R/F/M/trend diversi |
-| D008 | importi con **separatore migliaia** `1.000,50` | PY→0.0 (ValueError), JS→1.0 (`parseFloat` tronca) |
-| D009 | importi con **coda non numerica** `50abc` | PY→0.0, JS→50 (`parseFloat` legge il prefisso) |
-| D010 | data **a una cifra** `2024-3-5` | PY la parsa (`strptime`), JS no (regex `\d{2}`) |
-| D011 | `lascito_dichiarato="1.0"` | PY conta positivo, JS no (`==='1'`) |
-| D012 | `lascito_dichiarato="2"` | PY conta positivo, JS no |
-| D013 | `lascito_dichiarato="SI"` | **entrambi** escludono (`parse_float("SI")=0`) |
-| D014 | `lascito_dichiarato="true"` | **entrambi** escludono |
+| D001-D005 | dati puliti, `lascito_dichiarato="1"` | 5 positivi "veri" |
+| D006 | date **tutte** `YYYY/MM/DD` | `pD` accetta `YYYY/MM/DD` → donatore tenuto da entrambi |
+| D007 | date **miste** (2 valide + 2 `YYYY/MM/DD`) | tutte 4 le tx parsate da entrambi |
+| D008 | importi `1.000,50` (migliaia+decimali) | parse europeo → `1000.50` in entrambi |
+| D009 | importi con **coda non numerica** `50abc` | prefisso `50` recuperato **e contato** in entrambi |
+| D010 | data **a una cifra** `2024-3-5` | `pD` accetta 1-2 cifre → parsata da entrambi |
+| D011 | `lascito_dichiarato="1.0"` | `flag_positivo` → positivo (numerico ≠ 0) in entrambi |
+| D012 | `lascito_dichiarato="2"` | positivo (numerico ≠ 0) in entrambi |
+| D013 | `lascito_dichiarato="SI"` | `flag_positivo` → **positivo** (vocabolario testuale) in entrambi |
+| D014 | `lascito_dichiarato="true"` | **positivo** (vocabolario) in entrambi |
 | D015 | 2 transazioni (<3) | ramo `costanza=0.3`, nessun trend |
+| D016 | importo `1.000` (punto + 3 cifre, no virgola) | **ambiguo** → scartato (0) **e contato** in entrambi |
+| D017 | importo `50.5` (punto + 1 cifra) | decimale anglosassone → `50.5` in entrambi |
+| D018 | importo `1.000.000` (multi-punto) | migliaia → `1000000` in entrambi |
+| D019 | importo `0,5` (virgola decimale) | europeo → `0.5` in entrambi |
+| D020 | `lascito_dichiarato="x"` (spunta) | positivo **tracciato a parte** (X = convenzione da verificare) |
+| D021 | `lascito_dichiarato="forse"` | **ignoto** → escluso dai positivi, **non** negativo, contato |
 
-> Nota: D013/D014 dimostrano che l'ipotesi iniziale su `"SI"`/`"true"` **non**
-> è una divergenza in questo codice: `parse_float` non li parsa, quindi il
-> Python li tratta come 0 — come il JS. Le vere divergenze di conteggio sono
-> `"1.0"`, `"2"` e simili (numerici ≠ stringa `"1"`).
+> Nota storica su D013/D014: alla baseline `parse_float("SI")=0` li faceva
+> escludere da **entrambe** le implementazioni (non era un disallineamento
+> JS/PY). Con D5 (helper condiviso `flag_positivo`) ora `SI`/`true` sono
+> riconosciuti come positivi testuali — un falso-negativo silenzioso corretto in
+> entrambe. I valori fuori vocabolario (es. `forse`, D021) non sono negativi: sono
+> contati e mostrati, come per date e importi.
 
 ## File
 
@@ -89,5 +107,39 @@ Il dataset è minimale (15 donatori) e ogni riga punta a un bersaglio preciso:
 | `donors_anagrafica_test.csv` / `donors_transazioni_test.csv` | dataset `;`-delimitato |
 | `run_js.mjs` | esegue il motore JS via jsdom → `js_output.json` |
 | `run_py.py` | esegue il motore Python → `py_output.json` |
-| `equivalence_test.py` | orchestratore + confronto + verdetto |
+| `equivalence_test.py` | orchestratore + confronto + verdetto (esegue anche `build_config.py --check`) |
 | `divergenze_report.txt` | report leggibile dell'ultima esecuzione |
+| `../../rfml_config.json` | **fonte unica** di tabelle/costanti RFML (pesi, ISTAT, CAP, bonus) |
+| `../../build_config.py` | inietta il JSON nel dashboard (blocco `<script id="rfml-config">`); `--check` verifica la sincronia |
+
+## Storia delle correzioni
+
+Partenza: alla baseline tutte le 14 coppie in comune divergevano + 1 row-set
+(D006), e il lift era diverso. Ordine di lavoro: **prima la config condivisa, poi
+le logiche.**
+
+1. **Config condivisa (D6, segno peso gini).** Estratte tutte le tabelle/costanti
+   duplicate in `rfml_config.json` (fonte unica, con `fonte_dati`/`verificato` per
+   tabella). Python la legge a runtime; il dashboard la riceve iniettata da
+   `build_config.py` (embed, non `fetch`: la dashboard gira offline via `file://`).
+   `equivalence_test.py` esegue `build_config.py --check` e fallisce se l'HTML è
+   fuori sincrono. D6 (peso `gini_penalita` canonico **positivo** 0.20 + inversione
+   nella formula; il vecchio JS `-0.20` era doppia negazione) corretto una volta sola.
+2. **D1+D2 (date).** `pD` (JS) riscritto: formati documentati `YYYY-MM-DD`,
+   `YYYY/MM/DD`, `DD/MM/YYYY` (giorno/mese 1-2 cifre) + validazione round-trip
+   contro l'overflow di `Date`. Date ignote **contate** (`contaDateNonValide` /
+   `conta_date_non_valide`), mai scartate in silenzio. Chiusa la cascata date.
+3. **D3+D4 (importi).** Parser europeo condiviso (`pImporto` / `parse_importo`):
+   virgola → europeo; punto+3 cifre senza virgola → **ambiguo**, scartato e contato;
+   punto+1/2/4+ cifre → decimale anglosassone; multi-punto a gruppi di 3 → migliaia;
+   coda non numerica → prefisso recuperato **ma contato**. Chiusa la cascata importi.
+4. **D5 (conteggio positivi lift).** Helper condiviso `flag_positivo` / `flagPositivo`
+   (vocabolario numerico + testuale, `x` tracciato a parte, valori ignoti contati e
+   mostrati **accanto al lift**).
+5. **D7 (cascata min-max).** Non un bug a sé: era la somma di D1-D4 che spostava i
+   range di normalizzazione. Chiusa come conseguenza.
+6. **D0 (delimitatore CSV).** `leggi_csv` auto-rileva `;`/`,` come il dashboard.
+
+Esito finale: **PASS** (exit 0), 21 vs 21 donatori, 0 divergenze logiche, lift
+identico (2.83×). Scarti residui = solo arrotondamento (`round` half-to-even vs
+`Math.round` half-up), entro 1 ULP.

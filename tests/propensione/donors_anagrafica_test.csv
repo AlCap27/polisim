@@ -14,3 +14,9 @@ D012;10;75+;20100;web;ricorrente;RID_SEPA;0;0;2
 D013;9;65-74;00100;web;ricorrente;RID_SEPA;0;0;SI
 D014;9;65-74;00100;web;ricorrente;RID_SEPA;0;0;true
 D015;3;35-44;90100;direct_mail;singola;assegno;0;0;0
+D016;7;55-64;20100;web;singola;carta_credito;0;0;0
+D017;6;45-54;30100;web;singola;carta_credito;0;0;0
+D018;8;65-74;10100;web;singola;carta_credito;0;0;0
+D019;5;55-64;50100;web;singola;carta_credito;0;0;0
+D020;7;65-74;20100;web;singola;carta_credito;0;0;x
+D021;6;55-64;30100;web;singola;carta_credito;0;0;forse

@@ -53,50 +53,46 @@ USO
 
 import argparse
 import csv
+import json
 import math
+import os
+import re
 import sys
 from collections import defaultdict
 from datetime import datetime
 from statistics import mean, pstdev
 
 # ===========================================================================
-# 1. MATRICE OBIETTIVO -> PESI   <-- UNICO PUNTO DI MODIFICA DEI PESI
+# 1. CONFIGURAZIONE CONDIVISA   <-- UNICA FONTE: rfml_config.json
 # ===========================================================================
-# Componenti: R, F, M_livello, M_trend, L. La somma per riga deve fare 1.0.
-# Modificare QUI (o ricalibrare via feedback loop) senza toccare il resto.
+# Tabelle e costanti del motore RFML (pesi obiettivo, layer territoriale ISTAT,
+# bonus demografico, soglie) NON vivono piu' come literal qui: stanno in
+# rfml_config.json, letto a runtime. La dashboard (propensione_dashboard.html)
+# usa LO STESSO file, iniettato a build-time da build_config.py. Unico punto di
+# modifica dei pesi = il JSON; equivalence_test.py esegue 'build_config.py
+# --check' e fallisce se le due copie ri-divergono. Provenienza e stato di
+# validazione di ogni tabella: campo "fonte_dati" nel JSON (molte marcate
+# "verificato": false — non ancora ricontrollate su fonte primaria).
 #
-# R = recency (invertita: donato di recente -> alto)
-# F = frequency/costanza (regolarita intervalli + bonus metodo ricorrente)
-# M_livello = importo medio per donazione (capacita)
-# M_trend   = pendenza dell'importo nel tempo (in crescita / in calo)
-# L = longevity (anni di relazione, con saturazione)
+# Significato dei segnali (pesi in PESI_OBIETTIVO, somma per riga = 1.0):
+#   R = recency (invertita: donato di recente -> alto)
+#   F = frequency/costanza (regolarita intervalli + bonus metodo ricorrente)
+#   M_livello = importo medio per donazione (capacita)
+#   M_trend   = pendenza dell'importo nel tempo (in crescita / in calo)
+#   L = longevity (anni di relazione, con saturazione)
 
-PESI_OBIETTIVO = {
-    # Lascito: fedelta profonda. Importo quasi irrilevante, eta/durata decisive.
-    "lascito": {
-        "R": 0.05, "F": 0.30, "M_livello": 0.05, "M_trend": 0.15, "L": 0.45
-    },
-    # Upgrade: chiedere di piu a chi gia da. Trend positivo + capacita.
-    "upgrade": {
-        "R": 0.20, "F": 0.20, "M_livello": 0.15, "M_trend": 0.35, "L": 0.10
-    },
-    # Sostegno continuativo: convertire one-off in RID. Gia attivo e regolare.
-    "sostegno_continuativo": {
-        "R": 0.30, "F": 0.35, "M_livello": 0.10, "M_trend": 0.10, "L": 0.15
-    },
-    # Riattivazione: inattivi MA storicamente fedeli. R entra come target.
-    "riattivazione": {
-        "R": 0.45, "F": 0.25, "M_livello": 0.05, "M_trend": 0.05, "L": 0.20
-    },
-    # One-off / emergenza: vince chi risponde rapido agli appelli.
-    "one_off_emergenza": {
-        "R": 0.45, "F": 0.30, "M_livello": 0.15, "M_trend": 0.05, "L": 0.05
-    },
-}
+_CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "rfml_config.json")
+with open(_CONFIG_PATH, encoding="utf-8") as _f:
+    _CFG = json.load(_f)
+_TAB = _CFG["tabelle"]
+_COST = _CFG["costanti"]
+
+# Matrice OBIETTIVO -> PESI {R, F, M_livello, M_trend, L}.
+PESI_OBIETTIVO = _TAB["PESI_OBIETTIVO"]["valori"]
 
 # Obiettivi per cui la Recency va INTERPRETATA come target (alta distanza = segnale).
 # Per la riattivazione cerchiamo proprio chi NON dona da tempo ma e stato fedele.
-OBIETTIVI_RECENCY_INVERSA = {"riattivazione"}
+OBIETTIVI_RECENCY_INVERSA = set(_COST["OBIETTIVI_RECENCY_INVERSA"])
 
 # ---------------------------------------------------------------------------
 # BONUS DEMOGRAFICO  <-- fattore dichiarato e ISOLATO, non un quinto segnale
@@ -110,26 +106,16 @@ OBIETTIVI_RECENCY_INVERSA = {"riattivazione"}
 # Punto di aggancio del feedback loop, ricalibrabile come PESI_OBIETTIVO.
 #
 # Valori calibrati sul tasso lascito_dichiarato per fascia eta nei dati
-# sintetici. NB: la fascia 35-44 mostra un tasso anomalo (5 positivi su 43,
-# rumore) e viene trattata come neutra, non premiata.
-BONUS_DEMOGRAFICO = {
-    "lascito": {
-        # fascia_eta -> punti aggiunti allo score 0-100 dell'obiettivo
-        "35-44": 0.0,    # campione troppo piccolo: neutro, non premiato
-        "45-54": 0.0,
-        "55-64": 0.0,
-        "65-74": 12.0,   # tasso lasciti ~11% vs ~3% fasce centrali
-        "75+": 12.0,
-    },
-    # altri obiettivi: nessun bonus demografico (dict vuoto = neutro)
-}
+# sintetici (base debole; "verificato": false nel JSON). NB: la fascia 35-44
+# mostra un tasso anomalo (rumore) e viene trattata come neutra, non premiata.
+BONUS_DEMOGRAFICO = _TAB["BONUS_DEMOGRAFICO"]["valori"]
 
 # Saturazione Longevity: oltre questa soglia (anni) la propensione non cresce
 # piu linearmente. Corretta per dati reali; inerte sui sintetici (max 15 anni).
-L_SATURAZIONE_ANNI = 20.0
+L_SATURAZIONE_ANNI = _COST["L_SATURAZIONE_ANNI"]
 
 # Metodi di pagamento considerati "ricorrenti" (commitment automatizzato).
-METODI_RICORRENTI = {"RID_SEPA", "bonifico_ricorrente"}
+METODI_RICORRENTI = set(_COST["METODI_RICORRENTI"])
 
 
 # ===========================================================================
@@ -150,63 +136,14 @@ METODI_RICORRENTI = {"RID_SEPA", "bonifico_ricorrente"}
 # Il moltiplicatore finale è compreso tra 0.85 e 1.15 (±15% sullo score).
 # Dichiarato e isolato — non contamina i segnali RFML.
 
-ISTAT_REGIONI = {
-    "Piemonte":               {"over65": 25.2, "reddito": 28500, "gini": 0.312},
-    "Valle d'Aosta":          {"over65": 24.3, "reddito": 31200, "gini": 0.298},
-    "Lombardia":              {"over65": 23.7, "reddito": 33100, "gini": 0.315},
-    "Liguria":                {"over65": 28.7, "reddito": 26800, "gini": 0.321},
-    "Trentino-Alto Adige":    {"over65": 22.1, "reddito": 34400, "gini": 0.289},
-    "Veneto":                 {"over65": 23.7, "reddito": 29600, "gini": 0.305},
-    "Friuli-Venezia Giulia":  {"over65": 26.0, "reddito": 27100, "gini": 0.308},
-    "Emilia-Romagna":         {"over65": 24.6, "reddito": 31800, "gini": 0.307},
-    "Toscana":                {"over65": 26.2, "reddito": 28100, "gini": 0.318},
-    "Umbria":                 {"over65": 27.1, "reddito": 23600, "gini": 0.323},
-    "Marche":                 {"over65": 26.6, "reddito": 23800, "gini": 0.318},
-    "Lazio":                  {"over65": 23.9, "reddito": 28600, "gini": 0.334},
-    "Abruzzo":                {"over65": 26.3, "reddito": 21800, "gini": 0.329},
-    "Molise":                 {"over65": 28.7, "reddito": 18700, "gini": 0.331},
-    "Campania":               {"over65": 21.2, "reddito": 17100, "gini": 0.365},
-    "Puglia":                 {"over65": 22.9, "reddito": 18100, "gini": 0.352},
-    "Basilicata":             {"over65": 27.8, "reddito": 17600, "gini": 0.334},
-    "Calabria":               {"over65": 23.0, "reddito": 16500, "gini": 0.368},
-    "Sicilia":                {"over65": 21.9, "reddito": 17100, "gini": 0.371},
-    "Sardegna":               {"over65": 25.8, "reddito": 20800, "gini": 0.341},
-}
+ISTAT_REGIONI = _TAB["ISTAT_REGIONI"]["valori"]
 
-# Lookup CAP (prime 2 cifre = prefisso provincia) → regione
-# Copertura: tutti i prefissi CAP italiani (00-98)
-CAP_PREFISSO_REGIONE = {
-    "00": "Lazio", "01": "Lazio", "02": "Lazio", "03": "Lazio", "04": "Lazio",
-    "05": "Umbria", "06": "Umbria",
-    "07": "Sardegna", "08": "Sardegna", "09": "Sardegna",
-    "10": "Piemonte", "11": "Valle d'Aosta", "12": "Piemonte", "13": "Piemonte",
-    "14": "Piemonte", "15": "Piemonte", "16": "Liguria", "17": "Liguria",
-    "18": "Liguria", "19": "Liguria",
-    "20": "Lombardia", "21": "Lombardia", "22": "Lombardia", "23": "Lombardia",
-    "24": "Lombardia", "25": "Lombardia", "26": "Lombardia", "27": "Lombardia",
-    "28": "Piemonte", "29": "Emilia-Romagna",
-    "30": "Veneto", "31": "Veneto", "32": "Veneto", "33": "Friuli-Venezia Giulia",
-    "34": "Friuli-Venezia Giulia", "35": "Veneto", "36": "Veneto", "37": "Veneto",
-    "38": "Trentino-Alto Adige", "39": "Trentino-Alto Adige",
-    "40": "Emilia-Romagna", "41": "Emilia-Romagna", "42": "Emilia-Romagna",
-    "43": "Emilia-Romagna", "44": "Emilia-Romagna", "45": "Emilia-Romagna",
-    "46": "Emilia-Romagna", "47": "Emilia-Romagna", "48": "Emilia-Romagna",
-    "50": "Toscana", "51": "Toscana", "52": "Toscana", "53": "Toscana",
-    "54": "Toscana", "55": "Toscana", "56": "Toscana", "57": "Toscana",
-    "58": "Toscana", "59": "Toscana",
-    "60": "Marche", "61": "Marche", "62": "Marche", "63": "Marche", "64": "Abruzzo",
-    "65": "Abruzzo", "66": "Abruzzo", "67": "Abruzzo", "68": "Molise", "69": "Molise",
-    "70": "Puglia", "71": "Puglia", "72": "Puglia", "73": "Puglia", "74": "Puglia",
-    "75": "Basilicata", "76": "Puglia", "85": "Basilicata",
-    "80": "Campania", "81": "Campania", "82": "Campania", "83": "Campania",
-    "84": "Campania",
-    "86": "Molise", "87": "Calabria", "88": "Calabria", "89": "Calabria",
-    "90": "Sicilia", "91": "Sicilia", "92": "Sicilia", "93": "Sicilia",
-    "94": "Sicilia", "95": "Sicilia", "96": "Sicilia", "97": "Sicilia", "98": "Sicilia",
-}
+# Lookup CAP (prime 2 cifre = prefisso provincia) → regione.
+# Copertura: prefissi CAP italiani 00-98 (49, 77-79 non assegnati, assenti).
+CAP_PREFISSO_REGIONE = _TAB["CAP_PREFISSO_REGIONE"]["valori"]
 
 # Valori nazionali medi — usati come fallback se CAP mancante o non riconosciuto
-ISTAT_NAZIONALE = {"over65": 24.1, "reddito": 24700, "gini": 0.328}
+ISTAT_NAZIONALE = _TAB["ISTAT_NAZIONALE"]["valori"]
 
 
 def cap_to_regione(cap: str) -> str | None:
@@ -218,8 +155,11 @@ def cap_to_regione(cap: str) -> str | None:
 
 
 # Pesi dei tre indicatori ISTAT per ogni obiettivo.
-# Struttura: (peso_over65, peso_reddito, peso_gini_penalita, cap_variazione)
-# cap_variazione: ampiezza massima del moltiplicatore (es. 0.15 = ±15%)
+# Struttura (dict per obiettivo): over65, reddito, gini_penalita, cap
+# cap: ampiezza massima del moltiplicatore (es. 0.15 = ±15%)
+# gini_penalita e' POSITIVO: combinato con l'inversione gia' presente nella
+# formula (gini_norm = -(gini-0.328)/0.04), un'alta gini ABBASSA lo score.
+# Ipotesi di dominio NON validata (vedi "ipotesi_non_validate" nel JSON).
 #
 # Razionale per obiettivo:
 #   lascito            — over65 dominante (legacy prospect); reddito secondario;
@@ -237,14 +177,7 @@ def cap_to_regione(cap: str) -> str | None:
 #                        in emergenza); gini penalizza fortemente (alta
 #                        disuguaglianza = risposta all'appello meno prevedibile).
 #                        Cap ±12%.
-PESI_TERRITORIALI = {
-    #                          over65  reddito  gini_pen  cap
-    "lascito":                 (0.50,  0.30,    0.20,     0.15),
-    "upgrade":                 (0.00,  0.60,    0.40,     0.10),
-    "sostegno_continuativo":   (-0.10, 0.60,    0.30,     0.10),
-    "riattivazione":           (0.05,  0.60,    0.35,     0.05),
-    "one_off_emergenza":       (0.15,  0.50,    0.35,     0.12),
-}
+PESI_TERRITORIALI = _TAB["PESI_TERRITORIALI"]["valori"]
 
 
 def calcola_moltiplicatore_territoriale(cap: str, obiettivo: str) -> float:
@@ -262,7 +195,10 @@ def calcola_moltiplicatore_territoriale(cap: str, obiettivo: str) -> float:
     regione = cap_to_regione(cap)
     dati = ISTAT_REGIONI.get(regione, ISTAT_NAZIONALE) if regione else ISTAT_NAZIONALE
 
-    w_over65, w_reddito, w_gini, cap_var = pesi
+    w_over65 = pesi["over65"]
+    w_reddito = pesi["reddito"]
+    w_gini = pesi["gini_penalita"]
+    cap_var = pesi["cap"]
 
     # Normalizza i tre indicatori rispetto ai range nazionali italiani
     # over65: range 21.2–28.7 → centro 24.1
@@ -282,15 +218,22 @@ def calcola_moltiplicatore_territoriale(cap: str, obiettivo: str) -> float:
 
 # Soglia minima di positivi storici (lascito_dichiarato) sotto la quale
 # l'addestramento ML supervisionato e sconsigliato (overfitting).
-SOGLIA_ML_POSITIVI = 50
+SOGLIA_ML_POSITIVI = _COST["SOGLIA_ML_POSITIVI"]
 
 
 # ===========================================================================
 # 2. LETTURA DATI
 # ===========================================================================
 def leggi_csv(path):
+    # D0: auto-rileva il delimitatore come il dashboard (parseCSV): ';' se presente
+    # nell'intestazione, altrimenti ','. Un export con ';' letto come ',' non da'
+    # eccezione — collassa tutto in un'unica colonna e si manifesta come "tutti i
+    # campi vuoti", un errore silenzioso. L'auto-detect lo previene.
     with open(path, newline="", encoding="utf-8-sig") as f:
-        return list(csv.DictReader(f))
+        prima = f.readline()
+        delim = ";" if ";" in prima else ","
+        f.seek(0)
+        return list(csv.DictReader(f, delimiter=delim))
 
 
 def parse_data(s):
@@ -309,6 +252,152 @@ def parse_float(s, default=0.0):
         return float(str(s).replace(",", ".").strip())
     except (ValueError, AttributeError):
         return default
+
+
+_NUM_PREFIX = re.compile(r"^[0-9.,]+")
+
+
+def _valid_thousands(s):
+    """True se s e' un intero con separatore migliaia ben formato (1.000.000) o un
+    intero semplice (1000). Primo gruppo 1-3 cifre, successivi esattamente 3."""
+    if "." not in s:
+        return s.isdigit()
+    gruppi = s.split(".")
+    if any(not g.isdigit() for g in gruppi):
+        return False
+    if not (1 <= len(gruppi[0]) <= 3):
+        return False
+    return all(len(g) == 3 for g in gruppi[1:])
+
+
+def _parse_num_token(tok):
+    """Parsa un token [0-9.,]+. Ritorna (valore, esito):
+    esito True = ok, None = AMBIGUO (non indovinare), False = malformato."""
+    if "," in tok:
+        # virgola presente -> formato EUROPEO: punto=migliaia, virgola=decimali
+        if tok.count(",") != 1:
+            return 0.0, False
+        intp, dec = tok.split(",")
+        if dec == "" or not dec.isdigit():
+            return 0.0, False
+        if intp == "":
+            intp_val = "0"
+        elif _valid_thousands(intp):
+            intp_val = intp.replace(".", "")
+        else:
+            return 0.0, False
+        return float(intp_val + "." + dec), True
+    dots = tok.count(".")
+    if dots == 0:
+        return (float(tok), True) if tok.isdigit() else (0.0, False)
+    if dots == 1:
+        left, right = tok.split(".")
+        if right == "" or not right.isdigit():
+            return 0.0, False
+        if left == "":
+            left = "0"
+        elif not left.isdigit():
+            return 0.0, False
+        if len(right) == 3:
+            return 0.0, None            # punto + ESATTAMENTE 3 cifre -> AMBIGUO
+        return float(left + "." + right), True   # 1,2,4+ cifre -> anglo decimale
+    # dots >= 2, nessuna virgola -> solo separatore migliaia e' valido
+    if _valid_thousands(tok):
+        return float(tok.replace(".", "")), True
+    return 0.0, False
+
+
+def parse_importo(raw):
+    """Parser importi EUR condiviso con il dashboard JS (D3/D4). Ritorna
+    (valore, stato), stato in {'ok','coda','ambiguo','malformato','vuoto'}.
+    Regole (vedi README): virgola -> europeo; punto+3 cifre senza virgola ->
+    AMBIGUO (scarta, non indovina); punto+1/2/4+ cifre -> decimale anglosassone;
+    piu' punti a gruppi di 3 -> migliaia; coda non numerica (50abc) -> accetta il
+    prefisso SOLO se completo, ma conta sempre l'occorrenza. Chi scarta
+    (ambiguo/malformato/vuoto) usa 0.0; gli stati != ok/vuoto vanno mostrati a
+    fine run col valore originale (mai 0 in silenzio)."""
+    if raw is None:
+        return 0.0, "vuoto"
+    s = str(raw).strip()
+    if s == "":
+        return 0.0, "vuoto"
+    sign = 1.0
+    if s[0] in "+-":
+        if s[0] == "-":
+            sign = -1.0
+        s = s[1:]
+    m = _NUM_PREFIX.match(s)
+    if not m:
+        return 0.0, "malformato"
+    tok = m.group(0)
+    coda = len(tok) != len(s)
+    val, esito = _parse_num_token(tok)
+    if esito is None:
+        return 0.0, "ambiguo"
+    if esito is False:
+        return 0.0, "malformato"
+    return sign * val, ("coda" if coda else "ok")
+
+
+def conta_importi_non_validi(transazioni):
+    """D3/D4: importi scartati (ambiguo/malformato) o recuperati con coda non
+    numerica. Ritorna {valore_originale: (n_occorrenze, stato)}; esclude ok/vuoto.
+    main() lo riporta a fine run: nessun importo imputato a 0 in silenzio."""
+    rep = {}
+    for t in transazioni:
+        s = (t.get("importo_eur") or "").strip()
+        if s == "":
+            continue
+        _, stato = parse_importo(s)
+        if stato in ("coda", "ambiguo", "malformato"):
+            n, _st = rep.get(s, (0, stato))
+            rep[s] = (n + 1, stato)
+    return rep
+
+
+def conta_date_non_valide(transazioni):
+    """D1/D2: date con valore non vuoto ma non riconducibile a un formato
+    documentato (YYYY-MM-DD, YYYY/MM/DD, DD/MM/YYYY). Ritorna
+    {valore_originale: n_occorrenze}. Non si scartano in silenzio: main() le
+    riporta a fine run con il valore originale (speculare al dashboard JS)."""
+    anomale = {}
+    for t in transazioni:
+        s = (t.get("data_donazione") or "").strip()
+        if s and parse_data(s) is None:
+            anomale[s] = anomale.get(s, 0) + 1
+    return anomale
+
+
+# Vocabolario esiti campagna / flag (D5), condiviso col dashboard (flagPositivo).
+# Case-insensitive, trim. "x" e' positivo ma TRACCIATO a parte: in molti CSV IT
+# e' una spunta, ma altrove indica l'opposto (escluso) -> va verificato.
+_FLAG_POS = {"1", "si", "sì", "s", "true", "vero", "v", "yes", "y", "ok"}
+_FLAG_NEG = {"0", "no", "n", "false", "falso", ""}
+
+
+def flag_positivo(raw):
+    """Classifica un valore-esito/flag (es. lascito_dichiarato) in:
+      'pos'    positivo riconosciuto
+      'pos_x'  positivo via 'x' (spunta) — contato come positivo ma tracciato
+      'neg'    negativo esplicito (0/no/n/false/falso/vuoto) o numerico == 0
+      'ignoto' non riconosciuto -> NON positivo, va contato e mostrato col
+               valore originale. Stesso principio di date/importi: un valore che
+               non riconosci non e' un negativo, e' un valore che non hai capito."""
+    if isinstance(raw, bool):
+        return "pos" if raw else "neg"
+    if raw is None:
+        return "neg"
+    s = str(raw).strip().lower()
+    if s == "x":
+        return "pos_x"
+    if s in _FLAG_POS:
+        return "pos"
+    if s in _FLAG_NEG:
+        return "neg"
+    try:
+        return "pos" if float(s.replace(",", ".")) != 0 else "neg"
+    except ValueError:
+        return "ignoto"
 
 
 # ===========================================================================
@@ -340,7 +429,7 @@ def calcola_segnali(anagrafica, transazioni):
             continue
 
         date = [parse_data(t["data_donazione"]) for t in tx]
-        importi = [parse_float(t["importo_eur"]) for t in tx]
+        importi = [parse_importo(t["importo_eur"])[0] for t in tx]
 
         # --- R grezza: giorni dall'ultima donazione (piu basso = piu recente)
         recency_days = (data_rif - date[-1]).days
@@ -515,18 +604,37 @@ def valida_lift(anagrafica, propensione, obiettivo="lascito"):
     Confronta tasso di lasciti nel top 20% vs resto. Lift > 1 = il modello funziona.
     """
     coppie = []
+    valori_ignoti = {}
+    positivi_x = {}
+    col = "lascito_dichiarato"
     for r in anagrafica:
         did = r["donor_id"]
         if did not in propensione:
             continue
-        dich = parse_float(r.get("lascito_dichiarato"))
-        coppie.append((propensione[did][obiettivo], 1 if dich > 0 else 0))
+        raw = r.get(col)
+        stato = flag_positivo(raw)
+        if stato == "ignoto":
+            v = str(raw).strip()
+            valori_ignoti[v] = valori_ignoti.get(v, 0) + 1
+        elif stato == "pos_x":
+            v = str(raw).strip()
+            positivi_x[v] = positivi_x.get(v, 0) + 1
+        coppie.append((propensione[did][obiettivo], 1 if stato in ("pos", "pos_x") else 0))
 
     if not coppie:
         return None
+    # diagnostica qualita' colonna esito: sempre presente, da mostrare accanto al
+    # lift. Valori ignoti = esclusi dai positivi, NON negativi (D5).
+    diag = {
+        "valori_ignoti": valori_ignoti,
+        "n_ignoti": sum(valori_ignoti.values()),
+        "positivi_x": positivi_x,
+        "n_valutati": len(coppie),
+    }
     positivi = sum(d for _, d in coppie)
     if positivi < 5:
-        return {"avviso": f"solo {positivi} positivi: lift non significativo"}
+        diag["avviso"] = f"solo {positivi} positivi: lift non significativo"
+        return diag
 
     coppie.sort(key=lambda x: x[0], reverse=True)
     cut = max(1, len(coppie) // 5)
@@ -535,12 +643,13 @@ def valida_lift(anagrafica, propensione, obiettivo="lascito"):
     tasso_top = sum(d for _, d in top) / len(top)
     tasso_resto = sum(d for _, d in resto) / len(resto) if resto else 0.0
     lift = (tasso_top / tasso_resto) if tasso_resto > 0 else float("inf")
-    return {
+    diag.update({
         "positivi_totali": positivi,
         "tasso_top20pct": round(tasso_top * 100, 1),
         "tasso_resto": round(tasso_resto * 100, 1),
         "lift": round(lift, 2) if lift != float("inf") else "inf",
-    }
+    })
+    return diag
 
 
 # ===========================================================================
@@ -649,7 +758,7 @@ def main():
     print("-" * 67)
     lift = valida_lift(anagrafica, propensione, "lascito")
     if lift and "avviso" not in lift:
-        print(f"  positivi storici (lascito_dichiarato=1) : {lift['positivi_totali']}")
+        print(f"  positivi storici (lascito dichiarato)   : {lift['positivi_totali']}")
         print(f"  tasso lasciti nel top 20% per score     : {lift['tasso_top20pct']}%")
         print(f"  tasso lasciti nel resto                 : {lift['tasso_resto']}%")
         print(f"  LIFT                                    : {lift['lift']}x")
@@ -659,6 +768,51 @@ def main():
                   f"ML supervisionato sconsigliato (rischio overfitting).")
     elif lift:
         print(f"  {lift['avviso']}")
+
+    # Qualita' della colonna esito (D5), PROMINENTE accanto al lift: valori
+    # ignoti = esclusi dai positivi, NON negativi. Se sono molti, il lift e'
+    # calcolato su un campione diverso da quello che credi.
+    if lift:
+        if lift.get("n_ignoti"):
+            n_val = lift.get("n_valutati", 0)
+            print(f"\n  >>> ATTENZIONE: {lift['n_ignoti']} valori NON riconosciuti "
+                  f"nella colonna esito (su {n_val} donatori valutati).")
+            print(f"      Esclusi dai positivi (non contati come negativi). "
+                  f"Il lift e' su un campione ridotto. Valori:")
+            for v, n in sorted(lift["valori_ignoti"].items(), key=lambda x: -x[1]):
+                print(f"        {n:4d}x  {v!r}")
+        if lift.get("positivi_x"):
+            nx = sum(lift["positivi_x"].values())
+            print(f"\n  >>> {nx} positivi dichiarati con 'x' (spunta). Contati come "
+                  f"positivi, ma la X in certi export significa l'opposto "
+                  f"(escluso/cancellato):")
+            for v, n in sorted(lift["positivi_x"].items(), key=lambda x: -x[1]):
+                print(f"        {n:4d}x  {v!r}  -> verifica la convenzione con l'organizzazione")
+
+    # --- diagnostica date non parsabili (D1/D2): mai scartare in silenzio
+    date_anomale = conta_date_non_valide(transazioni)
+    if date_anomale:
+        tot = sum(date_anomale.values())
+        print("\n" + "-" * 67)
+        print(f"AVVISO — {tot} date non riconosciute e scartate "
+              f"({len(date_anomale)} valori distinti)")
+        print("-" * 67)
+        print("  Formati accettati: YYYY-MM-DD, YYYY/MM/DD, DD/MM/YYYY.")
+        for v, n in sorted(date_anomale.items(), key=lambda x: -x[1]):
+            print(f"    {n:4d}x  {v!r}")
+
+    # --- diagnostica importi non validi (D3/D4): mai imputare 0 in silenzio
+    importi_anomali = conta_importi_non_validi(transazioni)
+    if importi_anomali:
+        tot = sum(n for n, _ in importi_anomali.values())
+        print("\n" + "-" * 67)
+        print(f"AVVISO — {tot} importi non interpretabili come dato pulito "
+              f"({len(importi_anomali)} valori distinti)")
+        print("-" * 67)
+        for v, (n, stato) in sorted(importi_anomali.items(), key=lambda x: -x[1][0]):
+            val, _ = parse_importo(v)
+            reso = f"-> {val:g}" if stato == "coda" else "-> scartato (0)"
+            print(f"    {n:4d}x  {v!r:14s} {stato:11s} {reso}")
 
     print("\n" + "=" * 67)
     print("PROMEMORIA ONESTA METODOLOGICA")

@@ -77,6 +77,25 @@ for f in MOLT_FIELDS:
     TOL_BY_FIELD[f] = TOL_MOLT
 
 
+def check_config_sync():
+    """Esegue 'build_config.py --check': il motore JS (dashboard) e quello Python
+    condividono rfml_config.json. Il JSON e' la fonte; nell'HTML e' iniettato a
+    build-time. Se qualcuno edita il blocco a mano, o cambia il JSON senza
+    rigenerare, le due implementazioni possono ri-divergere (es. bug D6, segno
+    del peso gini). Questo check rende la protezione parte del test: non dipende
+    dal ricordarsi di lanciare build_config.py a parte."""
+    repo = os.path.abspath(os.path.join(HERE, "..", ".."))
+    build = os.path.join(repo, "build_config.py")
+    print("Verifico la sincronia della config (build_config.py --check)...")
+    r = subprocess.run([sys.executable, build, "--check"], cwd=repo,
+                       capture_output=True, text=True)
+    sys.stdout.write(r.stdout)
+    if r.returncode != 0:
+        sys.stderr.write(r.stderr)
+        return False
+    return True
+
+
 def run_harnesses():
     """Esegue i due harness. Ritorna True se entrambi hanno prodotto output."""
     print("Eseguo il motore JS (node run_js.mjs)...")
@@ -181,6 +200,12 @@ def main():
         sys.stderr.reconfigure(encoding="utf-8")
     except Exception:
         pass
+    if not check_config_sync():
+        print("\n[FALLITO] rfml_config.json e propensione_dashboard.html sono "
+              "fuori sincrono.\n  Rigenera con 'python build_config.py' e rilancia. "
+              "Test interrotto: le due\n  implementazioni potrebbero divergere sui "
+              "valori di config.")
+        sys.exit(1)
     if not run_harnesses():
         sys.exit(2)
 
