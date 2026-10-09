@@ -31,12 +31,30 @@ import polisim_propensione as pp  # noqa: E402
 
 ANA = os.path.join(HERE, "donors_anagrafica_test.csv")
 TX = os.path.join(HERE, "donors_transazioni_test.csv")
+# Segmento sotto-soglia: lascito_dichiarato ha <5 positivi -> valida_lift NON
+# calcola il lift. Copre la simmetria con il guard JS (SOGLIA_LIFT_POSITIVI).
+ANA_SS = os.path.join(HERE, "donors_anagrafica_sottosoglia.csv")
+TX_SS = os.path.join(HERE, "donors_transazioni_sottosoglia.csv")
 OUT = os.path.join(HERE, "py_output.json")
 
 
 def leggi_csv_semicolon(path):
     with open(path, newline="", encoding="utf-8-sig") as f:
         return list(csv.DictReader(f, delimiter=";"))
+
+
+def lift_lascito_di(ana_path, tx_path):
+    """Replica la catena segnali->propensione->valida_lift('lascito') su un
+    dataset, come fa main() del modulo. Usato sia per il banco principale sia
+    per il segmento sotto-soglia."""
+    anagrafica = leggi_csv_semicolon(ana_path)
+    transazioni = leggi_csv_semicolon(tx_path)
+    segnali = pp.calcola_segnali(anagrafica, transazioni)
+    fascia = {r["donor_id"]: (r.get("fascia_eta") or "").strip() for r in anagrafica}
+    cap = {r["donor_id"]: (r.get("cap") or r.get("cap_donatore") or "").strip()
+           for r in anagrafica}
+    propensione = pp.calcola_propensione(segnali, fascia, cap)
+    return pp.valida_lift(anagrafica, propensione, "lascito")
 
 
 def main():
@@ -82,10 +100,15 @@ def main():
         row.update(contesto.get(did, {}))
         donatori[did] = row
 
-    # valida_lift: come in main(), solo obiettivo 'lascito'
-    lift_lascito = pp.valida_lift(anagrafica, propensione, "lascito")
+    # valida_lift per OGNI obiettivo (ciascuno sulla sua colonna esito), come main().
+    # lascito -> lascito_dichiarato (fallback); riattivazione -> colonna presente nel
+    # dataset; gli altri -> colonna assente (esito 'colonna_assente' esplicito).
+    lift_obiettivi = {ob: pp.valida_lift(anagrafica, propensione, ob) for ob in obiettivi}
+    # Segmento sotto-soglia: stessa catena, dataset lascito con <5 positivi
+    lift_sottosoglia = lift_lascito_di(ANA_SS, TX_SS)
 
-    out = {"donatori": donatori, "lift_lascito": lift_lascito}
+    out = {"donatori": donatori, "lift_obiettivi": lift_obiettivi,
+           "lift_sottosoglia": lift_sottosoglia}
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, indent=2)
     print(f"PY: {len(donatori)} donatori -> {OUT}")

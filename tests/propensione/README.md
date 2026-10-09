@@ -93,6 +93,42 @@ Ogni riga punta a un bersaglio preciso:
 | D020 | `lascito_dichiarato="x"` (spunta) | positivo **tracciato a parte** (X = convenzione da verificare) |
 | D021 | `lascito_dichiarato="forse"` | **ignoto** → escluso dai positivi, **non** negativo, contato |
 
+### Segmento sotto-soglia (lift non significativo)
+
+Oltre al banco principale (21 donatori, 10 positivi → lift calcolato), un secondo
+dataset `donors_*_sottosoglia.csv` (8 donatori, **3 positivi** su
+`lascito_dichiarato`) copre la soglia minima di positivi: sotto
+`SOGLIA_LIFT_POSITIVI` (5, nel JSON condiviso) il lift **non** si calcola né si
+mostra — con così pochi positivi il top-20% ne contiene 0-1 e il rapporto
+oscilla senza base. `equivalence_test.py` verifica che JS **e** Python
+dichiarino entrambi `sotto_soglia`, riportino lo stesso conteggio di positivi, e
+**non** producano un numero di lift. Prima di questa correzione Python avvisava e
+non calcolava, il JS calcolava comunque (asimmetria, era fuori da D0-D7).
+
+### Lift multi-obiettivo (colonna esito per obiettivo)
+
+`valida_lift` (Python) e `calcolaLift` (JS) misurano il lift di **ogni** obiettivo
+sulla **sua** colonna esito-campagna, non solo i lasciti: la mappa
+obiettivo→colonna vive in `rfml_config.json` (`ESITO_COLONNE`, con l'unico ripiego
+`ESITO_FALLBACK`: `lascito`→`lascito_dichiarato`), letta da entrambi — dati, non
+logica duplicata. Il banco copre i tre esiti possibili, verificando che JS e Python
+concordino su ciascuno:
+
+| obiettivo | colonna esito nel dataset | esito atteso (JS = PY) |
+|---|---|---|
+| `lascito` | `lascito_dichiarato` (ripiego) | **calcolato** (lift 2.83×, 10 positivi) |
+| `riattivazione` | `ha_risposto_campagna_riattivazione` | **calcolato** (valori sintetici: esercita il percorso completo su un obiettivo ≠ lascito) |
+| `upgrade`, `sostegno_continuativo`, `one_off_emergenza` | assente | **colonna_assente** → messaggio esplicito "lift non calcolabile, colonna esito assente" |
+
+La colonna `ha_risposto_campagna_riattivazione` è stata aggiunta al dataset
+principale solo per esercitare il lift su un obiettivo non-lascito: i suoi valori
+sono sintetici, conta l'**equivalenza** JS/PY e la copertura dei tre esiti, non il
+valore del lift in sé. Prima di questa correzione il Python calcolava il lift
+**sempre** su `lascito_dichiarato` qualunque fosse l'obiettivo, mentre il JS usava
+la colonna giusta: asimmetria latente (fuori da D0-D7) che la calibrazione sui dati
+reali — fatta col Python — avrebbe reso un problema il giorno degli esiti di
+riattivazione/upgrade.
+
 > Nota storica su D013/D014: alla baseline `parse_float("SI")=0` li faceva
 > escludere da **entrambe** le implementazioni (non era un disallineamento
 > JS/PY). Con D5 (helper condiviso `flag_positivo`) ora `SI`/`true` sono
@@ -104,7 +140,8 @@ Ogni riga punta a un bersaglio preciso:
 
 | file | ruolo |
 |---|---|
-| `donors_anagrafica_test.csv` / `donors_transazioni_test.csv` | dataset `;`-delimitato |
+| `donors_anagrafica_test.csv` / `donors_transazioni_test.csv` | dataset `;`-delimitato (banco principale, 21 donatori) |
+| `donors_anagrafica_sottosoglia.csv` / `donors_transazioni_sottosoglia.csv` | segmento con <5 positivi: lift non significativo |
 | `run_js.mjs` | esegue il motore JS via jsdom → `js_output.json` |
 | `run_py.py` | esegue il motore Python → `py_output.json` |
 | `equivalence_test.py` | orchestratore + confronto + verdetto (esegue anche `build_config.py --check`) |
@@ -139,7 +176,22 @@ le logiche.**
 5. **D7 (cascata min-max).** Non un bug a sé: era la somma di D1-D4 che spostava i
    range di normalizzazione. Chiusa come conseguenza.
 6. **D0 (delimitatore CSV).** `leggi_csv` auto-rileva `;`/`,` come il dashboard.
+7. **Soglia lift <5 positivi (fuori D0-D7).** Python avvisava e non calcolava il
+   lift sotto 5 positivi; il JS lo calcolava comunque — stesso difetto di fondo di
+   D0-D7 (un numero prodotto senza base sufficiente). Soglia spostata nel JSON
+   condiviso (`SOGLIA_LIFT_POSITIVI`, con `fonte_dati`: convenzione statistica, non
+   calibrata), JS allineato (guard + avviso **nella card del lift**, non in console),
+   e coperta dal segmento sotto-soglia del banco.
+8. **Lift multi-obiettivo (fuori D0-D7).** `valida_lift` (Python) usava sempre
+   `lascito_dichiarato` qualunque fosse l'obiettivo; il JS usava la colonna giusta.
+   Parametrizzata sulla colonna esito dell'obiettivo, con la mappa
+   obiettivo→colonna (`ESITO_COLONNE` + `ESITO_FALLBACK`) spostata nel JSON
+   condiviso. Colonna assente → esito **esplicito** ("lift non calcolabile, colonna
+   esito assente"), né errore né silenzio, su entrambi i lati. Coperto estendendo il
+   banco a `riattivazione` (colonna presente) e agli obiettivi senza colonna.
 
-Esito finale: **PASS** (exit 0), 21 vs 21 donatori, 0 divergenze logiche, lift
-identico (2.83×). Scarti residui = solo arrotondamento (`round` half-to-even vs
-`Math.round` half-up), entro 1 ULP.
+Esito finale: **PASS** (exit 0), 21 vs 21 donatori, 0 divergenze logiche. Lift per
+obiettivo concorde JS/PY (lascito 2.83×, riattivazione calcolato, 3 obiettivi
+colonna-assente) + segmento sotto-soglia concorde (nessun lift, 3 positivi).
+Scarti residui = solo arrotondamento (`round` half-to-even vs `Math.round`
+half-up), entro 1 ULP.

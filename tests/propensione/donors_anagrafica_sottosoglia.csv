@@ -1,0 +1,9 @@
+donor_id;anzianita_anni;fascia_eta;cap;canale_acquisizione;tipo_sostegno_prevalente;metodo_pagamento_prevalente;volontariato;eventi_partecipati;lascito_dichiarato
+S001;10;65-74;20100;web;ricorrente;RID_SEPA;1;0;1
+S002;8;75+;80100;eventi;ricorrente;bonifico_ricorrente;0;1;1
+S003;12;65-74;10100;web;ricorrente;RID_SEPA;1;1;1
+S004;7;55-64;20100;web;singola;carta_credito;0;0;0
+S005;6;45-54;30100;web;singola;carta_credito;0;0;0
+S006;9;65-74;20100;web;singola;carta_credito;0;0;0
+S007;4;35-44;70100;web;singola;carta_credito;0;0;0
+S008;5;45-54;16100;web;singola;carta_credito;0;0;0

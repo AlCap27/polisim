@@ -121,12 +121,44 @@
           "75+": 12.0
         }
       }
+    },
+    "ESITO_COLONNE": {
+      "fonte_dati": {
+        "origine": "contratto di mapping obiettivo -> colonna esito-campagna attesa nel CSV (una per obiettivo). Non e un dato misurato ma la convenzione di denominazione: e la fonte unica che lega nome-colonna e obiettivo per il calcolo del lift, condivisa da Python e JS.",
+        "verificato": true,
+        "note": "Se un obiettivo compare qui ma la sua colonna non e presente/mappata nel CSV, il lift per quell'obiettivo NON e calcolabile (vedi ESITO_FALLBACK per l'unico ripiego). Allineare a ANA_FIELDS nel dashboard se si rinominano le colonne."
+      },
+      "valori": {
+        "lascito": "ha_risposto_campagna_lasciti",
+        "upgrade": "ha_risposto_campagna_upgrade",
+        "sostegno_continuativo": "ha_risposto_campagna_continuativo",
+        "riattivazione": "ha_risposto_campagna_riattivazione",
+        "one_off_emergenza": "ha_risposto_campagna_oneoff"
+      }
+    },
+    "ESITO_FALLBACK": {
+      "fonte_dati": {
+        "origine": "colonna di ripiego per obiettivo quando la colonna esito-campagna dedicata non e mappata. Solo 'lascito' ha un ripiego: 'lascito_dichiarato', campo anagrafico storico presente da prima delle colonne ha_risposto_campagna_*.",
+        "verificato": true,
+        "note": "Gli obiettivi NON elencati qui non hanno ripiego: senza la loro colonna esito il lift non e calcolabile (deve dirlo esplicitamente, non fallire ne tacere). Dichiarato nel JSON per non duplicare la regola nei due codici."
+      },
+      "valori": {
+        "lascito": "lascito_dichiarato"
+      }
     }
   },
   "costanti": {
     "OBIETTIVI_RECENCY_INVERSA": ["riattivazione"],
     "L_SATURAZIONE_ANNI": 20.0,
     "METODI_RICORRENTI": ["RID_SEPA", "bonifico_ricorrente"],
-    "SOGLIA_ML_POSITIVI": 50
+    "SOGLIA_ML_POSITIVI": 50,
+    "SOGLIA_LIFT_POSITIVI": {
+      "fonte_dati": {
+        "origine": "convenzione statistica (regola del 5: conteggio atteso minimo per cella nelle tabelle di contingenza / validita del chi-quadro). NON calibrata sui dati di questo progetto.",
+        "verificato": false,
+        "note": "Numero minimo di positivi storici sotto il quale il lift NON viene calcolato ne mostrato: con <5 positivi il bucket top-20% ne contiene 0-1 e il rapporto oscilla in modo instabile, producendo un numero dall'apparenza affidabile ma privo di base. Scelta convenzionale/motivata, non derivata dai dati: rivedere se emergono evidenze specifiche. Vale per TUTTI gli obiettivi; distinta da SOGLIA_ML_POSITIVI (50), che riguarda l'addestramento ML supervisionato, non il calcolo del lift. NB: unica costante con struttura {fonte_dati, valore} perche e una soglia che richiede giustificazione; le altre sono valori nudi. Si legge con ['SOGLIA_LIFT_POSITIVI']['valore'] (Python) / .SOGLIA_LIFT_POSITIVI.valore (JS)."
+      },
+      "valore": 5
+    }
   }
 }

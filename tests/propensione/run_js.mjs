@@ -27,11 +27,17 @@ const REPO = join(__dirname, '..', '..');
 const htmlPath = join(REPO, 'propensione_dashboard.html');
 const anaPath = join(__dirname, 'donors_anagrafica_test.csv');
 const txPath = join(__dirname, 'donors_transazioni_test.csv');
+// Segmento sotto-soglia: lascito_dichiarato ha <5 positivi -> calcolaLift deve
+// NON calcolare il lift (sottoSoglia:true). Copre la simmetria con il Python.
+const anaSsPath = join(__dirname, 'donors_anagrafica_sottosoglia.csv');
+const txSsPath = join(__dirname, 'donors_transazioni_sottosoglia.csv');
 const outPath = join(__dirname, 'js_output.json');
 
 const html = readFileSync(htmlPath, 'utf8');
 const anaCsv = readFileSync(anaPath, 'utf8');
 const txCsv = readFileSync(txPath, 'utf8');
+const anaSsCsv = readFileSync(anaSsPath, 'utf8');
+const txSsCsv = readFileSync(txSsPath, 'utf8');
 
 // Harness iniettato nello stesso <script> del motore (condivide lo scope).
 const harness = `
@@ -56,7 +62,25 @@ try {
   risultati = Object.keys(__sg).map(did=>({donor_id:did,...__prop[did],obiettivo_top:OBIETTIVI.reduce((a,b)=>__prop[did][a]>__prop[did][b]?a:b),score_top:Math.max(...OBIETTIVI.map(o=>__prop[did][o])),...__sg[did],...__ctx[did],molt_lascito:molt(__cap[did],'lascito'),molt_upgrade:molt(__cap[did],'upgrade'),molt_sostegno_continuativo:molt(__cap[did],'sostegno_continuativo'),molt_riattivazione:molt(__cap[did],'riattivazione'),molt_one_off:molt(__cap[did],'one_off_emergenza')}));
   liftPerOb = {};
   for (const ob of OBIETTIVI) liftPerOb[ob] = calcolaLift(risultati, ob);
-  globalThis.__OUT__ = JSON.stringify({ risultati, lift: liftPerOb });
+
+  // --- segmento sotto-soglia: rieseguo la catena sul 2o dataset e prendo il
+  // lift lascito. calcolaLift legge anaData/mapState globali: li reimposto qui
+  // (dopo aver gia calcolato il lift del dataset principale, nessun clobber).
+  csvAna = parseCSV(globalThis.__ANA_SS_CSV__);
+  csvTx  = parseCSV(globalThis.__TX_SS_CSV__);
+  mapState.ana = {}; mapState.tx = {};
+  for (const f of ANA_FIELDS) if (csvAna.headers.includes(f.key)) mapState.ana[f.key] = f.key;
+  for (const f of TX_FIELDS)  if (csvTx.headers.includes(f.key))  mapState.tx[f.key]  = f.key;
+  anaData = buildRenamed(csvAna, mapState.ana, ANA_FIELDS);
+  txData  = buildRenamed(csvTx,  mapState.tx,  TX_FIELDS);
+  const __fasciaSs = Object.fromEntries(anaData.map(r=>[r.donor_id,(r.fascia_eta||'').trim()]));
+  const __capSs    = Object.fromEntries(anaData.map(r=>[r.donor_id,(r.cap||'').trim()]));
+  const __sgSs   = calcolaSegnali(anaData, txData);
+  const __propSs = calcolaProp(__sgSs, __fasciaSs, __capSs);
+  const __risSs = Object.keys(__sgSs).map(did=>({donor_id:did,...__propSs[did]}));
+  const liftSottoSoglia = calcolaLift(__risSs, 'lascito');
+
+  globalThis.__OUT__ = JSON.stringify({ risultati, lift: liftPerOb, liftSottoSoglia });
 } catch (e) {
   globalThis.__ERR__ = String((e && e.stack) || e);
 }
@@ -75,6 +99,8 @@ const dom = new JSDOM(injectedHtml, {
   beforeParse(window) {
     window.__ANA_CSV__ = anaCsv;
     window.__TX_CSV__ = txCsv;
+    window.__ANA_SS_CSV__ = anaSsCsv;
+    window.__TX_SS_CSV__ = txSsCsv;
   },
 });
 

@@ -1058,6 +1058,30 @@ footer{padding:24px 48px;border-top:1px solid var(--linea);display:flex;justify-
           "75+": 12.0
         }
       }
+    },
+    "ESITO_COLONNE": {
+      "fonte_dati": {
+        "origine": "contratto di mapping obiettivo -> colonna esito-campagna attesa nel CSV (una per obiettivo). Non e un dato misurato ma la convenzione di denominazione: e la fonte unica che lega nome-colonna e obiettivo per il calcolo del lift, condivisa da Python e JS.",
+        "verificato": true,
+        "note": "Se un obiettivo compare qui ma la sua colonna non e presente/mappata nel CSV, il lift per quell'obiettivo NON e calcolabile (vedi ESITO_FALLBACK per l'unico ripiego). Allineare a ANA_FIELDS nel dashboard se si rinominano le colonne."
+      },
+      "valori": {
+        "lascito": "ha_risposto_campagna_lasciti",
+        "upgrade": "ha_risposto_campagna_upgrade",
+        "sostegno_continuativo": "ha_risposto_campagna_continuativo",
+        "riattivazione": "ha_risposto_campagna_riattivazione",
+        "one_off_emergenza": "ha_risposto_campagna_oneoff"
+      }
+    },
+    "ESITO_FALLBACK": {
+      "fonte_dati": {
+        "origine": "colonna di ripiego per obiettivo quando la colonna esito-campagna dedicata non e mappata. Solo 'lascito' ha un ripiego: 'lascito_dichiarato', campo anagrafico storico presente da prima delle colonne ha_risposto_campagna_*.",
+        "verificato": true,
+        "note": "Gli obiettivi NON elencati qui non hanno ripiego: senza la loro colonna esito il lift non e calcolabile (deve dirlo esplicitamente, non fallire ne tacere). Dichiarato nel JSON per non duplicare la regola nei due codici."
+      },
+      "valori": {
+        "lascito": "lascito_dichiarato"
+      }
     }
   },
   "costanti": {
@@ -1069,7 +1093,15 @@ footer{padding:24px 48px;border-top:1px solid var(--linea);display:flex;justify-
       "RID_SEPA",
       "bonifico_ricorrente"
     ],
-    "SOGLIA_ML_POSITIVI": 50
+    "SOGLIA_ML_POSITIVI": 50,
+    "SOGLIA_LIFT_POSITIVI": {
+      "fonte_dati": {
+        "origine": "convenzione statistica (regola del 5: conteggio atteso minimo per cella nelle tabelle di contingenza / validita del chi-quadro). NON calibrata sui dati di questo progetto.",
+        "verificato": false,
+        "note": "Numero minimo di positivi storici sotto il quale il lift NON viene calcolato ne mostrato: con <5 positivi il bucket top-20% ne contiene 0-1 e il rapporto oscilla in modo instabile, producendo un numero dall'apparenza affidabile ma privo di base. Scelta convenzionale/motivata, non derivata dai dati: rivedere se emergono evidenze specifiche. Vale per TUTTI gli obiettivi; distinta da SOGLIA_ML_POSITIVI (50), che riguarda l'addestramento ML supervisionato, non il calcolo del lift. NB: unica costante con struttura {fonte_dati, valore} perche e una soglia che richiede giustificazione; le altre sono valori nudi. Si legge con ['SOGLIA_LIFT_POSITIVI']['valore'] (Python) / .SOGLIA_LIFT_POSITIVI.valore (JS)."
+      },
+      "valore": 5
+    }
   }
 }
 </script>
@@ -1329,16 +1361,20 @@ const OBIETTIVI=Object.keys(PESI);
 const R_INV=new Set(__COST.OBIETTIVI_RECENCY_INVERSA);
 const MET_RIC=new Set(__COST.METODI_RICORRENTI);
 const L_SAT=__COST.L_SATURAZIONE_ANNI;
+// Soglia minima di positivi sotto la quale il lift NON si calcola (vedi fonte_dati
+// nel JSON). Unica costante con struttura {fonte_dati, valore} -> si legge .valore.
+const SOGLIA_LIFT=__COST.SOGLIA_LIFT_POSITIVI.valore;
 const BONUS_DEM=__T.BONUS_DEMOGRAFICO.valori;
 const PESI_T=__T.PESI_TERRITORIALI.valori;  // chiavi: over65,reddito,gini_penalita,cap
 const ISTAT=__T.ISTAT_REGIONI.valori;       // chiavi: over65,reddito,gini
 const ISTAT_NAZ=__T.ISTAT_NAZIONALE.valori; // chiavi: over65,reddito,gini
 const CAP_REG=__T.CAP_PREFISSO_REGIONE.valori;
 
-// Mapping obiettivo → colonna esito campagna
-const ESITO_COL={lascito:'ha_risposto_campagna_lasciti',upgrade:'ha_risposto_campagna_upgrade',sostegno_continuativo:'ha_risposto_campagna_continuativo',riattivazione:'ha_risposto_campagna_riattivazione',one_off_emergenza:'ha_risposto_campagna_oneoff'};
-// Fallback: lascito_dichiarato per lascito se ha_risposto non c'è
-const ESITO_FALLBACK={lascito:'lascito_dichiarato'};
+// Mapping obiettivo → colonna esito campagna, dal JSON condiviso (fonte unica,
+// non duplicare: la stessa tabella serve a valida_lift in Python).
+const ESITO_COL=__T.ESITO_COLONNE.valori;
+// Fallback dichiarato nel JSON: solo lascito → lascito_dichiarato.
+const ESITO_FALLBACK=__T.ESITO_FALLBACK.valori;
 
 const OB_LBL={lascito:'Lasciti',upgrade:'Upgrade',sostegno_continuativo:'Sostegno cont.',riattivazione:'Riattivazione',one_off_emergenza:'One-off'};
 const OB_CLR={lascito:'badge-blu',upgrade:'badge-verde',sostegno_continuativo:'badge-verde',riattivazione:'badge-arancio',one_off_emergenza:'badge-rosso'};
@@ -1786,7 +1822,9 @@ function calcolaLift(dati,ob){
   const col=ESITO_COL[ob];const colFb=ESITO_FALLBACK[ob];
   const haCol=!!mapState.ana[col];
   const haFb=!!(colFb&&mapState.ana[colFb]);
-  if(!haCol&&!haFb)return null;
+  // Colonna esito assente: NON un errore, NON un silenzio. Esito esplicito
+  // (come il sotto-soglia) -> renderLift mostra "colonna esito assente".
+  if(!haCol&&!haFb)return{colonnaAssente:true,colonnaAttesa:col,lift:null,positivi:null,totale:dati.length};
   const useCol=haCol?col:colFb;
   // D5: classifica l'esito col vocabolario condiviso (flagPositivo). Ignoti ->
   // esclusi dai positivi, NON negativi, e contati. 'x' -> positivo ma tracciato.
@@ -1800,7 +1838,10 @@ function calcolaLift(dati,ob){
   }
   const nIgnoti=Object.values(valoriIgnoti).reduce((a,b)=>a+b,0);
   const diag={valoriIgnoti,nIgnoti,positiviX,colUsata:useCol};
-  if(!posSet.size)return{positivi:0,totale:dati.length,tassoTop:null,tassoResto:null,lift:null,...diag};
+  // Guard soglia positivi (allineato a valida_lift in Python): sotto SOGLIA_LIFT
+  // il lift NON si calcola. Con pochi positivi il top-20% ne contiene 0-1 e il
+  // rapporto e instabile. sottoSoglia:true -> renderLift mostra un avviso esplicito.
+  if(posSet.size<SOGLIA_LIFT)return{positivi:posSet.size,totale:dati.length,tassoTop:null,tassoResto:null,lift:null,sottoSoglia:true,...diag};
   const sorted=[...dati].sort((a,b)=>b[ob]-a[ob]);
   const cut=Math.max(1,Math.floor(sorted.length/5));
   const top=sorted.slice(0,cut),rest=sorted.slice(cut);
@@ -1942,6 +1983,22 @@ function renderLift(ob){
         Il top 20% per score contiene il <strong>${l.tassoTop}%</strong> dei positivi dichiarati vs ${l.tassoResto}% nel resto.<br>
         <small>${l.positivi} positivi storici su ${l.totale} donatori · fonte: <em>${esc(l.colUsata)}</em></small>
       </div></div>`+avvisi;
+  } else if(l.colonnaAssente){
+    // Colonna esito assente: stessa logica esplicita del sotto-soglia — dire cosa
+    // manca e come abilitare la validazione, non un errore né un silenzio.
+    lc.innerHTML=`<div style="background:#fff8e6;border:1px solid #d4a017;border-radius:8px;padding:14px 18px;color:#7a5c00;font-size:14px">`+
+      `&#9888; <strong>${OB_LBL[ob]}: lift non calcolabile</strong><br>`+
+      `Colonna esito non presente nel CSV. Aggiungi e mappa <em>${esc(l.colonnaAttesa)}</em> per abilitare la validazione di questo obiettivo.`+
+      `</div>`;
+  } else if(l.sottoSoglia){
+    // Sotto soglia: NIENTE numero del lift (sarebbe privo di base). Avviso esplicito
+    // qui dove l'utente guarda il lift, con il numero di positivi trovati — non in console.
+    lc.innerHTML=`<div style="background:#fdf0ee;border:1px solid #c0392b;border-radius:8px;padding:14px 18px;color:#7a1f1f;font-size:14px">`+
+      `&#9888; <strong>Lift non calcolato — ${OB_LBL[ob]}</strong><br>`+
+      `Solo <strong>${l.positivi} positivi storici</strong> (soglia minima ${SOGLIA_LIFT}) nella colonna esito <em>${esc(l.colUsata)}</em>, su ${l.totale} donatori. `+
+      `Con cosi pochi positivi il top 20% per score ne conterrebbe 0-1 e il rapporto oscillerebbe in modo instabile: un numero dall'apparenza affidabile ma privo di base. `+
+      `Per una validazione significativa servono almeno ${SOGLIA_LIFT} positivi.`+
+      `</div>`+avvisi;
   } else {
     lc.innerHTML=`<div class="lift-none">Lift non calcolabile per ${OB_LBL[ob]} (${l.positivi} positivi, fonte <em>${esc(l.colUsata)}</em>).</div>`+avvisi;
   }

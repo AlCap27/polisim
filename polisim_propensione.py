@@ -220,6 +220,18 @@ def calcola_moltiplicatore_territoriale(cap: str, obiettivo: str) -> float:
 # l'addestramento ML supervisionato e sconsigliato (overfitting).
 SOGLIA_ML_POSITIVI = _COST["SOGLIA_ML_POSITIVI"]
 
+# Soglia minima di positivi storici sotto la quale il lift NON viene calcolato
+# (ne mostrato): con pochi positivi il bucket top-20% ne contiene 0-1 e il
+# rapporto oscilla in modo instabile. Distinta da SOGLIA_ML_POSITIVI. Unica
+# costante con struttura {fonte_dati, valore} nel JSON -> si legge ["valore"].
+SOGLIA_LIFT_POSITIVI = _COST["SOGLIA_LIFT_POSITIVI"]["valore"]
+
+# Mapping obiettivo -> colonna esito-campagna e ripiego, dal JSON condiviso
+# (fonte unica, non duplicare qui). valida_lift li usa per sapere su quale
+# colonna misurare il lift di ciascun obiettivo (prima solo 'lascito').
+ESITO_COLONNE = _TAB["ESITO_COLONNE"]["valori"]
+ESITO_FALLBACK = _TAB["ESITO_FALLBACK"]["valori"]
+
 
 # ===========================================================================
 # 2. LETTURA DATI
@@ -596,22 +608,45 @@ def calcola_contesto(anagrafica):
 
 
 # ===========================================================================
-# 6. VALIDAZIONE — lift su lascito_dichiarato (se la colonna esiste)
+# 6. VALIDAZIONE — lift per obiettivo sulla rispettiva colonna esito-campagna
 # ===========================================================================
 def valida_lift(anagrafica, propensione, obiettivo="lascito"):
     """
-    Misura se il punteggio 'lascito' separa davvero chi ha dichiarato un lascito.
-    Confronta tasso di lasciti nel top 20% vs resto. Lift > 1 = il modello funziona.
+    Misura se il punteggio dell'obiettivo separa davvero chi ha risposto alla
+    campagna corrispondente. Confronta il tasso di positivi nel top 20% per score
+    vs il resto. Lift > 1 = il modello funziona.
+
+    La colonna esito dipende dall'obiettivo (ESITO_COLONNE nel JSON condiviso),
+    con un unico ripiego dichiarato (ESITO_FALLBACK: lascito -> lascito_dichiarato),
+    esattamente come calcolaLift nel dashboard. Se la colonna dell'obiettivo non e
+    presente nel CSV restituisce un esito 'colonna_assente' esplicito (non None,
+    non eccezione): non e un errore ne un silenzio.
     """
+    col = ESITO_COLONNE.get(obiettivo)
+    col_fb = ESITO_FALLBACK.get(obiettivo)
+    # Presenza = colonna nell'header del CSV (equivalente Python del mapState JS:
+    # cosa l'utente ha effettivamente mappato). DictReader da a ogni riga le stesse
+    # chiavi dell'intestazione, quindi basta ispezionare la prima riga.
+    presenti = set(anagrafica[0].keys()) if anagrafica else set()
+    ha_col = col is not None and col in presenti
+    ha_fb = col_fb is not None and col_fb in presenti
+    if not ha_col and not ha_fb:
+        return {
+            "colonna_assente": True,
+            "colonna_attesa": col,
+            "avviso": (f"obiettivo {obiettivo}: lift non calcolabile, "
+                       f"colonna esito '{col}' assente nel CSV"),
+        }
+    usa_col = col if ha_col else col_fb
+
     coppie = []
     valori_ignoti = {}
     positivi_x = {}
-    col = "lascito_dichiarato"
     for r in anagrafica:
         did = r["donor_id"]
         if did not in propensione:
             continue
-        raw = r.get(col)
+        raw = r.get(usa_col)
         stato = flag_positivo(raw)
         if stato == "ignoto":
             v = str(raw).strip()
@@ -626,14 +661,18 @@ def valida_lift(anagrafica, propensione, obiettivo="lascito"):
     # diagnostica qualita' colonna esito: sempre presente, da mostrare accanto al
     # lift. Valori ignoti = esclusi dai positivi, NON negativi (D5).
     diag = {
+        "colonna": usa_col,
         "valori_ignoti": valori_ignoti,
         "n_ignoti": sum(valori_ignoti.values()),
         "positivi_x": positivi_x,
         "n_valutati": len(coppie),
     }
     positivi = sum(d for _, d in coppie)
-    if positivi < 5:
-        diag["avviso"] = f"solo {positivi} positivi: lift non significativo"
+    diag["positivi"] = positivi
+    if positivi < SOGLIA_LIFT_POSITIVI:
+        diag["sotto_soglia"] = True
+        diag["avviso"] = (f"solo {positivi} positivi (soglia {SOGLIA_LIFT_POSITIVI}): "
+                          f"lift non calcolato perche non significativo")
         return diag
 
     coppie.sort(key=lambda x: x[0], reverse=True)
@@ -650,6 +689,45 @@ def valida_lift(anagrafica, propensione, obiettivo="lascito"):
         "lift": round(lift, 2) if lift != float("inf") else "inf",
     })
     return diag
+
+
+def _stampa_validazione_lift(obiettivo, lift):
+    """Stampa l'esito del lift per un obiettivo gestendo i tre casi in modo
+    esplicito (mai errore, mai silenzio): colonna assente / sotto soglia /
+    calcolato. Stessa semantica del render nel dashboard."""
+    etichetta = obiettivo.replace("_", " ")
+    if lift is None:
+        print(f"  {etichetta:22s}: nessun donatore valutabile")
+        return
+    if lift.get("colonna_assente"):
+        print(f"  {etichetta:22s}: lift non calcolabile — colonna esito "
+              f"'{lift['colonna_attesa']}' assente nel CSV")
+        return
+    if lift.get("sotto_soglia"):
+        print(f"  {etichetta:22s}: {lift['avviso']} "
+              f"(colonna {lift.get('colonna')!r})")
+        return
+    print(f"  {etichetta:22s}: LIFT {lift['lift']}x  "
+          f"(top20%={lift['tasso_top20pct']}% vs resto={lift['tasso_resto']}%, "
+          f"{lift['positivi_totali']} positivi, colonna {lift.get('colonna')!r})")
+    if lift["positivi_totali"] < SOGLIA_ML_POSITIVI:
+        print(f"      NOTA: {lift['positivi_totali']} positivi < soglia ML "
+              f"({SOGLIA_ML_POSITIVI}). Modello rule-based confermato; "
+              f"ML supervisionato sconsigliato (rischio overfitting).")
+    # Qualita' colonna esito (D5), accanto al lift: ignoti esclusi (non negativi).
+    if lift.get("n_ignoti"):
+        n_val = lift.get("n_valutati", 0)
+        print(f"      >>> ATTENZIONE: {lift['n_ignoti']} valori NON riconosciuti "
+              f"nella colonna esito (su {n_val} donatori valutati), esclusi dai "
+              f"positivi (non negativi). Lift su campione ridotto:")
+        for v, n in sorted(lift["valori_ignoti"].items(), key=lambda x: -x[1]):
+            print(f"          {n:4d}x  {v!r}")
+    if lift.get("positivi_x"):
+        nx = sum(lift["positivi_x"].values())
+        print(f"      >>> {nx} positivi dichiarati con 'x' (spunta). Contati come "
+              f"positivi, ma in certi export la X significa l'opposto:")
+        for v, n in sorted(lift["positivi_x"].items(), key=lambda x: -x[1]):
+            print(f"          {n:4d}x  {v!r}  -> verifica la convenzione con l'organizzazione")
 
 
 # ===========================================================================
@@ -752,42 +830,13 @@ def main():
     for o in obiettivi:
         print(f"    {o:24s}  {conteggio[o]:4d}")
 
-    # --- validazione lift sui lasciti
+    # --- validazione lift per ogni obiettivo (ognuno sulla sua colonna esito)
     print("\n" + "-" * 67)
-    print("VALIDAZIONE — il punteggio 'lascito' separa i lasciti dichiarati?")
+    print("VALIDAZIONE — i punteggi separano chi ha risposto alle campagne?")
     print("-" * 67)
-    lift = valida_lift(anagrafica, propensione, "lascito")
-    if lift and "avviso" not in lift:
-        print(f"  positivi storici (lascito dichiarato)   : {lift['positivi_totali']}")
-        print(f"  tasso lasciti nel top 20% per score     : {lift['tasso_top20pct']}%")
-        print(f"  tasso lasciti nel resto                 : {lift['tasso_resto']}%")
-        print(f"  LIFT                                    : {lift['lift']}x")
-        if lift["positivi_totali"] < SOGLIA_ML_POSITIVI:
-            print(f"\n  NOTA: {lift['positivi_totali']} positivi < soglia ML "
-                  f"({SOGLIA_ML_POSITIVI}). Modello rule-based confermato; "
-                  f"ML supervisionato sconsigliato (rischio overfitting).")
-    elif lift:
-        print(f"  {lift['avviso']}")
-
-    # Qualita' della colonna esito (D5), PROMINENTE accanto al lift: valori
-    # ignoti = esclusi dai positivi, NON negativi. Se sono molti, il lift e'
-    # calcolato su un campione diverso da quello che credi.
-    if lift:
-        if lift.get("n_ignoti"):
-            n_val = lift.get("n_valutati", 0)
-            print(f"\n  >>> ATTENZIONE: {lift['n_ignoti']} valori NON riconosciuti "
-                  f"nella colonna esito (su {n_val} donatori valutati).")
-            print(f"      Esclusi dai positivi (non contati come negativi). "
-                  f"Il lift e' su un campione ridotto. Valori:")
-            for v, n in sorted(lift["valori_ignoti"].items(), key=lambda x: -x[1]):
-                print(f"        {n:4d}x  {v!r}")
-        if lift.get("positivi_x"):
-            nx = sum(lift["positivi_x"].values())
-            print(f"\n  >>> {nx} positivi dichiarati con 'x' (spunta). Contati come "
-                  f"positivi, ma la X in certi export significa l'opposto "
-                  f"(escluso/cancellato):")
-            for v, n in sorted(lift["positivi_x"].items(), key=lambda x: -x[1]):
-                print(f"        {n:4d}x  {v!r}  -> verifica la convenzione con l'organizzazione")
+    for ob in obiettivi:
+        lift = valida_lift(anagrafica, propensione, ob)
+        _stampa_validazione_lift(ob, lift)
 
     # --- diagnostica date non parsabili (D1/D2): mai scartare in silenzio
     date_anomale = conta_date_non_valide(transazioni)

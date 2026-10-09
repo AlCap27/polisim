@@ -135,17 +135,7 @@ def normalizza_js(js):
                   "engagement", "coinvolgimento"):
             row[k] = r.get(k)
         donatori[did] = row
-    lift = js.get("lift", {}).get("lascito")
-    lift_norm = None
-    if lift:
-        lift_norm = {
-            "positivi": lift.get("positivi"),
-            "totale": lift.get("totale"),
-            "tasso_top": lift.get("tassoTop"),
-            "tasso_resto": lift.get("tassoResto"),
-            "lift": lift.get("lift"),
-        }
-    return donatori, lift_norm
+    return donatori
 
 
 def normalizza_py(py):
@@ -153,17 +143,55 @@ def normalizza_py(py):
     for did, r in py["donatori"].items():
         row = dict(r)
         donatori[did] = row
-    lift = py.get("lift_lascito")
-    lift_norm = None
-    if lift and "avviso" not in lift:
-        lift_norm = {
-            "positivi": lift.get("positivi_totali"),
-            "totale": None,  # il modulo Python non espone 'totale'
-            "tasso_top": lift.get("tasso_top20pct"),
-            "tasso_resto": lift.get("tasso_resto"),
-            "lift": lift.get("lift"),
-        }
-    return donatori, lift_norm
+    return donatori
+
+
+def stato_lift(l):
+    """Riduce l'esito del lift (JS o PY) a uno stato comune + i campi comparabili.
+    Stati: 'calcolato' / 'sotto_soglia' / 'colonna_assente' / 'nessun_dato'.
+    Appiana i nomi-campo divergenti fra le due implementazioni."""
+    if l is None:
+        return "nessun_dato", {}
+    if l.get("colonna_assente") or l.get("colonnaAssente"):
+        return "colonna_assente", {"colonna": l.get("colonna_attesa") or l.get("colonnaAttesa")}
+    if l.get("sotto_soglia") or l.get("sottoSoglia"):
+        return "sotto_soglia", {"positivi": l.get("positivi")}
+    pos = l.get("positivi_totali", l.get("positivi"))
+    return "calcolato", {
+        "positivi": pos,
+        "tasso_top": l.get("tasso_top20pct", l.get("tassoTop")),
+        "tasso_resto": l.get("tasso_resto", l.get("tassoResto")),
+        "lift": l.get("lift"),
+    }
+
+
+def confronta_lift(label, js_l, py_l, out):
+    """Confronta un singolo esito-lift fra JS e PY. Ritorna lista di FAIL."""
+    fail = []
+    js_stato, js_f = stato_lift(js_l)
+    py_stato, py_f = stato_lift(py_l)
+    out(f"  {label:22s} JS={js_stato:16s} PY={py_stato}")
+    if js_stato != py_stato:
+        fail.append(f"{label}: stato diverso JS={js_stato} PY={py_stato}")
+        return fail
+    if js_stato == "colonna_assente":
+        if js_f["colonna"] != py_f["colonna"]:
+            fail.append(f"{label}: colonna attesa diversa JS={js_f['colonna']} PY={py_f['colonna']}")
+    elif js_stato == "sotto_soglia":
+        if js_f["positivi"] != py_f["positivi"]:
+            fail.append(f"{label}: positivi diversi JS={js_f['positivi']} PY={py_f['positivi']}")
+    elif js_stato == "calcolato":
+        if js_f["positivi"] != py_f["positivi"]:
+            fail.append(f"{label}: positivi diversi JS={js_f['positivi']} PY={py_f['positivi']}")
+        for campo, tol in (("tasso_top", TOL_TASSO), ("tasso_resto", TOL_TASSO), ("lift", TOL_LIFT)):
+            vjs, vpy = js_f[campo], py_f[campo]
+            try:
+                if abs(float(vjs) - float(vpy)) > tol:
+                    fail.append(f"{label}.{campo}: JS={vjs} PY={vpy} (oltre tol {tol})")
+            except (TypeError, ValueError):
+                if vjs != vpy:
+                    fail.append(f"{label}.{campo}: JS={vjs!r} PY={vpy!r}")
+    return fail
 
 
 def confronta_valore(campo, vjs, vpy):
@@ -214,8 +242,8 @@ def main():
     with open(PY_OUT, encoding="utf-8") as f:
         py = json.load(f)
 
-    js_don, js_lift = normalizza_js(js)
-    py_don, py_lift = normalizza_py(py)
+    js_don = normalizza_js(js)
+    py_don = normalizza_py(py)
 
     js_ids = set(js_don)
     py_ids = set(py_don)
@@ -284,42 +312,58 @@ def main():
     out(f"Donatori identici (o entro tolleranza): {len(donatori_ok)}/{len(comuni)}")
     out(f"Donatori con divergenze logiche        : {len(donatori_div)}/{len(comuni)}  {donatori_div}")
 
-    # --- confronto lift lascito ---
+    # --- confronto lift per OGNI obiettivo (ognuno sulla sua colonna esito) ---
     out("")
     out("-" * 78)
-    out("CONFRONTO LIFT - obiettivo 'lascito'")
+    out("CONFRONTO LIFT - per obiettivo (colonna esito da ESITO_COLONNE nel JSON)")
     out("-" * 78)
     lift_fail = []
-    if js_lift is None or py_lift is None:
-        out(f"  lift JS={js_lift}  lift PY={py_lift}")
-        if js_lift != py_lift:
-            lift_fail.append("uno dei due lift e assente")
-    else:
-        out(f"  {'campo':14s} {'JS':>12s} {'PY':>12s}")
-        for campo, tol in (("positivi", 0), ("totale", 0),
-                           ("tasso_top", TOL_TASSO), ("tasso_resto", TOL_TASSO),
-                           ("lift", TOL_LIFT)):
-            vjs, vpy = js_lift.get(campo), py_lift.get(campo)
-            out(f"  {campo:14s} {str(vjs):>12s} {str(vpy):>12s}")
-            if campo == "totale" and vpy is None:
-                continue  # il modulo PY non espone 'totale'
-            if vjs is None or vpy is None:
-                if vjs != vpy:
-                    lift_fail.append(f"{campo}: JS={vjs} PY={vpy}")
-                continue
-            try:
-                if abs(float(vjs) - float(vpy)) > tol:
-                    lift_fail.append(f"{campo}: JS={vjs} PY={vpy} (oltre tol {tol})")
-            except (TypeError, ValueError):
-                if vjs != vpy:
-                    lift_fail.append(f"{campo}: JS={vjs} PY={vpy}")
+    js_lift_ob = js.get("lift", {})
+    py_lift_ob = py.get("lift_obiettivi", {})
+    for ob in OBIETTIVI:
+        lift_fail += confronta_lift(ob, js_lift_ob.get(ob), py_lift_ob.get(ob), out)
     for d in lift_fail:
+        out(f"    FAIL  {d}")
+
+    # --- confronto lift sotto-soglia (<5 positivi: lift NON calcolato) ---
+    out("")
+    out("-" * 78)
+    out("CONFRONTO LIFT SOTTO-SOGLIA - dataset con <5 positivi (lascito)")
+    out("-" * 78)
+    ss_fail = []
+    js_ss = js.get("liftSottoSoglia")
+    py_ss = py.get("lift_sottosoglia")
+    if js_ss is None or py_ss is None:
+        ss_fail.append(f"segmento sotto-soglia assente: JS={js_ss is not None} PY={py_ss is not None}")
+        out(f"  liftSottoSoglia JS presente={js_ss is not None}  PY presente={py_ss is not None}")
+    else:
+        # Entrambe devono DICHIARARE il sotto-soglia e NON produrre un lift.
+        js_sotto = bool(js_ss.get("sottoSoglia"))
+        py_sotto = bool(py_ss.get("sotto_soglia"))
+        js_pos = js_ss.get("positivi")
+        py_pos = py_ss.get("positivi")
+        js_lift_val = js_ss.get("lift")          # atteso: None (null)
+        py_lift_val = py_ss.get("lift")          # atteso: assente -> None
+        out(f"  {'campo':16s} {'JS':>12s} {'PY':>12s}")
+        out(f"  {'sotto_soglia':16s} {str(js_sotto):>12s} {str(py_sotto):>12s}")
+        out(f"  {'positivi':16s} {str(js_pos):>12s} {str(py_pos):>12s}")
+        out(f"  {'lift':16s} {str(js_lift_val):>12s} {str(py_lift_val):>12s}")
+        if not js_sotto:
+            ss_fail.append("JS non ha dichiarato sottoSoglia sul dataset <5 positivi")
+        if not py_sotto:
+            ss_fail.append("PY non ha dichiarato sotto_soglia sul dataset <5 positivi")
+        if js_pos != py_pos:
+            ss_fail.append(f"positivi divergono: JS={js_pos} PY={py_pos}")
+        if js_lift_val is not None or py_lift_val is not None:
+            ss_fail.append(f"lift calcolato nonostante sotto-soglia: JS={js_lift_val} PY={py_lift_val}")
+    for d in ss_fail:
         out(f"    FAIL  {d}")
 
     # --- verdetto ---
     out("")
     out("=" * 78)
-    divergenze = (len(solo_js) + len(solo_py) + len(donatori_div) + len(lift_fail))
+    divergenze = (len(solo_js) + len(solo_py) + len(donatori_div)
+                  + len(lift_fail) + len(ss_fail))
     if divergenze == 0:
         out("ESITO: PASS - le due implementazioni sono equivalenti entro tolleranza.")
         if n_warn:
@@ -330,6 +374,7 @@ def main():
         out(f"  - donatori solo-JS / solo-PY : {len(solo_js)} / {len(solo_py)}")
         out(f"  - donatori con divergenze    : {len(donatori_div)}")
         out(f"  - divergenze sul lift        : {len(lift_fail)}")
+        out(f"  - divergenze lift sotto-soglia: {len(ss_fail)}")
         verdict = 1
     out("=" * 78)
 
