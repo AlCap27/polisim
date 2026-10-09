@@ -679,22 +679,41 @@ def valida_lift(anagrafica, propensione, obiettivo="lascito"):
     cut = max(1, len(coppie) // 5)
     top = coppie[:cut]
     resto = coppie[cut:]
-    tasso_top = sum(d for _, d in top) / len(top)
-    tasso_resto = sum(d for _, d in resto) / len(resto) if resto else 0.0
-    lift = (tasso_top / tasso_resto) if tasso_resto > 0 else float("inf")
+    pos_top = sum(d for _, d in top)
+    pos_resto = sum(d for _, d in resto)
+    n_top = len(top)
+    n_resto = len(resto)
+    tasso_top = pos_top / n_top
+    tasso_resto = pos_resto / n_resto if n_resto else 0.0
+    # conteggi sempre esposti (anche nei casi degeneri), per rendere visibile su
+    # quali gruppi si misura il lift.
     diag.update({
         "positivi_totali": positivi,
+        "positivi_top": pos_top,
+        "positivi_resto": pos_resto,
+        "n_top": n_top,
+        "n_resto": n_resto,
         "tasso_top20pct": round(tasso_top * 100, 1),
         "tasso_resto": round(tasso_resto * 100, 1),
-        "lift": round(lift, 2) if lift != float("inf") else "inf",
     })
+    # Denominatore zero: tutti i positivi nel top 20%, 0 nel resto -> nessun
+    # termine di paragone, il lift NON e un numero (ne 'inf' ne null direbbero
+    # cosa e successo). Quarto stato esplicito, come sotto_soglia/colonna_assente.
+    if tasso_resto == 0:
+        diag["denominatore_zero"] = True
+        diag["avviso"] = (f"tutti i {positivi} positivi nel top 20% per score "
+                          f"({pos_top}/{n_top}), 0 nel resto (0/{n_resto}): lift non "
+                          f"definito, manca il termine di paragone. Su un segmento "
+                          f"piccolo e quasi sempre un artefatto.")
+        return diag
+    diag["lift"] = round(tasso_top / tasso_resto, 2)
     return diag
 
 
 def _stampa_validazione_lift(obiettivo, lift):
-    """Stampa l'esito del lift per un obiettivo gestendo i tre casi in modo
+    """Stampa l'esito del lift per un obiettivo gestendo i quattro casi in modo
     esplicito (mai errore, mai silenzio): colonna assente / sotto soglia /
-    calcolato. Stessa semantica del render nel dashboard."""
+    denominatore zero / calcolato. Stessa semantica del render nel dashboard."""
     etichetta = obiettivo.replace("_", " ")
     if lift is None:
         print(f"  {etichetta:22s}: nessun donatore valutabile")
@@ -706,6 +725,13 @@ def _stampa_validazione_lift(obiettivo, lift):
     if lift.get("sotto_soglia"):
         print(f"  {etichetta:22s}: {lift['avviso']} "
               f"(colonna {lift.get('colonna')!r})")
+        return
+    if lift.get("denominatore_zero"):
+        print(f"  {etichetta:22s}: lift non definito — tutti i "
+              f"{lift['positivi_totali']} positivi nel top 20% "
+              f"({lift['positivi_top']}/{lift['n_top']}), 0 nel resto "
+              f"(0/{lift['n_resto']}). Manca il termine di paragone; su un "
+              f"segmento piccolo e quasi sempre un artefatto.")
         return
     print(f"  {etichetta:22s}: LIFT {lift['lift']}x  "
           f"(top20%={lift['tasso_top20pct']}% vs resto={lift['tasso_resto']}%, "

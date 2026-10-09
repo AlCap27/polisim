@@ -31,6 +31,10 @@ const txPath = join(__dirname, 'donors_transazioni_test.csv');
 // NON calcolare il lift (sottoSoglia:true). Copre la simmetria con il Python.
 const anaSsPath = join(__dirname, 'donors_anagrafica_sottosoglia.csv');
 const txSsPath = join(__dirname, 'donors_transazioni_sottosoglia.csv');
+// Segmento denominatore-zero: tutti i positivi (>=soglia) cadono nel top 20% per
+// score, 0 nel resto -> nessun termine di paragone, lift non definito.
+const anaDzPath = join(__dirname, 'donors_anagrafica_denomzero.csv');
+const txDzPath = join(__dirname, 'donors_transazioni_denomzero.csv');
 const outPath = join(__dirname, 'js_output.json');
 
 const html = readFileSync(htmlPath, 'utf8');
@@ -38,6 +42,8 @@ const anaCsv = readFileSync(anaPath, 'utf8');
 const txCsv = readFileSync(txPath, 'utf8');
 const anaSsCsv = readFileSync(anaSsPath, 'utf8');
 const txSsCsv = readFileSync(txSsPath, 'utf8');
+const anaDzCsv = readFileSync(anaDzPath, 'utf8');
+const txDzCsv = readFileSync(txDzPath, 'utf8');
 
 // Harness iniettato nello stesso <script> del motore (condivide lo scope).
 const harness = `
@@ -63,24 +69,28 @@ try {
   liftPerOb = {};
   for (const ob of OBIETTIVI) liftPerOb[ob] = calcolaLift(risultati, ob);
 
-  // --- segmento sotto-soglia: rieseguo la catena sul 2o dataset e prendo il
-  // lift lascito. calcolaLift legge anaData/mapState globali: li reimposto qui
-  // (dopo aver gia calcolato il lift del dataset principale, nessun clobber).
-  csvAna = parseCSV(globalThis.__ANA_SS_CSV__);
-  csvTx  = parseCSV(globalThis.__TX_SS_CSV__);
-  mapState.ana = {}; mapState.tx = {};
-  for (const f of ANA_FIELDS) if (csvAna.headers.includes(f.key)) mapState.ana[f.key] = f.key;
-  for (const f of TX_FIELDS)  if (csvTx.headers.includes(f.key))  mapState.tx[f.key]  = f.key;
-  anaData = buildRenamed(csvAna, mapState.ana, ANA_FIELDS);
-  txData  = buildRenamed(csvTx,  mapState.tx,  TX_FIELDS);
-  const __fasciaSs = Object.fromEntries(anaData.map(r=>[r.donor_id,(r.fascia_eta||'').trim()]));
-  const __capSs    = Object.fromEntries(anaData.map(r=>[r.donor_id,(r.cap||'').trim()]));
-  const __sgSs   = calcolaSegnali(anaData, txData);
-  const __propSs = calcolaProp(__sgSs, __fasciaSs, __capSs);
-  const __risSs = Object.keys(__sgSs).map(did=>({donor_id:did,...__propSs[did]}));
-  const liftSottoSoglia = calcolaLift(__risSs, 'lascito');
+  // --- dataset ausiliari (sotto-soglia, denominatore-zero): rieseguo la catena
+  // e prendo il lift lascito. calcolaLift legge anaData/mapState globali: li
+  // reimposto nel helper (dopo aver gia calcolato il lift del dataset
+  // principale, nessun clobber su 'risultati', che resta quello principale).
+  const __liftLascitoDi = (anaStr, txStr) => {
+    csvAna = parseCSV(anaStr); csvTx = parseCSV(txStr);
+    mapState.ana = {}; mapState.tx = {};
+    for (const f of ANA_FIELDS) if (csvAna.headers.includes(f.key)) mapState.ana[f.key] = f.key;
+    for (const f of TX_FIELDS)  if (csvTx.headers.includes(f.key))  mapState.tx[f.key]  = f.key;
+    anaData = buildRenamed(csvAna, mapState.ana, ANA_FIELDS);
+    txData  = buildRenamed(csvTx,  mapState.tx,  TX_FIELDS);
+    const fa = Object.fromEntries(anaData.map(r=>[r.donor_id,(r.fascia_eta||'').trim()]));
+    const ca = Object.fromEntries(anaData.map(r=>[r.donor_id,(r.cap||'').trim()]));
+    const sg = calcolaSegnali(anaData, txData);
+    const pr = calcolaProp(sg, fa, ca);
+    const ris = Object.keys(sg).map(did=>({donor_id:did,...pr[did]}));
+    return calcolaLift(ris, 'lascito');
+  };
+  const liftSottoSoglia = __liftLascitoDi(globalThis.__ANA_SS_CSV__, globalThis.__TX_SS_CSV__);
+  const liftDenomZero  = __liftLascitoDi(globalThis.__ANA_DZ_CSV__, globalThis.__TX_DZ_CSV__);
 
-  globalThis.__OUT__ = JSON.stringify({ risultati, lift: liftPerOb, liftSottoSoglia });
+  globalThis.__OUT__ = JSON.stringify({ risultati, lift: liftPerOb, liftSottoSoglia, liftDenomZero });
 } catch (e) {
   globalThis.__ERR__ = String((e && e.stack) || e);
 }
@@ -101,6 +111,8 @@ const dom = new JSDOM(injectedHtml, {
     window.__TX_CSV__ = txCsv;
     window.__ANA_SS_CSV__ = anaSsCsv;
     window.__TX_SS_CSV__ = txSsCsv;
+    window.__ANA_DZ_CSV__ = anaDzCsv;
+    window.__TX_DZ_CSV__ = txDzCsv;
   },
 });
 

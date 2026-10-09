@@ -129,6 +129,21 @@ la colonna giusta: asimmetria latente (fuori da D0-D7) che la calibrazione sui d
 reali — fatta col Python — avrebbe reso un problema il giorno degli esiti di
 riattivazione/upgrade.
 
+### Segmento denominatore-zero (lift non definito)
+
+Quarto esito possibile accanto a calcolato / sotto-soglia / colonna-assente:
+quando i positivi superano la soglia **ma cadono tutti nel top 20% per score** (0
+nel resto), il lift non è un numero — manca il termine di paragone. Né `"inf"` né
+`null` direbbero cosa è successo: entrambe le implementazioni restituiscono uno
+stato esplicito `denominatore_zero`/`denominatoreZero`, senza numero, con il
+messaggio vero («tutti gli N positivi nel top 20%, 0 nel resto») e i **conteggi
+visibili** (positivi e numerosità dei due gruppi). È il risultato che qualcuno
+leggerebbe come "modello perfetto": su un segmento piccolo è quasi sempre un
+artefatto. Il dataset `donors_*_denomzero.csv` (30 donatori: 5 positivi dal
+profilo lascito fortissimo + 25 deboli) è costruito apposta perché i 5 positivi
+occupino il top 20%; `equivalence_test.py` verifica che JS e Python concordino
+sullo stato e sui conteggi (positivi 5, nel top 5/6, nel resto 0/24).
+
 > Nota storica su D013/D014: alla baseline `parse_float("SI")=0` li faceva
 > escludere da **entrambe** le implementazioni (non era un disallineamento
 > JS/PY). Con D5 (helper condiviso `flag_positivo`) ora `SI`/`true` sono
@@ -142,6 +157,7 @@ riattivazione/upgrade.
 |---|---|
 | `donors_anagrafica_test.csv` / `donors_transazioni_test.csv` | dataset `;`-delimitato (banco principale, 21 donatori) |
 | `donors_anagrafica_sottosoglia.csv` / `donors_transazioni_sottosoglia.csv` | segmento con <5 positivi: lift non significativo |
+| `donors_anagrafica_denomzero.csv` / `donors_transazioni_denomzero.csv` | segmento con positivi tutti nel top 20%: lift non definito (denominatore zero) |
 | `run_js.mjs` | esegue il motore JS via jsdom → `js_output.json` |
 | `run_py.py` | esegue il motore Python → `py_output.json` |
 | `equivalence_test.py` | orchestratore + confronto + verdetto (esegue anche `build_config.py --check`) |
@@ -189,9 +205,18 @@ le logiche.**
    condiviso. Colonna assente → esito **esplicito** ("lift non calcolabile, colonna
    esito assente"), né errore né silenzio, su entrambi i lati. Coperto estendendo il
    banco a `riattivazione` (colonna presente) e agli obiettivi senza colonna.
+9. **Denominatore zero (fuori D0-D7).** Con `tasso_resto=0` il Python produceva la
+   stringa `"inf"`, il JS `null`: due rappresentazioni, nessuna delle quali dice
+   cosa è successo. Introdotto un quarto stato esplicito `denominatore_zero` —
+   niente numero, messaggio vero (tutti i positivi nel top 20%) e conteggi dei due
+   gruppi visibili — su entrambi i lati; eliminato l'`"inf"` dal Python. La
+   condizione `if(l.lift)` nel render è diventata `if(l.lift!=null)` così un lift
+   legittimo di `0` (top 20% anti-predittivo) si mostra invece di cadere nel ramo
+   "non calcolabile". Coperto da `donors_*_denomzero.csv`.
 
 Esito finale: **PASS** (exit 0), 21 vs 21 donatori, 0 divergenze logiche. Lift per
 obiettivo concorde JS/PY (lascito 2.83×, riattivazione calcolato, 3 obiettivi
-colonna-assente) + segmento sotto-soglia concorde (nessun lift, 3 positivi).
+colonna-assente) + segmenti ausiliari concordi: sotto-soglia (3 positivi, nessun
+lift) e denominatore-zero (5 positivi tutti nel top 20%, lift non definito).
 Scarti residui = solo arrotondamento (`round` half-to-even vs `Math.round`
 half-up), entro 1 ULP.

@@ -35,6 +35,10 @@ TX = os.path.join(HERE, "donors_transazioni_test.csv")
 # calcola il lift. Copre la simmetria con il guard JS (SOGLIA_LIFT_POSITIVI).
 ANA_SS = os.path.join(HERE, "donors_anagrafica_sottosoglia.csv")
 TX_SS = os.path.join(HERE, "donors_transazioni_sottosoglia.csv")
+# Segmento denominatore-zero: tutti i positivi (>=soglia) nel top 20% per score,
+# 0 nel resto -> lift non definito (nessun termine di paragone).
+ANA_DZ = os.path.join(HERE, "donors_anagrafica_denomzero.csv")
+TX_DZ = os.path.join(HERE, "donors_transazioni_denomzero.csv")
 OUT = os.path.join(HERE, "py_output.json")
 
 
@@ -106,9 +110,11 @@ def main():
     lift_obiettivi = {ob: pp.valida_lift(anagrafica, propensione, ob) for ob in obiettivi}
     # Segmento sotto-soglia: stessa catena, dataset lascito con <5 positivi
     lift_sottosoglia = lift_lascito_di(ANA_SS, TX_SS)
+    # Segmento denominatore-zero: positivi tutti nel top 20%, 0 nel resto
+    lift_denomzero = lift_lascito_di(ANA_DZ, TX_DZ)
 
     out = {"donatori": donatori, "lift_obiettivi": lift_obiettivi,
-           "lift_sottosoglia": lift_sottosoglia}
+           "lift_sottosoglia": lift_sottosoglia, "lift_denomzero": lift_denomzero}
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, indent=2)
     print(f"PY: {len(donatori)} donatori -> {OUT}")

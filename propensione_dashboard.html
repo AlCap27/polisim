@@ -1845,9 +1845,19 @@ function calcolaLift(dati,ob){
   const sorted=[...dati].sort((a,b)=>b[ob]-a[ob]);
   const cut=Math.max(1,Math.floor(sorted.length/5));
   const top=sorted.slice(0,cut),rest=sorted.slice(cut);
-  const tt=top.filter(r=>posSet.has(r.donor_id)).length/top.length;
-  const tr=rest.length?rest.filter(r=>posSet.has(r.donor_id)).length/rest.length:0;
-  return{positivi:posSet.size,totale:dati.length,tassoTop:Math.round(tt*1000)/10,tassoResto:Math.round(tr*1000)/10,lift:tr?Math.round(tt/tr*100)/100:null,...diag};
+  const posTop=top.filter(r=>posSet.has(r.donor_id)).length;
+  const posResto=rest.filter(r=>posSet.has(r.donor_id)).length;
+  const nTop=top.length,nResto=rest.length;
+  const tt=posTop/nTop;
+  const tr=nResto?posResto/nResto:0;
+  // Conteggi sempre esposti (anche nei casi degeneri), per rendere visibile su
+  // quali gruppi si misura il lift.
+  const base={positivi:posSet.size,totale:dati.length,positiviTop:posTop,positiviResto:posResto,nTop,nResto,tassoTop:Math.round(tt*1000)/10,tassoResto:Math.round(tr*1000)/10,...diag};
+  // Denominatore zero: tutti i positivi nel top 20%, 0 nel resto -> nessun termine
+  // di paragone, il lift NON e un numero. Quarto stato esplicito (come
+  // colonna_assente / sotto_soglia): niente numero, messaggio e conteggi visibili.
+  if(tr===0)return{...base,lift:null,denominatoreZero:true};
+  return{...base,lift:Math.round(tt/tr*100)/100};
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1975,7 +1985,9 @@ function renderLift(ob){
     avvisi+=`<div style="background:#fff8e6;border:1px solid #d4a017;border-radius:8px;padding:10px 14px;margin-top:12px;color:#7a5c00;font-size:13px">`+
       `&#9888; <strong>${nx} positivi via "x"</strong> (spunta): contati come positivi, ma in certi export la X significa l'opposto (escluso/cancellato). Verifica la convenzione con l'organizzazione prima di fidarti.</div>`;
   }
-  if(l.lift){
+  if(l.lift!=null){
+    // lift!=null copre anche lift=0 (top 20% con 0 positivi: modello anti-predittivo,
+    // risultato valido e informativo, da mostrare — non "non calcolabile").
     lc.innerHTML=`<div class="lift-box">
       <div class="lift-val">${l.lift}×</div>
       <div class="lift-desc">
@@ -1983,6 +1995,16 @@ function renderLift(ob){
         Il top 20% per score contiene il <strong>${l.tassoTop}%</strong> dei positivi dichiarati vs ${l.tassoResto}% nel resto.<br>
         <small>${l.positivi} positivi storici su ${l.totale} donatori · fonte: <em>${esc(l.colUsata)}</em></small>
       </div></div>`+avvisi;
+  } else if(l.denominatoreZero){
+    // Denominatore zero: tutti i positivi nel top 20%, 0 nel resto. Niente numero,
+    // messaggio vero + conteggi visibili. Sembra "modello perfetto" ma manca il
+    // termine di paragone: su un segmento piccolo e quasi sempre un artefatto.
+    lc.innerHTML=`<div style="background:#fff8e6;border:1px solid #d4a017;border-radius:8px;padding:14px 18px;color:#7a5c00;font-size:14px">`+
+      `&#9888; <strong>Lift non definito — ${OB_LBL[ob]}</strong><br>`+
+      `Tutti i <strong>${l.positivi} positivi</strong> cadono nel top 20% per score (${l.positiviTop} su ${l.nTop} donatori); nel resto ce ne sono <strong>0</strong> (su ${l.nResto}). `+
+      `Senza positivi nel gruppo di confronto manca il termine di paragone: il lift non e un numero. `+
+      `Sembra un modello perfetto, ma su un segmento piccolo e quasi sempre un artefatto — controlla la numerosita prima di fidarti.`+
+      `</div>`+avvisi;
   } else if(l.colonnaAssente){
     // Colonna esito assente: stessa logica esplicita del sotto-soglia — dire cosa
     // manca e come abilitare la validazione, non un errore né un silenzio.

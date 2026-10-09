@@ -146,23 +146,36 @@ def normalizza_py(py):
     return donatori
 
 
+def _conteggi(l):
+    """Conteggi dei due gruppi, appianando i nomi-campo JS/PY."""
+    return {
+        "positivi": l.get("positivi_totali", l.get("positivi")),
+        "positivi_top": l.get("positivi_top", l.get("positiviTop")),
+        "positivi_resto": l.get("positivi_resto", l.get("positiviResto")),
+        "n_top": l.get("n_top", l.get("nTop")),
+        "n_resto": l.get("n_resto", l.get("nResto")),
+    }
+
+
 def stato_lift(l):
     """Riduce l'esito del lift (JS o PY) a uno stato comune + i campi comparabili.
-    Stati: 'calcolato' / 'sotto_soglia' / 'colonna_assente' / 'nessun_dato'.
-    Appiana i nomi-campo divergenti fra le due implementazioni."""
+    Stati: 'calcolato' / 'sotto_soglia' / 'colonna_assente' / 'denominatore_zero'
+    / 'nessun_dato'. Appiana i nomi-campo divergenti fra le due implementazioni."""
     if l is None:
         return "nessun_dato", {}
     if l.get("colonna_assente") or l.get("colonnaAssente"):
         return "colonna_assente", {"colonna": l.get("colonna_attesa") or l.get("colonnaAttesa")}
     if l.get("sotto_soglia") or l.get("sottoSoglia"):
         return "sotto_soglia", {"positivi": l.get("positivi")}
-    pos = l.get("positivi_totali", l.get("positivi"))
-    return "calcolato", {
-        "positivi": pos,
+    if l.get("denominatore_zero") or l.get("denominatoreZero"):
+        return "denominatore_zero", _conteggi(l)
+    campi = _conteggi(l)
+    campi.update({
         "tasso_top": l.get("tasso_top20pct", l.get("tassoTop")),
         "tasso_resto": l.get("tasso_resto", l.get("tassoResto")),
         "lift": l.get("lift"),
-    }
+    })
+    return "calcolato", campi
 
 
 def confronta_lift(label, js_l, py_l, out):
@@ -180,9 +193,17 @@ def confronta_lift(label, js_l, py_l, out):
     elif js_stato == "sotto_soglia":
         if js_f["positivi"] != py_f["positivi"]:
             fail.append(f"{label}: positivi diversi JS={js_f['positivi']} PY={py_f['positivi']}")
+    elif js_stato == "denominatore_zero":
+        # conteggi dei due gruppi devono coincidere esattamente; nessun numero di lift
+        for campo in ("positivi", "positivi_top", "positivi_resto", "n_top", "n_resto"):
+            if js_f[campo] != py_f[campo]:
+                fail.append(f"{label}.{campo}: JS={js_f[campo]} PY={py_f[campo]}")
+        if py_f["positivi_resto"] != 0:
+            fail.append(f"{label}: positivi_resto atteso 0 (denominatore zero), trovato {py_f['positivi_resto']}")
     elif js_stato == "calcolato":
-        if js_f["positivi"] != py_f["positivi"]:
-            fail.append(f"{label}: positivi diversi JS={js_f['positivi']} PY={py_f['positivi']}")
+        for campo in ("positivi", "positivi_top", "positivi_resto", "n_top", "n_resto"):
+            if js_f[campo] != py_f[campo]:
+                fail.append(f"{label}.{campo}: JS={js_f[campo]} PY={py_f[campo]}")
         for campo, tol in (("tasso_top", TOL_TASSO), ("tasso_resto", TOL_TASSO), ("lift", TOL_LIFT)):
             vjs, vpy = js_f[campo], py_f[campo]
             try:
@@ -359,11 +380,31 @@ def main():
     for d in ss_fail:
         out(f"    FAIL  {d}")
 
+    # --- confronto lift denominatore-zero (positivi tutti nel top 20%, 0 nel resto) ---
+    out("")
+    out("-" * 78)
+    out("CONFRONTO LIFT DENOMINATORE-ZERO - positivi tutti nel top 20%, 0 nel resto")
+    out("-" * 78)
+    dz_fail = []
+    js_dz = js.get("liftDenomZero")
+    py_dz = py.get("lift_denomzero")
+    js_dz_stato = stato_lift(js_dz)[0]
+    py_dz_stato = stato_lift(py_dz)[0]
+    if js_dz_stato != "denominatore_zero":
+        dz_fail.append(f"JS stato atteso 'denominatore_zero', trovato '{js_dz_stato}' "
+                       "(il dataset non ha prodotto il caso: regolare i positivi/score)")
+    if py_dz_stato != "denominatore_zero":
+        dz_fail.append(f"PY stato atteso 'denominatore_zero', trovato '{py_dz_stato}' "
+                       "(il dataset non ha prodotto il caso: regolare i positivi/score)")
+    dz_fail += confronta_lift("denominatore_zero", js_dz, py_dz, out)
+    for d in dz_fail:
+        out(f"    FAIL  {d}")
+
     # --- verdetto ---
     out("")
     out("=" * 78)
     divergenze = (len(solo_js) + len(solo_py) + len(donatori_div)
-                  + len(lift_fail) + len(ss_fail))
+                  + len(lift_fail) + len(ss_fail) + len(dz_fail))
     if divergenze == 0:
         out("ESITO: PASS - le due implementazioni sono equivalenti entro tolleranza.")
         if n_warn:
@@ -375,6 +416,7 @@ def main():
         out(f"  - donatori con divergenze    : {len(donatori_div)}")
         out(f"  - divergenze sul lift        : {len(lift_fail)}")
         out(f"  - divergenze lift sotto-soglia: {len(ss_fail)}")
+        out(f"  - divergenze lift denom-zero : {len(dz_fail)}")
         verdict = 1
     out("=" * 78)
 
