@@ -1968,7 +1968,10 @@ function renderLift(ob){
   const lc=document.getElementById('lift-container');
   const l=liftPerOb[ob];
   if(!l){
-    lc.innerHTML=`<div class="lift-none">Lift non disponibile per ${OB_LBL[ob]} — colonna esito non presente nel CSV. Aggiungi <em>${ESITO_COL[ob]}</em> per abilitare la validazione.</div>`;
+    // Difensivo: calcolaLift restituisce sempre un oggetto (uno dei quattro stati),
+    // quindi non si arriva qui in condizioni normali. Fallback interno neutro: NON
+    // dire "colonna assente" (ha un suo stato dedicato, piu chiaro, qui sotto).
+    lc.innerHTML=`<div class="lift-none">Dati di validazione non disponibili per ${OB_LBL[ob]} — il punteggio resta calcolato (vedi tabella e CSV).</div>`;
     return;
   }
   const esc=v=>String(v).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
@@ -2006,11 +2009,15 @@ function renderLift(ob){
       `Sembra un modello perfetto, ma su un segmento piccolo e quasi sempre un artefatto — controlla la numerosita prima di fidarti.`+
       `</div>`+avvisi;
   } else if(l.colonnaAssente){
-    // Colonna esito assente: stessa logica esplicita del sotto-soglia — dire cosa
-    // manca e come abilitare la validazione, non un errore né un silenzio.
+    // Colonna esito assente. ATTENZIONE a non far leggere "obiettivo non disponibile":
+    // il PUNTEGGIO c'e ed e utilizzabile (vedi tabella e CSV), manca solo la verifica
+    // a posteriori (il lift). La differenza che un cliente confonderebbe:
+    // "non posso aiutarti su questo obiettivo" vs "posso, ma non ho ancora come
+    // dimostrarti quanto bene". Si guida l'azione, non si segnala un errore.
     lc.innerHTML=`<div style="background:#fff8e6;border:1px solid #d4a017;border-radius:8px;padding:14px 18px;color:#7a5c00;font-size:14px">`+
-      `&#9888; <strong>${OB_LBL[ob]}: lift non calcolabile</strong><br>`+
-      `Colonna esito non presente nel CSV. Aggiungi e mappa <em>${esc(l.colonnaAttesa)}</em> per abilitare la validazione di questo obiettivo.`+
+      `&#9888; <strong>${OB_LBL[ob]}: punteggio pronto, validazione non ancora possibile</strong><br>`+
+      `Il punteggio di propensione per <strong>${OB_LBL[ob]}</strong> e <strong>calcolato e utilizzabile su tutti i donatori</strong> — lo trovi nella tabella qui sotto e nel CSV, puoi usarlo <strong>subito</strong> per prioritizzare chi contattare.<br>`+
+      `Quello che manca e solo la <strong>verifica a posteriori</strong>: non c'e ancora nel CSV la colonna con l'esito storico della campagna (<em>${esc(l.colonnaAttesa)}</em>), quindi non possiamo ancora <em>misurare</em> quanto bene il punteggio separa chi ha risposto. Aggiungila e mappala quando avrai gli esiti e il lift comparira qui.`+
       `</div>`;
   } else if(l.sottoSoglia){
     // Sotto soglia: NIENTE numero del lift (sarebbe privo di base). Avviso esplicito
