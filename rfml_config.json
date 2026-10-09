@@ -1,0 +1,164 @@
+{
+  "versione": "1.0.0",
+  "descrizione": "Configurazione condivisa del motore RFML del Modulo Propensione. UNICA FONTE DI VERITA' per le tabelle e costanti usate sia da polisim_propensione.py (lette a runtime con json.load) sia da propensione_dashboard.html (iniettate a build-time nel blocco <script id='rfml-config'> da build_config.py). NON editare i valori nell'HTML a mano: rigenerare con 'python build_config.py'. equivalence_test.py esegue 'build_config.py --check' e fallisce se l'HTML e' fuori sincrono.",
+  "tabelle": {
+    "PESI_OBIETTIVO": {
+      "fonte_dati": {
+        "origine": "expert-calibrated; derivazione numerica non documentata da fonte specifica",
+        "verificato": false,
+        "note": "Somma per riga = 1.0. Punto di aggancio del feedback loop: ricalibrare dopo ~20 campagne con esito misurato. Finche' cio' non avviene, trattare come ipotesi ragionate, non come verita'."
+      },
+      "valori": {
+        "lascito":               { "R": 0.05, "F": 0.30, "M_livello": 0.05, "M_trend": 0.15, "L": 0.45 },
+        "upgrade":               { "R": 0.20, "F": 0.20, "M_livello": 0.15, "M_trend": 0.35, "L": 0.10 },
+        "sostegno_continuativo": { "R": 0.30, "F": 0.35, "M_livello": 0.10, "M_trend": 0.10, "L": 0.15 },
+        "riattivazione":         { "R": 0.45, "F": 0.25, "M_livello": 0.05, "M_trend": 0.05, "L": 0.20 },
+        "one_off_emergenza":     { "R": 0.45, "F": 0.30, "M_livello": 0.15, "M_trend": 0.05, "L": 0.05 }
+      }
+    },
+    "PESI_TERRITORIALI": {
+      "fonte_dati": {
+        "origine": "expert-calibrated; pesi degli indicatori territoriali ISTAT per obiettivo, derivazione numerica non documentata da fonte specifica",
+        "verificato": false,
+        "note": "Struttura: over65, reddito, gini_penalita (peso applicato al segnale gia' invertito), cap (ampiezza massima del moltiplicatore, es. 0.15 = +/-15%)."
+      },
+      "ipotesi_non_validate": [
+        "gini_penalita (peso POSITIVO): si assume che un'alta disuguaglianza interna riduca la propensione a donare. IPOTESI DI DOMINIO PLAUSIBILE, NON DIMOSTRATA. Il peso positivo si combina con l'inversione gia' presente nella formula (gini_norm = -(gini-0.328)/0.04): alta gini -> gini_norm negativo -> contributo negativo -> score piu' basso. NB: nella vecchia copia JS il peso era negativo (-0.20) e, moltiplicato per lo stesso gini_norm invertito, produceva una DOPPIA negazione che ALZAVA lo score con alta gini (bug D6). Il valore canonico qui e' positivo (come nel Python)."
+      ],
+      "valori": {
+        "lascito":               { "over65": 0.50,  "reddito": 0.30, "gini_penalita": 0.20, "cap": 0.15 },
+        "upgrade":               { "over65": 0.00,  "reddito": 0.60, "gini_penalita": 0.40, "cap": 0.10 },
+        "sostegno_continuativo": { "over65": -0.10, "reddito": 0.60, "gini_penalita": 0.30, "cap": 0.10 },
+        "riattivazione":         { "over65": 0.05,  "reddito": 0.60, "gini_penalita": 0.35, "cap": 0.05 },
+        "one_off_emergenza":     { "over65": 0.15,  "reddito": 0.50, "gini_penalita": 0.35, "cap": 0.12 }
+      }
+    },
+    "ISTAT_REGIONI": {
+      "fonte_dati": {
+        "origine": "dichiarata nel codice come ISTAT Censimento Permanente 2021 + MEF redditi per regione; NON ricontrollata su fonte primaria",
+        "verificato": false,
+        "note": "Indicatori per regione: over65 (% popolazione 65+), reddito (medio annuo EUR), gini (indice di disuguaglianza). Da verificare su fonte primaria prima di trattare come dato reale."
+      },
+      "valori": {
+        "Piemonte":              { "over65": 25.2, "reddito": 28500, "gini": 0.312 },
+        "Valle d'Aosta":         { "over65": 24.3, "reddito": 31200, "gini": 0.298 },
+        "Lombardia":             { "over65": 23.7, "reddito": 33100, "gini": 0.315 },
+        "Liguria":               { "over65": 28.7, "reddito": 26800, "gini": 0.321 },
+        "Trentino-Alto Adige":   { "over65": 22.1, "reddito": 34400, "gini": 0.289 },
+        "Veneto":                { "over65": 23.7, "reddito": 29600, "gini": 0.305 },
+        "Friuli-Venezia Giulia": { "over65": 26.0, "reddito": 27100, "gini": 0.308 },
+        "Emilia-Romagna":        { "over65": 24.6, "reddito": 31800, "gini": 0.307 },
+        "Toscana":               { "over65": 26.2, "reddito": 28100, "gini": 0.318 },
+        "Umbria":                { "over65": 27.1, "reddito": 23600, "gini": 0.323 },
+        "Marche":                { "over65": 26.6, "reddito": 23800, "gini": 0.318 },
+        "Lazio":                 { "over65": 23.9, "reddito": 28600, "gini": 0.334 },
+        "Abruzzo":               { "over65": 26.3, "reddito": 21800, "gini": 0.329 },
+        "Molise":                { "over65": 28.7, "reddito": 18700, "gini": 0.331 },
+        "Campania":              { "over65": 21.2, "reddito": 17100, "gini": 0.365 },
+        "Puglia":                { "over65": 22.9, "reddito": 18100, "gini": 0.352 },
+        "Basilicata":            { "over65": 27.8, "reddito": 17600, "gini": 0.334 },
+        "Calabria":              { "over65": 23.0, "reddito": 16500, "gini": 0.368 },
+        "Sicilia":               { "over65": 21.9, "reddito": 17100, "gini": 0.371 },
+        "Sardegna":              { "over65": 25.8, "reddito": 20800, "gini": 0.341 }
+      }
+    },
+    "ISTAT_NAZIONALE": {
+      "fonte_dati": {
+        "origine": "media nazionale italiana dichiarata nel codice; NON ricontrollata su fonte primaria",
+        "verificato": false,
+        "note": "Fallback se CAP mancante o non riconosciuto. Coincide con i centri usati per normalizzare gli indicatori nella formula del moltiplicatore."
+      },
+      "valori": { "over65": 24.1, "reddito": 24700, "gini": 0.328 }
+    },
+    "CAP_PREFISSO_REGIONE": {
+      "fonte_dati": {
+        "origine": "prefissi CAP postali italiani (prime 2 cifre -> regione)",
+        "verificato": false,
+        "note": "Copertura prefissi 00-98. Alcuni prefissi non assegnati (49, 77-79) sono assenti di proposito."
+      },
+      "valori": {
+        "00": "Lazio", "01": "Lazio", "02": "Lazio", "03": "Lazio", "04": "Lazio",
+        "05": "Umbria", "06": "Umbria",
+        "07": "Sardegna", "08": "Sardegna", "09": "Sardegna",
+        "10": "Piemonte", "11": "Valle d'Aosta", "12": "Piemonte", "13": "Piemonte",
+        "14": "Piemonte", "15": "Piemonte", "16": "Liguria", "17": "Liguria",
+        "18": "Liguria", "19": "Liguria",
+        "20": "Lombardia", "21": "Lombardia", "22": "Lombardia", "23": "Lombardia",
+        "24": "Lombardia", "25": "Lombardia", "26": "Lombardia", "27": "Lombardia",
+        "28": "Piemonte", "29": "Emilia-Romagna",
+        "30": "Veneto", "31": "Veneto", "32": "Veneto", "33": "Friuli-Venezia Giulia",
+        "34": "Friuli-Venezia Giulia", "35": "Veneto", "36": "Veneto", "37": "Veneto",
+        "38": "Trentino-Alto Adige", "39": "Trentino-Alto Adige",
+        "40": "Emilia-Romagna", "41": "Emilia-Romagna", "42": "Emilia-Romagna",
+        "43": "Emilia-Romagna", "44": "Emilia-Romagna", "45": "Emilia-Romagna",
+        "46": "Emilia-Romagna", "47": "Emilia-Romagna", "48": "Emilia-Romagna",
+        "50": "Toscana", "51": "Toscana", "52": "Toscana", "53": "Toscana",
+        "54": "Toscana", "55": "Toscana", "56": "Toscana", "57": "Toscana",
+        "58": "Toscana", "59": "Toscana",
+        "60": "Marche", "61": "Marche", "62": "Marche", "63": "Marche", "64": "Abruzzo",
+        "65": "Abruzzo", "66": "Abruzzo", "67": "Abruzzo", "68": "Molise", "69": "Molise",
+        "70": "Puglia", "71": "Puglia", "72": "Puglia", "73": "Puglia", "74": "Puglia",
+        "75": "Basilicata", "76": "Puglia",
+        "80": "Campania", "81": "Campania", "82": "Campania", "83": "Campania",
+        "84": "Campania", "85": "Basilicata",
+        "86": "Molise", "87": "Calabria", "88": "Calabria", "89": "Calabria",
+        "90": "Sicilia", "91": "Sicilia", "92": "Sicilia", "93": "Sicilia",
+        "94": "Sicilia", "95": "Sicilia", "96": "Sicilia", "97": "Sicilia", "98": "Sicilia"
+      }
+    },
+    "BONUS_DEMOGRAFICO": {
+      "fonte_dati": {
+        "origine": "tasso lascito_dichiarato per fascia eta' osservato sui DATI SINTETICI; base debole",
+        "verificato": false,
+        "note": "Punti additivi allo score 0-100 del solo obiettivo 'lascito'. Fascia 35-44 trattata come neutra (campione piccolo, rumore). Da verificare su dati reali. Altri obiettivi: nessun bonus (dict vuoto = neutro)."
+      },
+      "valori": {
+        "lascito": {
+          "35-44": 0.0,
+          "45-54": 0.0,
+          "55-64": 0.0,
+          "65-74": 12.0,
+          "75+": 12.0
+        }
+      }
+    },
+    "ESITO_COLONNE": {
+      "fonte_dati": {
+        "origine": "contratto di mapping obiettivo -> colonna esito-campagna attesa nel CSV (una per obiettivo). Non e un dato misurato ma la convenzione di denominazione: e la fonte unica che lega nome-colonna e obiettivo per il calcolo del lift, condivisa da Python e JS.",
+        "verificato": true,
+        "note": "Se un obiettivo compare qui ma la sua colonna non e presente/mappata nel CSV, il lift per quell'obiettivo NON e calcolabile (vedi ESITO_FALLBACK per l'unico ripiego). Allineare a ANA_FIELDS nel dashboard se si rinominano le colonne."
+      },
+      "valori": {
+        "lascito": "ha_risposto_campagna_lasciti",
+        "upgrade": "ha_risposto_campagna_upgrade",
+        "sostegno_continuativo": "ha_risposto_campagna_continuativo",
+        "riattivazione": "ha_risposto_campagna_riattivazione",
+        "one_off_emergenza": "ha_risposto_campagna_oneoff"
+      }
+    },
+    "ESITO_FALLBACK": {
+      "fonte_dati": {
+        "origine": "colonna di ripiego per obiettivo quando la colonna esito-campagna dedicata non e mappata. Solo 'lascito' ha un ripiego: 'lascito_dichiarato', campo anagrafico storico presente da prima delle colonne ha_risposto_campagna_*.",
+        "verificato": true,
+        "note": "Gli obiettivi NON elencati qui non hanno ripiego: senza la loro colonna esito il lift non e calcolabile (deve dirlo esplicitamente, non fallire ne tacere). Dichiarato nel JSON per non duplicare la regola nei due codici."
+      },
+      "valori": {
+        "lascito": "lascito_dichiarato"
+      }
+    }
+  },
+  "costanti": {
+    "OBIETTIVI_RECENCY_INVERSA": ["riattivazione"],
+    "L_SATURAZIONE_ANNI": 20.0,
+    "METODI_RICORRENTI": ["RID_SEPA", "bonifico_ricorrente"],
+    "SOGLIA_ML_POSITIVI": 50,
+    "SOGLIA_LIFT_POSITIVI": {
+      "fonte_dati": {
+        "origine": "convenzione statistica (regola del 5: conteggio atteso minimo per cella nelle tabelle di contingenza / validita del chi-quadro). NON calibrata sui dati di questo progetto.",
+        "verificato": false,
+        "note": "Numero minimo di positivi storici sotto il quale il lift NON viene calcolato ne mostrato: con <5 positivi il bucket top-20% ne contiene 0-1 e il rapporto oscilla in modo instabile, producendo un numero dall'apparenza affidabile ma privo di base. Scelta convenzionale/motivata, non derivata dai dati: rivedere se emergono evidenze specifiche. Vale per TUTTI gli obiettivi; distinta da SOGLIA_ML_POSITIVI (50), che riguarda l'addestramento ML supervisionato, non il calcolo del lift. NB: unica costante con struttura {fonte_dati, valore} perche e una soglia che richiede giustificazione; le altre sono valori nudi. Si legge con ['SOGLIA_LIFT_POSITIVI']['valore'] (Python) / .SOGLIA_LIFT_POSITIVI.valore (JS)."
+      },
+      "valore": 5
+    }
+  }
+}
