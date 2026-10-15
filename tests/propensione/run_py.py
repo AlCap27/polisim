@@ -39,6 +39,13 @@ TX_SS = os.path.join(HERE, "donors_transazioni_sottosoglia.csv")
 # 0 nel resto -> lift non definito (nessun termine di paragone).
 ANA_DZ = os.path.join(HERE, "donors_anagrafica_denomzero.csv")
 TX_DZ = os.path.join(HERE, "donors_transazioni_denomzero.csv")
+# Robustezza CSV (Compito 1): a-capo DENTRO un campo citato (letta intera, 0
+# esclusioni) e riga genuinamente malformata (n° campi != intestazione ->
+# esclusa e contata). Python (csv.DictReader via leggi_csv) e' l'oracolo.
+ANA_QN = os.path.join(HERE, "donors_anagrafica_quotednewline.csv")
+TX_QN = os.path.join(HERE, "donors_transazioni_quotednewline.csv")
+ANA_MAL = os.path.join(HERE, "donors_anagrafica_malformed.csv")
+TX_MAL = os.path.join(HERE, "donors_transazioni_malformed.csv")
 OUT = os.path.join(HERE, "py_output.json")
 
 
@@ -59,6 +66,45 @@ def lift_lascito_di(ana_path, tx_path):
            for r in anagrafica}
     propensione = pp.calcola_propensione(segnali, fascia, cap)
     return pp.valida_lift(anagrafica, propensione, "lascito")
+
+
+def score_dataset(ana_path, tx_path):
+    """Robustezza CSV: legge con pp.leggi_csv (lo scanner RFC + conteggio campi,
+    l'oracolo), e restituisce n. righe lette, righe escluse e i punteggi per
+    donatore. Replica la catena segnali->propensione->contesto di main()."""
+    anagrafica, escluse_ana = pp.leggi_csv(ana_path)
+    transazioni, escluse_tx = pp.leggi_csv(tx_path)
+    segnali = pp.calcola_segnali(anagrafica, transazioni)
+    fascia = {r["donor_id"]: (r.get("fascia_eta") or "").strip() for r in anagrafica}
+    cap = {r["donor_id"]: (r.get("cap") or r.get("cap_donatore") or "").strip()
+           for r in anagrafica}
+    propensione = pp.calcola_propensione(segnali, fascia, cap)
+    contesto = pp.calcola_contesto(anagrafica)
+    obiettivi = list(pp.PESI_OBIETTIVO.keys())
+    donatori = {}
+    for did in segnali:
+        prop = propensione[did]
+        top_ob = max(prop, key=prop.get)
+        c = cap.get(did, "")
+        row = {"donor_id": did}
+        for o in obiettivi:
+            row[f"prop_{o}"] = prop[o]
+        row["obiettivo_top"] = top_ob
+        row["score_top"] = prop[top_ob]
+        for k in ("R", "F", "M_livello", "M_trend", "L"):
+            row[k] = segnali[did][k]
+        row["_recency_days"] = segnali[did]["_recency_days"]
+        row["_n_tx"] = segnali[did]["_n_tx"]
+        row["regione_istat"] = pp.cap_to_regione(c) or "n/d"
+        row["molt_lascito"] = pp.calcola_moltiplicatore_territoriale(c, "lascito")
+        row["molt_upgrade"] = pp.calcola_moltiplicatore_territoriale(c, "upgrade")
+        row["molt_sostegno_continuativo"] = pp.calcola_moltiplicatore_territoriale(c, "sostegno_continuativo")
+        row["molt_riattivazione"] = pp.calcola_moltiplicatore_territoriale(c, "riattivazione")
+        row["molt_one_off"] = pp.calcola_moltiplicatore_territoriale(c, "one_off_emergenza")
+        row.update(contesto.get(did, {}))
+        donatori[did] = row
+    return {"n_ana": len(anagrafica), "escluse_ana": escluse_ana,
+            "n_tx": len(transazioni), "escluse_tx": escluse_tx, "donatori": donatori}
 
 
 def main():
@@ -113,8 +159,13 @@ def main():
     # Segmento denominatore-zero: positivi tutti nel top 20%, 0 nel resto
     lift_denomzero = lift_lascito_di(ANA_DZ, TX_DZ)
 
+    # Robustezza CSV (Compito 1): a-capo citato e riga malformata.
+    quotednewline = score_dataset(ANA_QN, TX_QN)
+    malformed = score_dataset(ANA_MAL, TX_MAL)
+
     out = {"donatori": donatori, "lift_obiettivi": lift_obiettivi,
-           "lift_sottosoglia": lift_sottosoglia, "lift_denomzero": lift_denomzero}
+           "lift_sottosoglia": lift_sottosoglia, "lift_denomzero": lift_denomzero,
+           "quotednewline": quotednewline, "malformed": malformed}
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, indent=2)
     print(f"PY: {len(donatori)} donatori -> {OUT}")

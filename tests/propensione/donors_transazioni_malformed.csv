@@ -1,0 +1,5 @@
+donor_id;data_donazione;importo_eur;metodo_pagamento;campagna
+MAL001;2024-01-10;50;RID_SEPA;generica
+MAL001;2024-06-10;60;RID_SEPA;generica
+MAL003;2024-03-05;40;carta_credito;generica
+MAL003;2024-05-05;45;carta_credito;generica

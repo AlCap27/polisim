@@ -1237,19 +1237,65 @@ function dsGeneralizeVal(val, col) {
   return val ? String(val).slice(0,2)+'***' : '';
 }
 
-function parseCSV(text) {
-  const lines = text.trim().split(/\r?\n/);
-  const sep = lines[0].includes(';') ? ';' : ',';
-  const headers = lines[0].split(sep).map(h => h.trim().replace(/^"|"$/g,''));
-  return {
-    headers,
-    rows: lines.slice(1).filter(l=>l.trim()).map(line => {
-      const vals = line.split(sep).map(v => v.trim().replace(/^"|"$/g,''));
-      const obj = {};
-      headers.forEach((h,i) => obj[h] = vals[i]||'');
-      return obj;
-    })
+// Scanner CSV a caratteri, ALLINEATO a csv.DictReader di Python (l'oracolo):
+// gestisce virgolette, "" come virgoletta di escape, delimitatore e a-capo
+// DENTRO un campo citato. Niente tolleranze/inferenze/riparazioni in piu'.
+// Restituisce i record grezzi: {fields, line (riga fisica d'inizio), raw}.
+function rfmlScanCSV(text, sep){
+  const recs=[]; const n=text.length;
+  let i=0, line=1, recStartLine=1, rawStart=0;
+  let fields=[], field='', inQuotes=false, sawQuote=false, started=false;
+  const pushField=()=>{ fields.push(field); field=''; };
+  const endRecord=(endPos)=>{
+    pushField();
+    const raw=text.slice(rawStart,endPos);
+    // Riga fisicamente vuota: csv.reader restituisce [] e DictReader la salta.
+    if(!(fields.length===1 && fields[0]==='' && !sawQuote && raw===''))
+      recs.push({fields, line:recStartLine, raw});
+    fields=[]; field=''; sawQuote=false; started=false;
   };
+  while(i<n){
+    const c=text[i];
+    if(!started){ recStartLine=line; rawStart=i; started=true; }
+    if(inQuotes){
+      if(c==='"'){ if(text[i+1]==='"'){ field+='"'; i+=2; continue; } inQuotes=false; i++; continue; }
+      if(c==='\n'){ field+='\n'; line++; i++; continue; }
+      if(c==='\r'){ if(text[i+1]==='\n'){ field+='\r\n'; i+=2; } else { field+='\r'; i++; } line++; continue; }
+      field+=c; i++; continue;
+    } else {
+      if(c==='"'){ inQuotes=true; sawQuote=true; i++; continue; }
+      if(c===sep){ pushField(); i++; continue; }
+      if(c==='\n'){ endRecord(i); line++; i++; continue; }
+      if(c==='\r'){ const end=i; if(text[i+1]==='\n'){i+=2;}else{i++;} endRecord(end); line++; continue; }
+      field+=c; i++; continue;
+    }
+  }
+  if(started || field!=='' || fields.length) endRecord(n);
+  return recs;
+}
+
+// CONTEGGIO CAMPI: una riga il cui numero di campi non coincide con
+// l'intestazione e' strutturalmente anomala (un parser corretto non puo'
+// sanarla senza indovinare) -> ESCLUSA dal calcolo e CONTATA in `escluse`
+// ({riga, n_campi, anteprima}), mai elaborata in silenzio. Stessa convenzione
+// gia' in uso per date e importi non interpretabili.
+function parseCSV(text) {
+  const sep=(text.split(/\r\n|\r|\n/,1)[0]||'').includes(';') ? ';' : ',';
+  const recs=rfmlScanCSV(text,sep);
+  if(!recs.length) return {headers:[], rows:[], escluse:[]};
+  const headers=recs[0].fields, N=headers.length;
+  const rows=[], escluse=[];
+  for(let k=1;k<recs.length;k++){
+    const rec=recs[k];
+    if(rec.fields.length!==N){
+      escluse.push({riga:rec.line, n_campi:rec.fields.length, anteprima:rec.raw.slice(0,60)});
+      continue;
+    }
+    const obj={};
+    for(let j=0;j<N;j++) obj[headers[j]]=rec.fields[j];
+    rows.push(obj);
+  }
+  return {headers, rows, escluse};
 }
 
 function dsParseCSVRaw(text) {
@@ -1546,7 +1592,7 @@ function molt(cap,ob){const pw=PESI_T[ob];if(!pw)return 1;const reg=capR(cap);co
 // ═══════════════════════════════════════════════════════
 // UPLOAD
 // ═══════════════════════════════════════════════════════
-let csvAna=null, csvTx=null, anaData=null, txData=null, risultati=null, liftPerOb={}, dateAnomale={}, importiAnomali={};
+let csvAna=null, csvTx=null, anaData=null, txData=null, risultati=null, liftPerOb={}, dateAnomale={}, importiAnomali={}, righeEscluse={ana:[],tx:[]};
 
 function setupUp(inId,cardId,nmId,setter){
   const inp=document.getElementById(inId),card=document.getElementById(cardId),nm=document.getElementById(nmId);
@@ -1940,6 +1986,7 @@ async function eseguiCalcolo(){
   await tick();sp(10,'Applico il mapping colonne...');await tick();
   anaData=buildRenamed(csvAna,mapState.ana,ANA_FIELDS);
   txData=buildRenamed(csvTx,mapState.tx,TX_FIELDS);
+  righeEscluse={ana:(csvAna&&csvAna.escluse)||[], tx:(csvTx&&csvTx.escluse)||[]};
   dateAnomale=contaDateNonValide(txData);
   importiAnomali=contaImportiNonValidi(txData);
   sp(20,'Calcolo segnali RFML...');await tick();
@@ -2014,6 +2061,18 @@ function renderAll(){
       const tot=vi.reduce((s,[,o])=>s+o.n,0);
       html+=box(`${tot} importi non puliti`,`(${vi.length} valori distinti). Ambigui/malformati scartati (usato 0); coda non numerica: prefisso recuperato ma segnalato.`,
         vi.map(([v,o])=>{const r=pImporto(v);const reso=o.stato==='coda'?`&rarr; ${r[0]}`:'&rarr; scartato (0)';return `<li><code>${esc(v)}</code> &times; ${o.n} <em>(${o.stato})</em> ${reso}</li>`;}).join(''));
+    }
+    // Righe strutturalmente anomale (conteggio campi != intestazione): escluse e
+    // contate, mai elaborate in silenzio. Elenco in <details> espandibile.
+    const totEsc=righeEscluse.ana.length+righeEscluse.tx.length;
+    if(totEsc){
+      const voce=(file,e)=>`<li>file <strong>${file}</strong>, riga ${e.riga} (${e.n_campi} campi): <code>${esc(e.anteprima)}</code></li>`;
+      const items=righeEscluse.ana.map(e=>voce('anagrafica',e)).join('')+righeEscluse.tx.map(e=>voce('transazioni',e)).join('');
+      html+=`<div style="background:#fdf0ee;border:1px solid #c0392b;border-radius:8px;padding:12px 16px;margin-bottom:16px;color:#7a1f1f;font-size:14px">`+
+        `&#9888; <strong>${totEsc} righe escluse: numero di campi non corrispondente all'intestazione</strong> `+
+        `Righe strutturalmente anomale, escluse dal calcolo (non ricucite: indovinare dove finisce un campo sarebbe il difetto).`+
+        `<details style="margin-top:8px"><summary style="cursor:pointer">Mostra le righe escluse</summary>`+
+        `<ul style="margin:8px 0 0;padding-left:20px">`+items+`</ul></details></div>`;
     }
     ad.innerHTML=html; ad.style.display=html?'':'none';
   }

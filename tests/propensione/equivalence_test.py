@@ -115,27 +115,28 @@ def run_harnesses():
     return True
 
 
+def _norm_js_row(r):
+    """Una riga-donatore JS -> schema comune (nomi campo appianati JS->PY)."""
+    row = {"donor_id": r["donor_id"]}
+    for o in OBIETTIVI:
+        row[f"prop_{o}"] = r[o]                # il JS usa il nome obiettivo nudo
+    row["obiettivo_top"] = r["obiettivo_top"]
+    row["score_top"] = r["score_top"]
+    for k in SIGNAL_FIELDS:
+        row[k] = r[k]
+    row["_recency_days"] = r["_rd"]            # JS: _rd  vs PY: _recency_days
+    row["_n_tx"] = r["_n"]                     # JS: _n   vs PY: _n_tx
+    for k in MOLT_FIELDS:
+        row[k] = r[k]
+    for k in ("regione_istat", "canale_acquisizione", "tipo_sostegno",
+              "engagement", "coinvolgimento"):
+        row[k] = r.get(k)
+    return row
+
+
 def normalizza_js(js):
     """JS -> schema comune {donor_id: {campi...}}, {lift}."""
-    donatori = {}
-    for r in js["risultati"]:
-        did = r["donor_id"]
-        row = {"donor_id": did}
-        for o in OBIETTIVI:
-            row[f"prop_{o}"] = r[o]            # il JS usa il nome obiettivo nudo
-        row["obiettivo_top"] = r["obiettivo_top"]
-        row["score_top"] = r["score_top"]
-        for k in SIGNAL_FIELDS:
-            row[k] = r[k]
-        row["_recency_days"] = r["_rd"]        # JS: _rd  vs PY: _recency_days
-        row["_n_tx"] = r["_n"]                 # JS: _n   vs PY: _n_tx
-        for k in MOLT_FIELDS:
-            row[k] = r[k]
-        for k in ("regione_istat", "canale_acquisizione", "tipo_sostegno",
-                  "engagement", "coinvolgimento"):
-            row[k] = r.get(k)
-        donatori[did] = row
-    return donatori
+    return {r["donor_id"]: _norm_js_row(r) for r in js["risultati"]}
 
 
 def normalizza_py(py):
@@ -240,6 +241,48 @@ def confronta_valore(campo, vjs, vpy):
     if d <= tol:
         return "warn", f"{campo}: JS={vjs} PY={vpy} (d={d:.6g} entro tol {tol:g})"
     return "fail", f"{campo}: JS={vjs} PY={vpy} (d={d:.6g} OLTRE tol {tol:g})"
+
+
+def confronta_dataset(label, js_d, py_d, out):
+    """Robustezza CSV (Compito 1): confronta su un dataset le righe lette, le
+    righe escluse (conteggio campi) e i punteggi per donatore. Ritorna lista FAIL.
+    Entrambe le implementazioni devono leggere/escludere ESATTAMENTE lo stesso."""
+    fail = []
+    if js_d is None or py_d is None:
+        return [f"{label}: sezione assente (JS={js_d is not None} PY={py_d is not None})"]
+    # 1) numero di righe lette (ana + tx)
+    for campo in ("n_ana", "n_tx"):
+        if js_d[campo] != py_d[campo]:
+            fail.append(f"{label}.{campo}: JS={js_d[campo]} PY={py_d[campo]}")
+    out(f"  {label:16s} righe ana JS={js_d['n_ana']} PY={py_d['n_ana']}  "
+        f"tx JS={js_d['n_tx']} PY={py_d['n_tx']}")
+    # 2) righe escluse (conteggio campi): stesso numero E stesse righe (riga, n_campi, anteprima)
+    for campo in ("escluse_ana", "escluse_tx"):
+        je, pe = js_d[campo], py_d[campo]
+        out(f"  {label:16s} {campo}: JS={len(je)} PY={len(pe)}")
+        if len(je) != len(pe):
+            fail.append(f"{label}.{campo}: numero righe escluse JS={len(je)} PY={len(pe)}")
+            continue
+        for a, b in zip(je, pe):
+            if a != b:
+                fail.append(f"{label}.{campo}: riga esclusa divergente JS={a} PY={b}")
+    # 3) punteggi per donatore (stesso row-set + ogni campo entro tolleranza)
+    js_don = {did: _norm_js_row(r) for did, r in js_d["donatori"].items()}
+    py_don = py_d["donatori"]
+    js_ids, py_ids = set(js_don), set(py_don)
+    if js_ids != py_ids:
+        fail.append(f"{label}: row-set donatori divergente "
+                    f"solo-JS={sorted(js_ids - py_ids)} solo-PY={sorted(py_ids - js_ids)}")
+    tutti_campi = (SCORE_FIELDS + SIGNAL_FIELDS + MOLT_FIELDS + INT_FIELDS + CAT_FIELDS)
+    for did in sorted(js_ids & py_ids):
+        jr, pr = js_don[did], py_don[did]
+        for c in tutti_campi:
+            if c not in jr or c not in pr:
+                continue
+            stato, det = confronta_valore(c, jr[c], pr[c])
+            if stato == "fail":
+                fail.append(f"{label}.{did}.{det}")
+    return fail
 
 
 def main():
@@ -400,11 +443,26 @@ def main():
     for d in dz_fail:
         out(f"    FAIL  {d}")
 
+    # --- robustezza CSV (Compito 1): a-capo citato + riga malformata ---
+    out("")
+    out("-" * 78)
+    out("CONFRONTO ROBUSTEZZA CSV - a-capo dentro campo citato + riga malformata")
+    out("-" * 78)
+    out("  Atteso: a-capo citato -> 0 esclusioni (riga letta intera, come Python);")
+    out("  riga malformata (n° campi != intestazione) -> esclusa e CONTATA uguale.")
+    csv_fail = []
+    csv_fail += confronta_dataset("quotednewline", js.get("quotednewline"),
+                                  py.get("quotednewline"), out)
+    csv_fail += confronta_dataset("malformed", js.get("malformed"),
+                                  py.get("malformed"), out)
+    for d in csv_fail:
+        out(f"    FAIL  {d}")
+
     # --- verdetto ---
     out("")
     out("=" * 78)
     divergenze = (len(solo_js) + len(solo_py) + len(donatori_div)
-                  + len(lift_fail) + len(ss_fail) + len(dz_fail))
+                  + len(lift_fail) + len(ss_fail) + len(dz_fail) + len(csv_fail))
     if divergenze == 0:
         out("ESITO: PASS - le due implementazioni sono equivalenti entro tolleranza.")
         if n_warn:
@@ -417,6 +475,7 @@ def main():
         out(f"  - divergenze sul lift        : {len(lift_fail)}")
         out(f"  - divergenze lift sotto-soglia: {len(ss_fail)}")
         out(f"  - divergenze lift denom-zero : {len(dz_fail)}")
+        out(f"  - divergenze robustezza CSV  : {len(csv_fail)}")
         verdict = 1
     out("=" * 78)
 

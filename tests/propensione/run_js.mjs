@@ -35,6 +35,13 @@ const txSsPath = join(__dirname, 'donors_transazioni_sottosoglia.csv');
 // score, 0 nel resto -> nessun termine di paragone, lift non definito.
 const anaDzPath = join(__dirname, 'donors_anagrafica_denomzero.csv');
 const txDzPath = join(__dirname, 'donors_transazioni_denomzero.csv');
+// Robustezza CSV (Compito 1): a-capo DENTRO un campo citato (il parser deve
+// leggere la riga intera, 0 esclusioni) e riga genuinamente malformata (n° campi
+// != intestazione -> esclusa e contata). Python (csv.DictReader) e' l'oracolo.
+const anaQnPath = join(__dirname, 'donors_anagrafica_quotednewline.csv');
+const txQnPath = join(__dirname, 'donors_transazioni_quotednewline.csv');
+const anaMalPath = join(__dirname, 'donors_anagrafica_malformed.csv');
+const txMalPath = join(__dirname, 'donors_transazioni_malformed.csv');
 const outPath = join(__dirname, 'js_output.json');
 
 const html = readFileSync(htmlPath, 'utf8');
@@ -44,6 +51,10 @@ const anaSsCsv = readFileSync(anaSsPath, 'utf8');
 const txSsCsv = readFileSync(txSsPath, 'utf8');
 const anaDzCsv = readFileSync(anaDzPath, 'utf8');
 const txDzCsv = readFileSync(txDzPath, 'utf8');
+const anaQnCsv = readFileSync(anaQnPath, 'utf8');
+const txQnCsv = readFileSync(txQnPath, 'utf8');
+const anaMalCsv = readFileSync(anaMalPath, 'utf8');
+const txMalCsv = readFileSync(txMalPath, 'utf8');
 
 // Harness iniettato nello stesso <script> del motore (condivide lo scope).
 const harness = `
@@ -90,7 +101,37 @@ try {
   const liftSottoSoglia = __liftLascitoDi(globalThis.__ANA_SS_CSV__, globalThis.__TX_SS_CSV__);
   const liftDenomZero  = __liftLascitoDi(globalThis.__ANA_DZ_CSV__, globalThis.__TX_DZ_CSV__);
 
-  globalThis.__OUT__ = JSON.stringify({ risultati, lift: liftPerOb, liftSottoSoglia, liftDenomZero });
+  // --- robustezza CSV (Compito 1): per ciascun dataset restituisco n. righe
+  // lette, righe escluse (conteggio campi) e i punteggi per donatore. Usa
+  // parseCSV (lo scanner RFC allineato a csv.DictReader) e la stessa catena.
+  const __scoreDataset = (anaStr, txStr) => {
+    const ca = parseCSV(anaStr), ct = parseCSV(txStr);
+    mapState.ana = {}; mapState.tx = {};
+    for (const f of ANA_FIELDS) if (ca.headers.includes(f.key)) mapState.ana[f.key] = f.key;
+    for (const f of TX_FIELDS)  if (ct.headers.includes(f.key))  mapState.tx[f.key]  = f.key;
+    const aD = buildRenamed(ca, mapState.ana, ANA_FIELDS);
+    const tD = buildRenamed(ct, mapState.tx, TX_FIELDS);
+    const fa = Object.fromEntries(aD.map(r=>[r.donor_id,(r.fascia_eta||'').trim()]));
+    const cp = Object.fromEntries(aD.map(r=>[r.donor_id,(r.cap||'').trim()]));
+    const sg = calcolaSegnali(aD, tD);
+    const pr = calcolaProp(sg, fa, cp);
+    const cx = calcolaCtx(aD);
+    const don = {};
+    for (const did of Object.keys(sg)) {
+      don[did] = {donor_id:did, ...pr[did],
+        obiettivo_top:OBIETTIVI.reduce((a,b)=>pr[did][a]>pr[did][b]?a:b),
+        score_top:Math.max(...OBIETTIVI.map(o=>pr[did][o])),
+        ...sg[did], ...cx[did],
+        molt_lascito:molt(cp[did],'lascito'), molt_upgrade:molt(cp[did],'upgrade'),
+        molt_sostegno_continuativo:molt(cp[did],'sostegno_continuativo'),
+        molt_riattivazione:molt(cp[did],'riattivazione'), molt_one_off:molt(cp[did],'one_off_emergenza')};
+    }
+    return {n_ana:ca.rows.length, escluse_ana:ca.escluse, n_tx:ct.rows.length, escluse_tx:ct.escluse, donatori:don};
+  };
+  const quotednewline = __scoreDataset(globalThis.__ANA_QN_CSV__, globalThis.__TX_QN_CSV__);
+  const malformed     = __scoreDataset(globalThis.__ANA_MAL_CSV__, globalThis.__TX_MAL_CSV__);
+
+  globalThis.__OUT__ = JSON.stringify({ risultati, lift: liftPerOb, liftSottoSoglia, liftDenomZero, quotednewline, malformed });
 } catch (e) {
   globalThis.__ERR__ = String((e && e.stack) || e);
 }
@@ -113,6 +154,10 @@ const dom = new JSDOM(injectedHtml, {
     window.__TX_SS_CSV__ = txSsCsv;
     window.__ANA_DZ_CSV__ = anaDzCsv;
     window.__TX_DZ_CSV__ = txDzCsv;
+    window.__ANA_QN_CSV__ = anaQnCsv;
+    window.__TX_QN_CSV__ = txQnCsv;
+    window.__ANA_MAL_CSV__ = anaMalCsv;
+    window.__TX_MAL_CSV__ = txMalCsv;
   },
 });
 

@@ -241,11 +241,34 @@ def leggi_csv(path):
     # nell'intestazione, altrimenti ','. Un export con ';' letto come ',' non da'
     # eccezione — collassa tutto in un'unica colonna e si manifesta come "tutti i
     # campi vuoti", un errore silenzioso. L'auto-detect lo previene.
+    #
+    # CONTEGGIO CAMPI: csv.reader gestisce già correttamente virgolette, "" di
+    # escape e a-capo/delimitatore dentro un campo citato (è l'oracolo su cui è
+    # allineato parseCSV del dashboard). Ma una riga GENUINAMENTE malformata — un
+    # numero di campi diverso dall'intestazione, che nessun parser può sanare —
+    # DictReader la riempirebbe (restval) o la troncherebbe (restkey) in SILENZIO.
+    # Quella è corruzione silenziosa: la riga va invece ESCLUSA dal calcolo e
+    # CONTATA, esattamente come già si fa per date e importi non interpretabili.
+    # Ritorna (righe, escluse): escluse = [{riga, n_campi, anteprima}].
     with open(path, newline="", encoding="utf-8-sig") as f:
         prima = f.readline()
         delim = ";" if ";" in prima else ","
         f.seek(0)
-        return list(csv.DictReader(f, delimiter=delim))
+        reader = csv.reader(f, delimiter=delim)
+        righe, escluse, intestazione, n = [], [], None, 0
+        for campi in reader:
+            if intestazione is None:
+                intestazione, n = campi, len(campi)
+                continue
+            if not campi:            # riga vuota: csv.reader -> [] (come DictReader, saltata)
+                continue
+            if len(campi) != n:
+                escluse.append({"riga": reader.line_num,
+                                "n_campi": len(campi),
+                                "anteprima": delim.join(campi)[:60]})
+                continue
+            righe.append(dict(zip(intestazione, campi)))
+        return righe, escluse
 
 
 def parse_data(s):
@@ -774,8 +797,8 @@ def main():
         sys.exit(1)
 
     print("Lettura dati...")
-    anagrafica = leggi_csv(args.anagrafica)
-    transazioni = leggi_csv(args.transazioni)
+    anagrafica, escluse_ana = leggi_csv(args.anagrafica)
+    transazioni, escluse_tx = leggi_csv(args.transazioni)
     print(f"  anagrafica : {len(anagrafica)} donatori")
     print(f"  transazioni: {len(transazioni)} righe")
 
@@ -888,6 +911,19 @@ def main():
             val, _ = parse_importo(v)
             reso = f"-> {val:g}" if stato == "coda" else "-> scartato (0)"
             print(f"    {n:4d}x  {v!r:14s} {stato:11s} {reso}")
+
+    # --- diagnostica righe strutturalmente anomale (conteggio campi): numero di
+    # campi diverso dall'intestazione -> escluse dal calcolo e CONTATE, mai
+    # elaborate in silenzio (vedi leggi_csv). Non si tenta di ricucirle: indovinare
+    # dove finisce un campo sarebbe il difetto, non la soluzione.
+    for etichetta, escluse in (("anagrafica", escluse_ana), ("transazioni", escluse_tx)):
+        if escluse:
+            print("\n" + "-" * 67)
+            print(f"AVVISO — {len(escluse)} righe escluse dal file {etichetta}: "
+                  f"numero di campi non corrispondente all'intestazione")
+            print("-" * 67)
+            for e in escluse:
+                print(f"    riga {e['riga']:4d}  ({e['n_campi']} campi)  {e['anteprima']!r}")
 
     print("\n" + "=" * 67)
     print("PROMEMORIA ONESTA METODOLOGICA")

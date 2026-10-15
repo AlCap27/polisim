@@ -1,0 +1,5 @@
+donor_id;anzianita_anni;fascia_eta;cap;canale_acquisizione;tipo_sostegno_prevalente;metodo_pagamento_prevalente;volontariato;eventi_partecipati;lascito_dichiarato
+QN001;10;65-74;20100;web;ricorrente;RID_SEPA;1;0;1
+QN002;8;75+;80100;"web
+referral";ricorrente;bonifico_ricorrente;0;1;1
+QN003;12;55-64;10100;web;singola;carta_credito;1;1;0

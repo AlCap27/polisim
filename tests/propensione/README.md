@@ -158,6 +158,8 @@ sullo stato e sui conteggi (positivi 5, nel top 5/6, nel resto 0/24).
 | `donors_anagrafica_test.csv` / `donors_transazioni_test.csv` | dataset `;`-delimitato (banco principale, 21 donatori) |
 | `donors_anagrafica_sottosoglia.csv` / `donors_transazioni_sottosoglia.csv` | segmento con <5 positivi: lift non significativo |
 | `donors_anagrafica_denomzero.csv` / `donors_transazioni_denomzero.csv` | segmento con positivi tutti nel top 20%: lift non definito (denominatore zero) |
+| `donors_anagrafica_quotednewline.csv` / `donors_transazioni_quotednewline.csv` | a-capo DENTRO un campo citato: il parser deve leggere la riga intera (0 esclusioni), come Python |
+| `donors_anagrafica_malformed.csv` / `donors_transazioni_malformed.csv` | riga genuinamente malformata (n° campi ≠ intestazione): esclusa e **contata** uguale da JS e Python |
 | `run_js.mjs` | esegue il motore JS via jsdom → `js_output.json` |
 | `run_py.py` | esegue il motore Python → `py_output.json` |
 | `equivalence_test.py` | orchestratore + confronto + verdetto (esegue anche `build_config.py --check`) |
@@ -213,6 +215,20 @@ le logiche.**
    condizione `if(l.lift)` nel render è diventata `if(l.lift!=null)` così un lift
    legittimo di `0` (top 20% anti-predittivo) si mostra invece di cadere nel ramo
    "non calcolabile". Coperto da `donors_*_denomzero.csv`.
+10. **Robustezza CSV: a-capo citato + conteggio campi (fuori D0-D7).** Il parser JS
+    (`parseCSV`) faceva `split('\n')` naïf: un a-capo dentro un campo citato spezzava
+    la riga in frammenti corrotti, elaborati come validi. Python usa già
+    `csv.DictReader`, che legge correttamente — quindi **Python è l'oracolo**: il JS
+    è stato riscritto come scanner a caratteri allineato a `csv.DictReader`
+    (virgolette, `""` di escape, delimitatore e a-capo dentro campo citato), senza
+    tolleranze o riparazioni in più. In aggiunta, **entrambe** le implementazioni ora
+    applicano il **conteggio campi**: una riga con n° campi ≠ intestazione (che
+    nessun parser può sanare, e che `DictReader` riempiva/troncava in silenzio) è
+    esclusa dal calcolo e **contata** (`escluse`: `{riga, n_campi, anteprima}`), con
+    avviso visibile nella dashboard (box espandibile) e in coda al run Python.
+    Coperto da `donors_*_quotednewline.csv` (a-capo citato: 0 esclusioni, riga letta
+    intera, punteggi identici) e `donors_*_malformed.csv` (riga malformata: 1
+    esclusione, stessa riga su JS e PY). *Resta aperto: nessun artefatto noto.*
 
 Esito finale: **PASS** (exit 0), 21 vs 21 donatori, 0 divergenze logiche. Lift per
 obiettivo concorde JS/PY (lascito 2.83×, riattivazione calcolato, 3 obiettivi
