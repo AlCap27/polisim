@@ -1,0 +1,7 @@
+donor_id;data_donazione;importo_eur;metodo_pagamento;campagna
+ND001;2024-01-10;50;RID_SEPA;generica
+ND001;2024-06-10;60;RID_SEPA;generica
+ND002;data-non-valida;100;bonifico_ricorrente;generica
+ND002;99/99/9999;120;bonifico_ricorrente;generica
+ND003;2024-03-05;40;carta_credito;generica
+ND003;2024-05-05;45;carta_credito;generica

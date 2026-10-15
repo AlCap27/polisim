@@ -46,6 +46,9 @@ ANA_QN = os.path.join(HERE, "donors_anagrafica_quotednewline.csv")
 TX_QN = os.path.join(HERE, "donors_transazioni_quotednewline.csv")
 ANA_MAL = os.path.join(HERE, "donors_anagrafica_malformed.csv")
 TX_MAL = os.path.join(HERE, "donors_transazioni_malformed.csv")
+# Compito 2: un donatore con TUTTE le date non valide -> saltato da entrambe.
+ANA_NV = os.path.join(HERE, "donors_anagrafica_novaliddate.csv")
+TX_NV = os.path.join(HERE, "donors_transazioni_novaliddate.csv")
 OUT = os.path.join(HERE, "py_output.json")
 
 
@@ -162,10 +165,13 @@ def main():
     # Robustezza CSV (Compito 1): a-capo citato e riga malformata.
     quotednewline = score_dataset(ANA_QN, TX_QN)
     malformed = score_dataset(ANA_MAL, TX_MAL)
+    # Compito 2: donatore con tutte le date non valide (saltato).
+    novaliddate = score_dataset(ANA_NV, TX_NV)
 
     out = {"donatori": donatori, "lift_obiettivi": lift_obiettivi,
            "lift_sottosoglia": lift_sottosoglia, "lift_denomzero": lift_denomzero,
-           "quotednewline": quotednewline, "malformed": malformed}
+           "quotednewline": quotednewline, "malformed": malformed,
+           "novaliddate": novaliddate}
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, indent=2)
     print(f"PY: {len(donatori)} donatori -> {OUT}")

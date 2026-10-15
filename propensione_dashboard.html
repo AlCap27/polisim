@@ -1586,6 +1586,16 @@ function flagPositivo(raw){
 function pF(s,d=0){const v=parseFloat(String(s||'').replace(',','.').trim());return isNaN(v)?d:v;}
 function avg(a){return a.length?a.reduce((x,y)=>x+y,0)/a.length:0;}
 function pstd(a){const m=avg(a);return Math.sqrt(a.reduce((x,y)=>x+(y-m)**2,0)/a.length);}
+// Max/min di un ARRAY senza spread. `Math.max(...arr)` passa ogni elemento come
+// argomento e oltre ~123k elementi rompe con RangeError (limite di argomenti):
+// su un export CRM reale (una data/valore per transazione) il motore moriva
+// prima ancora di toccare la RAM. Queste due repliche hanno la STESSA semantica
+// di Math.max/Math.min — array vuoto → ∓Infinity; un solo NaN → NaN (coercizione
+// ToNumber come Math.*) — così i punti che le usano restano identici al carattere
+// sui dati esistenti e invariati sui casi-limite. Python (max()/min()) non ha il
+// limite: è l'oracolo, qui ci si allinea senza cambiare il risultato.
+function maxArr(a){let m=-Infinity;for(let i=0;i<a.length;i++){const v=+a[i];if(v!==v)return NaN;if(v>m)m=v;}return m;}
+function minArr(a){let m= Infinity;for(let i=0;i<a.length;i++){const v=+a[i];if(v!==v)return NaN;if(v<m)m=v;}return m;}
 function capR(cap){if(!cap)return null;return CAP_REG[String(cap).trim().padStart(5,'0').slice(0,2)]||null;}
 function molt(cap,ob){const pw=PESI_T[ob];if(!pw)return 1;const reg=capR(cap);const d=(reg&&ISTAT[reg])?ISTAT[reg]:ISTAT_NAZ;const on=(d.over65-24.1)/4.5,rn=(d.reddito-24700)/9000,gn=-(d.gini-.328)/.04;const sc=pw.over65*on+pw.reddito*rn+pw.gini_penalita*gn;return Math.round((1+Math.max(-pw.cap,Math.min(pw.cap,sc*pw.cap)))*1e4)/1e4;}
 
@@ -1879,7 +1889,7 @@ function loadMappingConfig(input) {
 function calcolaSegnali(ana,tx){
   const txD={};for(const t of tx){if(!txD[t.donor_id])txD[t.donor_id]=[];txD[t.donor_id].push(t);}
   const allD=tx.map(t=>pD(t.data_donazione)).filter(Boolean);
-  const ref=allD.length?new Date(Math.max(...allD)):new Date();
+  const ref=allD.length?new Date(maxArr(allD)):new Date();
   const gr={};
   for(const r of ana){
     const did=r.donor_id;const raw=(txD[did]||[]).filter(t=>pD(t.data_donazione));if(!raw.length)continue;
@@ -1893,7 +1903,7 @@ function calcolaSegnali(ana,tx){
     gr[did]={rd,F:f,M_livello:ml,M_trend:mt,L:Math.min(pF(r.anzianita_anni),L_SAT),n:s.length};
   }
   const kk=['rd','M_livello','M_trend','L'];const rng={};
-  for(const k of kk){const vs=Object.values(gr).map(g=>g[k]);const mn=Math.min(...vs),mx=Math.max(...vs);rng[k]={mn,rng:mx-mn};}
+  for(const k of kk){const vs=Object.values(gr).map(g=>g[k]);const mn=minArr(vs),mx=maxArr(vs);rng[k]={mn,rng:mx-mn};}
   const nm=(v,k)=>rng[k].rng>0?(v-rng[k].mn)/rng[k].rng:.5;
   const sg={};
   for(const[did,g]of Object.entries(gr)){sg[did]={R:Math.round((1-nm(g.rd,'rd'))*1e4)/1e4,F:Math.round(g.F*1e4)/1e4,M_livello:Math.round(nm(g.M_livello,'M_livello')*1e4)/1e4,M_trend:Math.round(nm(g.M_trend,'M_trend')*1e4)/1e4,L:Math.round(nm(g.L,'L')*1e4)/1e4,_rd:g.rd,_n:g.n};}
@@ -1998,7 +2008,7 @@ async function eseguiCalcolo(){
   sp(70,'Layer territoriale e contesto...');await tick();
   const ctx=calcolaCtx(anaData);
   sp(90,'Composizione risultati...');await tick();
-  risultati=Object.keys(sg).map(did=>({donor_id:did,...prop[did],obiettivo_top:OBIETTIVI.reduce((a,b)=>prop[did][a]>prop[did][b]?a:b),score_top:Math.max(...OBIETTIVI.map(o=>prop[did][o])),...sg[did],...ctx[did],molt_lascito:molt(cap[did],'lascito'),molt_upgrade:molt(cap[did],'upgrade'),molt_sostegno_continuativo:molt(cap[did],'sostegno_continuativo'),molt_riattivazione:molt(cap[did],'riattivazione'),molt_one_off:molt(cap[did],'one_off_emergenza')}));
+  risultati=Object.keys(sg).map(did=>({donor_id:did,...prop[did],obiettivo_top:OBIETTIVI.reduce((a,b)=>prop[did][a]>prop[did][b]?a:b),score_top:maxArr(OBIETTIVI.map(o=>prop[did][o])),...sg[did],...ctx[did],molt_lascito:molt(cap[did],'lascito'),molt_upgrade:molt(cap[did],'upgrade'),molt_sostegno_continuativo:molt(cap[did],'sostegno_continuativo'),molt_riattivazione:molt(cap[did],'riattivazione'),molt_one_off:molt(cap[did],'one_off_emergenza')}));
   // Pre-calcola lift per tutti gli obiettivi
   liftPerOb={};
   for(const ob of OBIETTIVI) liftPerOb[ob]=calcolaLift(risultati,ob);

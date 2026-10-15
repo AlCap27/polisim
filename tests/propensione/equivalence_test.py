@@ -455,7 +455,34 @@ def main():
                                   py.get("quotednewline"), out)
     csv_fail += confronta_dataset("malformed", js.get("malformed"),
                                   py.get("malformed"), out)
+    csv_fail += confronta_dataset("novaliddate", js.get("novaliddate"),
+                                  py.get("novaliddate"), out)
     for d in csv_fail:
+        out(f"    FAIL  {d}")
+
+    # --- Compito 2: semantica dell'helper maxArr/minArr (sostituisce lo spread
+    # Math.max/min, che rompeva a ~123k elementi). Deve coincidere con Math.max/
+    # Math.min: vuoto -> ∓Infinity; un NaN -> NaN. Check SOLO-JS (il Python usa i
+    # builtin max()/min(), che su [] sollevano: qui si verifica l'helper JS). ---
+    out("")
+    out("-" * 78)
+    out("CONFRONTO HELPER maxArr/minArr - semantica Math.max/min preservata")
+    out("-" * 78)
+    hs_fail = []
+    hs = js.get("helperSemantics")
+    attesi = {"maxEmpty": "-Infinity", "minEmpty": "Infinity",
+              "maxNaN": "NaN", "minNaN": "NaN", "maxVal": "3", "minVal": "1"}
+    if not hs:
+        hs_fail.append("helperSemantics assente nell'output JS")
+    else:
+        for k, atteso in attesi.items():
+            got = hs.get(k)
+            stato_ok = "OK" if got == atteso else "FAIL"
+            out(f"  {k:10s} atteso={atteso:10s} ottenuto={str(got):10s} [{stato_ok}]")
+            if got != atteso:
+                hs_fail.append(f"helper {k}: atteso {atteso} ottenuto {got}")
+    csv_fail += hs_fail
+    for d in hs_fail:
         out(f"    FAIL  {d}")
 
     # --- verdetto ---
