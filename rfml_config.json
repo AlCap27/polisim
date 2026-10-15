@@ -159,6 +159,18 @@
         "note": "Numero minimo di positivi storici sotto il quale il lift NON viene calcolato ne mostrato: con <5 positivi il bucket top-20% ne contiene 0-1 e il rapporto oscilla in modo instabile, producendo un numero dall'apparenza affidabile ma privo di base. Scelta convenzionale/motivata, non derivata dai dati: rivedere se emergono evidenze specifiche. Vale per TUTTI gli obiettivi; distinta da SOGLIA_ML_POSITIVI (50), che riguarda l'addestramento ML supervisionato, non il calcolo del lift. NB: unica costante con struttura {fonte_dati, valore} perche e una soglia che richiede giustificazione; le altre sono valori nudi. Si legge con ['SOGLIA_LIFT_POSITIVI']['valore'] (Python) / .SOGLIA_LIFT_POSITIVI.valore (JS)."
       },
       "valore": 5
+    },
+    "LIMITI_FILE": {
+      "fonte_dati": {
+        "origine": "MISURATO il 2026-10-15 sul banco (Chrome 155 headless, Intel i5-13500, 32 GB RAM, Windows 10), guidando la dashboard REALE con file CSV veri; vedi tests/propensione/ e il report di capienza (Compito 2). NON una stima.",
+        "verificato": true,
+        "note": "Soglie di AVVISO preventivo sulla dimensione dei CSV caricati. anagrafica_mb_avviso e transazioni_mb_avviso sono NON bloccanti (avvisano prima di iniziare, poi si procede): i DONATORI costano molto piu RAM delle TRANSAZIONI (~10.9 KB/donatore contro ~329 B/transazione, misurati), percio l'anagrafica ha una soglia molto piu bassa. file_mb_massimo e' un limite TECNICO: oltre ~512 MiB un singolo file non e' leggibile dal browser (await file.text() -> NotReadableError, limite della stringa V8), quindi sopra questa soglia il caricamento viene BLOCCATO con un messaggio invece di fallire a meta'. Due muri a prescindere dalla RAM, oltre le soglie qui: file singolo >512 MiB (lettura impossibile) e >~850k donatori (la tabella risultati va in RangeError perche renderTabella costruisce un'unica stringa HTML). Valori riferiti a un portatile da ~8 GB; su 4 GB dimezzare. Si leggono con ['LIMITI_FILE']['valori'][...] (Python) / .LIMITI_FILE.valori... (JS)."
+      },
+      "valori": {
+        "anagrafica_mb_avviso": 25,
+        "transazioni_mb_avviso": 200,
+        "file_mb_massimo": 450
+      }
     }
   }
 }
