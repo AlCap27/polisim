@@ -522,12 +522,16 @@ fasce d'età più giovani con pochi casi in banca dati vengono trattate come neu
 né penalizzate — proprio per evitare di premiare un segnale statisticamente troppo debole per
 essere affidabile.</p>
 
-<h3>Layer territoriale (dati ISTAT)</h3>
+<h3>Strato territoriale (zone postali)</h3>
 <p>Dove il database include il CAP del donatore, il punteggio viene corretto con un
-moltiplicatore calcolato su dati ISTAT 2021 a livello regionale (incidenza over-65, reddito
-medio familiare, indice di disuguaglianza Gini) — diverso per ciascuno dei cinque obiettivi.
-I pesi esatti di questa correzione non sono pubblicati: fanno parte della configurazione
-interna del modello.</p>
+moltiplicatore calcolato per <strong>zona postale</strong> — le prime due cifre del CAP, non la
+regione — su tre indicatori: incidenza degli over-65, reddito medio e quota di istruzione
+terziaria. La correzione è diversa per ciascun obiettivo; per <strong>riattivazione e
+one-off</strong> non si applica, perché la propensione a riattivarsi o a rispondere a
+un'emergenza dipende dalla storia della persona, non da dove abita. Alcune zone, dove la base
+dati codificata è insufficiente, sono dichiarate escluse: lì il moltiplicatore resta neutro
+(1,00) anziché basarsi su numeri non affidabili. I pesi esatti non sono pubblicati: fanno parte
+della configurazione interna del modello.</p>
 
 <h3>Come sono calibrati i pesi</h3>
 <p>I pesi che combinano le cinque dimensioni in un punteggio finale sono calibrati per
