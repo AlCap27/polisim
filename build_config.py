@@ -7,8 +7,8 @@ PERCHE' ESISTE
 --------------
 Il motore RFML ha due implementazioni (polisim_propensione.py e il <script> in
 propensione_dashboard.html) che condividono le stesse tabelle e costanti. Per
-non tenerne due copie a mano (ed evitare che ri-divergano, vedi bug D6 sul segno
-del peso gini), la fonte di verita' UNICA e' rfml_config.json:
+non tenerne due copie a mano (ed evitare che ri-divergano, come accadde
+storicamente per il segno di un peso), la fonte di verita' UNICA e' rfml_config.json:
 
   - Python  : lo legge a runtime con json.load (ha sempre il filesystem).
   - Dashboard: la dashboard deve aprirsi OFFLINE via file:// senza server, dove

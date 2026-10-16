@@ -160,11 +160,12 @@ sullo stato e sui conteggi (positivi 5, nel top 5/6, nel resto 0/24).
 | `donors_anagrafica_denomzero.csv` / `donors_transazioni_denomzero.csv` | segmento con positivi tutti nel top 20%: lift non definito (denominatore zero) |
 | `donors_anagrafica_quotednewline.csv` / `donors_transazioni_quotednewline.csv` | a-capo DENTRO un campo citato: il parser deve leggere la riga intera (0 esclusioni), come Python |
 | `donors_anagrafica_malformed.csv` / `donors_transazioni_malformed.csv` | riga genuinamente malformata (n° campi ≠ intestazione): esclusa e **contata** uguale da JS e Python |
+| `donors_anagrafica_territori.csv` | **strato territoriale**: 5 donatori (senza CAP, `00120` Vaticano, zona `08` esclusa, prefisso `99` inesistente, zona `20` valida) × 5 obiettivi → i 7 stati, con `ZONE_POSTALI` reale e vuota |
 | `run_js.mjs` | esegue il motore JS via jsdom → `js_output.json` |
 | `run_py.py` | esegue il motore Python → `py_output.json` |
 | `equivalence_test.py` | orchestratore + confronto + verdetto (esegue anche `build_config.py --check`) |
 | `divergenze_report.txt` | report leggibile dell'ultima esecuzione |
-| `../../rfml_config.json` | **fonte unica** di tabelle/costanti RFML (pesi, ISTAT, CAP, bonus) |
+| `../../rfml_config.json` | **fonte unica** di tabelle/costanti RFML (pesi obiettivo e territoriali, zone postali, riferimenti nazionali, CAP non italiani, bonus, `AMPIEZZA_TERRITORIALE`) |
 | `../../build_config.py` | inietta il JSON nel dashboard (blocco `<script id="rfml-config">`); `--check` verifica la sincronia |
 
 ## Storia delle correzioni
@@ -229,6 +230,26 @@ le logiche.**
     Coperto da `donors_*_quotednewline.csv` (a-capo citato: 0 esclusioni, riga letta
     intera, punteggi identici) e `donors_*_malformed.csv` (riga malformata: 1
     esclusione, stessa riga su JS e PY). *Resta aperto: nessun artefatto noto.*
+11. **Strato territoriale v2 (zone postali).** Lo strato territoriale è stato
+    rifatto: via il Gini (dichiarato indice di disuguaglianza ma privo di fonte, e
+    mai un vero indice), via la granularità regionale e le tabelle `ISTAT_REGIONI` /
+    `ISTAT_NAZIONALE` / `CAP_PREFISSO_REGIONE`; dentro le **zone postali** (prime 2
+    cifre del CAP, `ZONE_POSTALI`), i `RIFERIMENTI_NAZIONALI` (centro/scala della
+    normalizzazione, niente numeri magici nel codice), `CAP_NON_ITALIANI` (00120
+    controllato **prima** del prefisso) e l'ampiezza unica `AMPIEZZA_TERRITORIALE`.
+    **Qui l'invariante NON è «i punteggi restano identici alla baseline»** — i
+    punteggi cambiano per costruzione (il Gini esce, la granularità cambia): l'unico
+    invariante che resta è Python ≡ JS. Il motore espone **7 stati** espliciti
+    (`calcolato`, `cap_assente`, `cap_non_italiano`, `zona_esclusa`,
+    `zona_non_riconosciuta`, `non_applicabile`, `dati_non_caricati`); in ogni stato
+    diverso da `calcolato` il moltiplicatore è esattamente `1.0`. Coperto da
+    `donors_*_territori.csv`: i 7 stati sono verificati identici fra le due
+    implementazioni **e** corretti rispetto all'atteso, sia con `ZONE_POSTALI` reale
+    sia con la tabella vuota (tutti in `dati_non_caricati`). Nota di confine: con lo
+    strato rimosso da `riattivazione`/`one_off` alcuni punteggi cadono esattamente su
+    `.x5` (es. 21.25) → `round` half-to-even (21.2) vs `Math.round` half-up (21.3):
+    scarto di 1 ULP, **solo arrotondamento**, trattato come avviso (confronto sul
+    confine reso robusto al float).
 
 Esito finale: **PASS** (exit 0), 21 vs 21 donatori, 0 divergenze logiche. Lift per
 obiettivo concorde JS/PY (lascito 2.83×, riattivazione calcolato, 3 obiettivi

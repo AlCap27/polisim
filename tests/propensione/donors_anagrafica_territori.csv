@@ -1,0 +1,6 @@
+donor_id;anzianita_anni;fascia_eta;cap;canale_acquisizione;tipo_sostegno_prevalente;metodo_pagamento_prevalente;volontariato;eventi_partecipati;lascito_dichiarato
+T1_nocap;10;65-74;;web;ricorrente;RID_SEPA;1;0;1
+T2_vaticano;8;75+;00120;direct_mail;singola;bollettino;0;0;1
+T3_zona08;12;55-64;08100;web;ricorrente;carta_credito;1;1;0
+T4_prefisso99;6;45-54;99999;eventi;singola;carta_credito;0;1;0
+T5_zona20;15;65-74;20100;web;ricorrente;RID_SEPA;1;1;1

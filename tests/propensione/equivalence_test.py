@@ -35,7 +35,7 @@ puo produrre una differenza di arrotondamento cross-linguaggio (Python round()
 usa half-to-even, JS Math.round() usa half-up). Qualsiasi scarto OLTRE 1 ULP e'
 una divergenza LOGICA, non di arrotondamento, e fa fallire il test.
 Campi interi (_recency_days, _n_tx) e categorici (obiettivo_top, engagement,
-coinvolgimento, regione_istat, ...) devono coincidere ESATTAMENTE.
+coinvolgimento, stato_territoriale, zona_postale, ...) devono coincidere ESATTAMENTE.
 Gli scarti non-nulli ma ENTRO tolleranza vengono riportati come avvisi
 (livello-arrotondamento) senza far fallire il test.
 """
@@ -65,8 +65,16 @@ SIGNAL_FIELDS = ["R", "F", "M_livello", "M_trend", "L"]
 MOLT_FIELDS = ["molt_lascito", "molt_upgrade", "molt_sostegno_continuativo",
                "molt_riattivazione", "molt_one_off"]
 INT_FIELDS = ["_recency_days", "_n_tx"]
-CAT_FIELDS = ["obiettivo_top", "engagement", "coinvolgimento", "regione_istat",
+CAT_FIELDS = ["obiettivo_top", "engagement", "coinvolgimento",
+              "stato_territoriale", "zona_postale",
               "canale_acquisizione", "tipo_sostegno"]
+
+# I 7 stati territoriali attesi (Compito 4). calcolato/dati_non_caricati coperti
+# rispettivamente dalla tabella reale e dalla tabella vuota.
+STATI_TERRITORIALI = {
+    "calcolato", "cap_assente", "cap_non_italiano", "zona_esclusa",
+    "zona_non_riconosciuta", "non_applicabile", "dati_non_caricati",
+}
 
 TOL_BY_FIELD = {}
 for f in SCORE_FIELDS:
@@ -81,9 +89,9 @@ def check_config_sync():
     """Esegue 'build_config.py --check': il motore JS (dashboard) e quello Python
     condividono rfml_config.json. Il JSON e' la fonte; nell'HTML e' iniettato a
     build-time. Se qualcuno edita il blocco a mano, o cambia il JSON senza
-    rigenerare, le due implementazioni possono ri-divergere (es. bug D6, segno
-    del peso gini). Questo check rende la protezione parte del test: non dipende
-    dal ricordarsi di lanciare build_config.py a parte."""
+    rigenerare, le due implementazioni possono ri-divergere (storicamente: una
+    divergenza sul segno di un peso). Questo check rende la protezione parte del
+    test: non dipende dal ricordarsi di lanciare build_config.py a parte."""
     repo = os.path.abspath(os.path.join(HERE, "..", ".."))
     build = os.path.join(repo, "build_config.py")
     print("Verifico la sincronia della config (build_config.py --check)...")
@@ -128,8 +136,8 @@ def _norm_js_row(r):
     row["_n_tx"] = r["_n"]                     # JS: _n   vs PY: _n_tx
     for k in MOLT_FIELDS:
         row[k] = r[k]
-    for k in ("regione_istat", "canale_acquisizione", "tipo_sostegno",
-              "engagement", "coinvolgimento"):
+    for k in ("stato_territoriale", "zona_postale", "canale_acquisizione",
+              "tipo_sostegno", "engagement", "coinvolgimento"):
         row[k] = r.get(k)
     return row
 
@@ -238,7 +246,12 @@ def confronta_valore(campo, vjs, vpy):
         return "fail", f"{campo}: JS={vjs!r} PY={vpy!r}"
     if d == 0:
         return "ok", ""
-    if d <= tol:
+    # Confronto float-robusto sul confine di 1 ULP: un valore come 21.25 arrotonda
+    # a 21.2 (Python half-to-even) vs 21.3 (JS half-up) -> scarto 1 ULP = tol, ma
+    # 21.3-21.2 in float vale 0.1000...01. L'epsilon evita che questo scarto di
+    # SOLO arrotondamento (documentato e atteso) venga scambiato per divergenza
+    # logica; uno scarto di 2 ULP (es. 0.2) resta OLTRE tolleranza e fallisce.
+    if d <= tol + 1e-9:
         return "warn", f"{campo}: JS={vjs} PY={vpy} (d={d:.6g} entro tol {tol:g})"
     return "fail", f"{campo}: JS={vjs} PY={vpy} (d={d:.6g} OLTRE tol {tol:g})"
 
@@ -283,6 +296,69 @@ def confronta_dataset(label, js_d, py_d, out):
             if stato == "fail":
                 fail.append(f"{label}.{did}.{det}")
     return fail
+
+
+# Risoluzione territoriale ATTESA per donatore del dataset territori (contratto del
+# dataset, non derivabile dal config): un CAP per classe di stato.
+DONOR_STATO_ATTESO = {
+    "T1_nocap": "cap_assente",
+    "T2_vaticano": "cap_non_italiano",
+    "T3_zona08": "zona_esclusa",
+    "T4_prefisso99": "zona_non_riconosciuta",
+    "T5_zona20": "calcolato",
+}
+
+
+def _obiettivi_non_applicabili():
+    """Obiettivi con tutti i pesi territoriali a zero, letti dal config (fonte
+    unica): non duplichiamo la regola nel test."""
+    repo = os.path.abspath(os.path.join(HERE, "..", ".."))
+    with open(os.path.join(repo, "rfml_config.json"), encoding="utf-8") as f:
+        cfg = json.load(f)
+    pesi = cfg["tabelle"]["PESI_TERRITORIALI"]["valori"]
+    na = set()
+    for ob in OBIETTIVI:
+        p = pesi.get(ob, {})
+        if all(float(p.get(k, 0.0)) == 0.0 for k in p):
+            na.add(ob)
+    return na
+
+
+def _stato_atteso(donor, ob, na_set, tabella_vuota):
+    if ob in na_set:
+        return "non_applicabile"
+    if tabella_vuota:
+        return "dati_non_caricati"
+    return DONOR_STATO_ATTESO[donor]
+
+
+def confronta_stati_territoriali(js_st, py_st, out):
+    """Compito 4: i 7 stati territoriali devono essere (a) identici fra JS e PY
+    cella per cella e (b) CORRETTI rispetto all'atteso, con tabella reale e vuota.
+    Ritorna (lista_fail, insieme_stati_osservati)."""
+    fail = []
+    osservati = set()
+    if js_st is None or py_st is None:
+        return ([f"stati_territoriali: sezione assente (JS={js_st is not None} "
+                 f"PY={py_st is not None})"], osservati)
+    na_set = _obiettivi_non_applicabili()
+    for scenario, vuota in (("reale", False), ("vuota", True)):
+        js_m = js_st.get(scenario, {})
+        py_m = py_st.get(scenario, {})
+        if set(js_m) != set(py_m):
+            fail.append(f"stati[{scenario}]: donatori divergenti JS={sorted(js_m)} PY={sorted(py_m)}")
+            continue
+        for did in sorted(js_m):
+            for ob in OBIETTIVI:
+                vjs, vpy = js_m[did].get(ob), py_m[did].get(ob)
+                osservati.add(vjs)
+                osservati.add(vpy)
+                atteso = _stato_atteso(did, ob, na_set, vuota)
+                if vjs != vpy:
+                    fail.append(f"stati[{scenario}].{did}.{ob}: JS={vjs} PY={vpy} (divergono)")
+                elif vjs != atteso:
+                    fail.append(f"stati[{scenario}].{did}.{ob}: stato={vjs} atteso={atteso}")
+    return (fail, osservati)
 
 
 def main():
@@ -485,11 +561,30 @@ def main():
     for d in hs_fail:
         out(f"    FAIL  {d}")
 
+    # --- Compito 4: i 7 stati territoriali, con tabella ZONE_POSTALI reale e vuota ---
+    out("")
+    out("-" * 78)
+    out("CONFRONTO STATI TERRITORIALI - 7 stati, identici JS/PY e corretti (reale+vuota)")
+    out("-" * 78)
+    out("  5 donatori (senza CAP, 00120, zona 08, prefisso inesistente, zona valida)")
+    out("  x 5 obiettivi, con tabella reale e con tabella vuota (dati_non_caricati).")
+    terr_fail, stati_osservati = confronta_stati_territoriali(
+        js.get("statiTerritoriali"), py.get("stati_territoriali"), out)
+    mancanti = STATI_TERRITORIALI - stati_osservati
+    if mancanti:
+        terr_fail.append(f"stati non prodotti dal banco: {sorted(mancanti)} "
+                         f"(osservati: {sorted(stati_osservati)})")
+    out(f"  stati osservati: {sorted(stati_osservati)}")
+    out(f"  i 7 stati attesi tutti prodotti: {'SI' if not mancanti else 'NO'}")
+    for d in terr_fail:
+        out(f"    FAIL  {d}")
+
     # --- verdetto ---
     out("")
     out("=" * 78)
     divergenze = (len(solo_js) + len(solo_py) + len(donatori_div)
-                  + len(lift_fail) + len(ss_fail) + len(dz_fail) + len(csv_fail))
+                  + len(lift_fail) + len(ss_fail) + len(dz_fail) + len(csv_fail)
+                  + len(terr_fail))
     if divergenze == 0:
         out("ESITO: PASS - le due implementazioni sono equivalenti entro tolleranza.")
         if n_warn:
@@ -503,6 +598,7 @@ def main():
         out(f"  - divergenze lift sotto-soglia: {len(ss_fail)}")
         out(f"  - divergenze lift denom-zero : {len(dz_fail)}")
         out(f"  - divergenze robustezza CSV  : {len(csv_fail)}")
+        out(f"  - divergenze stati territoriali: {len(terr_fail)}")
         verdict = 1
     out("=" * 78)
 

@@ -49,6 +49,10 @@ TX_MAL = os.path.join(HERE, "donors_transazioni_malformed.csv")
 # Compito 2: un donatore con TUTTE le date non valide -> saltato da entrambe.
 ANA_NV = os.path.join(HERE, "donors_anagrafica_novaliddate.csv")
 TX_NV = os.path.join(HERE, "donors_transazioni_novaliddate.csv")
+# Compito 4 (strato territoriale): 5 donatori (senza CAP, 00120, zona 08, prefisso
+# inesistente, zona valida) x 5 obiettivi -> i 7 stati territoriali. Calcolati con
+# la tabella ZONE_POSTALI reale e con la tabella VUOTA (tutti in dati_non_caricati).
+ANA_TERR = os.path.join(HERE, "donors_anagrafica_territori.csv")
 OUT = os.path.join(HERE, "py_output.json")
 
 
@@ -98,16 +102,28 @@ def score_dataset(ana_path, tx_path):
             row[k] = segnali[did][k]
         row["_recency_days"] = segnali[did]["_recency_days"]
         row["_n_tx"] = segnali[did]["_n_tx"]
-        row["regione_istat"] = pp.cap_to_regione(c) or "n/d"
-        row["molt_lascito"] = pp.calcola_moltiplicatore_territoriale(c, "lascito")
-        row["molt_upgrade"] = pp.calcola_moltiplicatore_territoriale(c, "upgrade")
-        row["molt_sostegno_continuativo"] = pp.calcola_moltiplicatore_territoriale(c, "sostegno_continuativo")
-        row["molt_riattivazione"] = pp.calcola_moltiplicatore_territoriale(c, "riattivazione")
-        row["molt_one_off"] = pp.calcola_moltiplicatore_territoriale(c, "one_off_emergenza")
+        row["molt_lascito"] = pp.moltiplicatore_territoriale(c, "lascito")
+        row["molt_upgrade"] = pp.moltiplicatore_territoriale(c, "upgrade")
+        row["molt_sostegno_continuativo"] = pp.moltiplicatore_territoriale(c, "sostegno_continuativo")
+        row["molt_riattivazione"] = pp.moltiplicatore_territoriale(c, "riattivazione")
+        row["molt_one_off"] = pp.moltiplicatore_territoriale(c, "one_off_emergenza")
+        # stato_territoriale e zona_postale arrivano dal contesto (row.update).
         row.update(contesto.get(did, {}))
         donatori[did] = row
     return {"n_ana": len(anagrafica), "escluse_ana": escluse_ana,
             "n_tx": len(transazioni), "escluse_tx": escluse_tx, "donatori": donatori}
+
+
+def stati_territoriali(ana_path, obiettivi):
+    """Matrice {donor_id: {obiettivo: stato}} dei 7 stati territoriali.
+    Dipende solo dal CAP e dall'obiettivo (non dai segnali): chiama pp.territorio."""
+    ana = leggi_csv_semicolon(ana_path)
+    out = {}
+    for r in ana:
+        did = r["donor_id"]
+        cap = (r.get("cap") or r.get("cap_donatore") or "").strip()
+        out[did] = {ob: pp.territorio(cap, ob)["stato"] for ob in obiettivi}
+    return out
 
 
 def main():
@@ -134,7 +150,6 @@ def main():
         prop = propensione[did]
         top_ob = max(prop, key=prop.get)
         cap = cap_per_donor.get(did, "")
-        regione = pp.cap_to_regione(cap) or "n/d"
         row = {"donor_id": did}
         for o in obiettivi:
             row[f"prop_{o}"] = prop[o]
@@ -144,12 +159,12 @@ def main():
             row[k] = segnali[did][k]
         row["_recency_days"] = segnali[did]["_recency_days"]
         row["_n_tx"] = segnali[did]["_n_tx"]
-        row["regione_istat"] = regione
-        row["molt_lascito"] = pp.calcola_moltiplicatore_territoriale(cap, "lascito")
-        row["molt_upgrade"] = pp.calcola_moltiplicatore_territoriale(cap, "upgrade")
-        row["molt_sostegno_continuativo"] = pp.calcola_moltiplicatore_territoriale(cap, "sostegno_continuativo")
-        row["molt_riattivazione"] = pp.calcola_moltiplicatore_territoriale(cap, "riattivazione")
-        row["molt_one_off"] = pp.calcola_moltiplicatore_territoriale(cap, "one_off_emergenza")
+        row["molt_lascito"] = pp.moltiplicatore_territoriale(cap, "lascito")
+        row["molt_upgrade"] = pp.moltiplicatore_territoriale(cap, "upgrade")
+        row["molt_sostegno_continuativo"] = pp.moltiplicatore_territoriale(cap, "sostegno_continuativo")
+        row["molt_riattivazione"] = pp.moltiplicatore_territoriale(cap, "riattivazione")
+        row["molt_one_off"] = pp.moltiplicatore_territoriale(cap, "one_off_emergenza")
+        # stato_territoriale e zona_postale arrivano dal contesto (row.update).
         row.update(contesto.get(did, {}))
         donatori[did] = row
 
@@ -168,10 +183,19 @@ def main():
     # Compito 2: donatore con tutte le date non valide (saltato).
     novaliddate = score_dataset(ANA_NV, TX_NV)
 
+    # Compito 4: i 7 stati territoriali, con tabella reale e con tabella vuota.
+    stati_reale = stati_territoriali(ANA_TERR, obiettivi)
+    _backup_zone = dict(pp.ZONE_POSTALI)
+    pp.ZONE_POSTALI.clear()
+    stati_vuota = stati_territoriali(ANA_TERR, obiettivi)
+    pp.ZONE_POSTALI.update(_backup_zone)
+    stati_territoriali_out = {"reale": stati_reale, "vuota": stati_vuota}
+
     out = {"donatori": donatori, "lift_obiettivi": lift_obiettivi,
            "lift_sottosoglia": lift_sottosoglia, "lift_denomzero": lift_denomzero,
            "quotednewline": quotednewline, "malformed": malformed,
-           "novaliddate": novaliddate}
+           "novaliddate": novaliddate,
+           "stati_territoriali": stati_territoriali_out}
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, indent=2)
     print(f"PY: {len(donatori)} donatori -> {OUT}")

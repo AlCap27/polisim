@@ -47,6 +47,9 @@ const txMalPath = join(__dirname, 'donors_transazioni_malformed.csv');
 // Math.max/min non alteri il percorso "nessuna data valida").
 const anaNvPath = join(__dirname, 'donors_anagrafica_novaliddate.csv');
 const txNvPath = join(__dirname, 'donors_transazioni_novaliddate.csv');
+// Compito 4 (strato territoriale): 5 donatori x 5 obiettivi -> i 7 stati, con
+// ZONE_POSTALI reale e con ZONE_POSTALI svuotata (tutti in dati_non_caricati).
+const anaTerrPath = join(__dirname, 'donors_anagrafica_territori.csv');
 const outPath = join(__dirname, 'js_output.json');
 
 const html = readFileSync(htmlPath, 'utf8');
@@ -62,6 +65,7 @@ const anaMalCsv = readFileSync(anaMalPath, 'utf8');
 const txMalCsv = readFileSync(txMalPath, 'utf8');
 const anaNvCsv = readFileSync(anaNvPath, 'utf8');
 const txNvCsv = readFileSync(txNvPath, 'utf8');
+const anaTerrCsv = readFileSync(anaTerrPath, 'utf8');
 
 // Harness iniettato nello stesso <script> del motore (condivide lo scope).
 const harness = `
@@ -148,7 +152,25 @@ try {
     maxVal: String(maxArr([3, 1, 2])), minVal: String(minArr([3, 1, 2])),
   };
 
-  globalThis.__OUT__ = JSON.stringify({ risultati, lift: liftPerOb, liftSottoSoglia, liftDenomZero, quotednewline, malformed, novaliddate, helperSemantics });
+  // Compito 4: matrice {donor_id:{obiettivo:stato}} dei 7 stati territoriali.
+  // Dipende solo da CAP e obiettivo (territorio()), non dai segnali.
+  const __statiTerr = (anaStr) => {
+    const ca = parseCSV(anaStr); mapState.ana = {};
+    for (const f of ANA_FIELDS) if (ca.headers.includes(f.key)) mapState.ana[f.key] = f.key;
+    const aD = buildRenamed(ca, mapState.ana, ANA_FIELDS);
+    const out = {};
+    for (const r of aD) { out[r.donor_id] = {}; for (const ob of OBIETTIVI) out[r.donor_id][ob] = territorio((r.cap||'').trim(), ob).stato; }
+    return out;
+  };
+  const statiReale = __statiTerr(globalThis.__ANA_TERR_CSV__);
+  // tabella vuota: svuoto ZONE_P in loco (const = binding, oggetto mutabile), poi ripristino.
+  const __zbak = JSON.parse(JSON.stringify(ZONE_P));
+  for (const k in ZONE_P) delete ZONE_P[k];
+  const statiVuota = __statiTerr(globalThis.__ANA_TERR_CSV__);
+  for (const k in ZONE_P) delete ZONE_P[k]; Object.assign(ZONE_P, __zbak);
+  const statiTerritoriali = { reale: statiReale, vuota: statiVuota };
+
+  globalThis.__OUT__ = JSON.stringify({ risultati, lift: liftPerOb, liftSottoSoglia, liftDenomZero, quotednewline, malformed, novaliddate, helperSemantics, statiTerritoriali });
 } catch (e) {
   globalThis.__ERR__ = String((e && e.stack) || e);
 }
@@ -177,6 +199,7 @@ const dom = new JSDOM(injectedHtml, {
     window.__TX_MAL_CSV__ = txMalCsv;
     window.__ANA_NV_CSV__ = anaNvCsv;
     window.__TX_NV_CSV__ = txNvCsv;
+    window.__ANA_TERR_CSV__ = anaTerrCsv;
   },
 });
 
