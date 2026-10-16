@@ -50,6 +50,10 @@ const txNvPath = join(__dirname, 'donors_transazioni_novaliddate.csv');
 // Compito 4 (strato territoriale): 5 donatori x 5 obiettivi -> i 7 stati, con
 // ZONE_POSTALI reale e con ZONE_POSTALI svuotata (tutti in dati_non_caricati).
 const anaTerrPath = join(__dirname, 'donors_anagrafica_territori.csv');
+// Arrotondamento: donatore con punteggio riattivazione su .x5 (21.25) -> 21.3
+// (Math.round, mezzo verso +infinito), non 21.2. Confronto a tolleranza zero.
+const anaArrPath = join(__dirname, 'donors_anagrafica_arrotondamento.csv');
+const txArrPath = join(__dirname, 'donors_transazioni_arrotondamento.csv');
 const outPath = join(__dirname, 'js_output.json');
 
 const html = readFileSync(htmlPath, 'utf8');
@@ -66,6 +70,8 @@ const txMalCsv = readFileSync(txMalPath, 'utf8');
 const anaNvCsv = readFileSync(anaNvPath, 'utf8');
 const txNvCsv = readFileSync(txNvPath, 'utf8');
 const anaTerrCsv = readFileSync(anaTerrPath, 'utf8');
+const anaArrCsv = readFileSync(anaArrPath, 'utf8');
+const txArrCsv = readFileSync(txArrPath, 'utf8');
 
 // Harness iniettato nello stesso <script> del motore (condivide lo scope).
 const harness = `
@@ -142,6 +148,7 @@ try {
   const quotednewline = __scoreDataset(globalThis.__ANA_QN_CSV__, globalThis.__TX_QN_CSV__);
   const malformed     = __scoreDataset(globalThis.__ANA_MAL_CSV__, globalThis.__TX_MAL_CSV__);
   const novaliddate   = __scoreDataset(globalThis.__ANA_NV_CSV__, globalThis.__TX_NV_CSV__);
+  const arrotondamento = __scoreDataset(globalThis.__ANA_ARR_CSV__, globalThis.__TX_ARR_CSV__);
 
   // Compito 2: semantica dell'helper maxArr/minArr che sostituisce lo spread.
   // Deve coincidere con Math.max/Math.min: vuoto -> ∓Infinity; un NaN -> NaN.
@@ -170,7 +177,7 @@ try {
   for (const k in ZONE_P) delete ZONE_P[k]; Object.assign(ZONE_P, __zbak);
   const statiTerritoriali = { reale: statiReale, vuota: statiVuota };
 
-  globalThis.__OUT__ = JSON.stringify({ risultati, lift: liftPerOb, liftSottoSoglia, liftDenomZero, quotednewline, malformed, novaliddate, helperSemantics, statiTerritoriali });
+  globalThis.__OUT__ = JSON.stringify({ risultati, lift: liftPerOb, liftSottoSoglia, liftDenomZero, quotednewline, malformed, novaliddate, arrotondamento, helperSemantics, statiTerritoriali });
 } catch (e) {
   globalThis.__ERR__ = String((e && e.stack) || e);
 }
@@ -200,6 +207,8 @@ const dom = new JSDOM(injectedHtml, {
     window.__ANA_NV_CSV__ = anaNvCsv;
     window.__TX_NV_CSV__ = txNvCsv;
     window.__ANA_TERR_CSV__ = anaTerrCsv;
+    window.__ANA_ARR_CSV__ = anaArrCsv;
+    window.__TX_ARR_CSV__ = txArrCsv;
   },
 });
 

@@ -53,6 +53,11 @@ TX_NV = os.path.join(HERE, "donors_transazioni_novaliddate.csv")
 # inesistente, zona valida) x 5 obiettivi -> i 7 stati territoriali. Calcolati con
 # la tabella ZONE_POSTALI reale e con la tabella VUOTA (tutti in dati_non_caricati).
 ANA_TERR = os.path.join(HERE, "donors_anagrafica_territori.csv")
+# Arrotondamento (regola JS Math.round, non bancaria): un donatore il cui punteggio
+# riattivazione cade ESATTAMENTE su .x5 (21.25) -> deve dare 21.3 (mezzo verso
+# +infinito), non 21.2 (half-to-even di round()). Copre in permanenza il confine.
+ANA_ARR = os.path.join(HERE, "donors_anagrafica_arrotondamento.csv")
+TX_ARR = os.path.join(HERE, "donors_transazioni_arrotondamento.csv")
 OUT = os.path.join(HERE, "py_output.json")
 
 
@@ -182,6 +187,8 @@ def main():
     malformed = score_dataset(ANA_MAL, TX_MAL)
     # Compito 2: donatore con tutte le date non valide (saltato).
     novaliddate = score_dataset(ANA_NV, TX_NV)
+    # Arrotondamento: donatore con punteggio su .x5 (regola Math.round).
+    arrotondamento = score_dataset(ANA_ARR, TX_ARR)
 
     # Compito 4: i 7 stati territoriali, con tabella reale e con tabella vuota.
     stati_reale = stati_territoriali(ANA_TERR, obiettivi)
@@ -194,7 +201,7 @@ def main():
     out = {"donatori": donatori, "lift_obiettivi": lift_obiettivi,
            "lift_sottosoglia": lift_sottosoglia, "lift_denomzero": lift_denomzero,
            "quotednewline": quotednewline, "malformed": malformed,
-           "novaliddate": novaliddate,
+           "novaliddate": novaliddate, "arrotondamento": arrotondamento,
            "stati_territoriali": stati_territoriali_out}
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, indent=2)

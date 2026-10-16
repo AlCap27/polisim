@@ -118,6 +118,37 @@ L_SATURAZIONE_ANNI = _COST["L_SATURAZIONE_ANNI"]
 METODI_RICORRENTI = set(_COST["METODI_RICORRENTI"])
 
 
+# ---------------------------------------------------------------------------
+# ARROTONDAMENTO ALLINEATO A JAVASCRIPT  <-- NON usare round() sugli output
+# ---------------------------------------------------------------------------
+# round() di Python e BANCARIO (mezzo verso il pari): round(21.25, 1) -> 21.2,
+# round(0.5) -> 0, round(2.5) -> 2. Math.round di JavaScript e invece MEZZO VERSO
+# +INFINITO: Math.round(21.25*10)/10 -> 21.3, Math.round(0.5) -> 1,
+# Math.round(-0.5) -> 0 (non -1), Math.round(-2.5) -> -2. E' una differenza di
+# REGOLA, non di virgola mobile: su un punteggio a meta (es. 21,25) le due
+# implementazioni divergono di 0,1. Il motore JS arrotonda cosi ovunque, quindi
+# il Python deve fare lo stesso: il banco di prova confronta gli output a
+# tolleranza ZERO e qualunque round() bancario lo farebbe fallire (come deve).
+def _math_round(y):
+    """Arrotonda all'intero con la regola di JS Math.round: al piu vicino, i
+    mezzi verso +infinito (NON half-away-from-zero, NON half-to-even)."""
+    if y != y:  # NaN
+        return y
+    base = math.floor(y)
+    frac = y - base
+    if frac < 0.5:
+        return base
+    return base + 1  # frac > 0.5 oppure == 0.5 (mezzo verso +infinito)
+
+
+def round_js(x, ndigits=0):
+    """Arrotonda x a ndigits decimali replicando l'espressione del motore JS:
+    Math.round(x * 10**ndigits) / 10**ndigits. Da usare OVUNQUE si arrotondi un
+    output confrontato col JS (punteggi, segnali, moltiplicatori, tassi, lift)."""
+    factor = 10 ** ndigits
+    return _math_round(x * factor) / factor
+
+
 # ===========================================================================
 # STRATO TERRITORIALE — ZONE POSTALI (prime 2 cifre del CAP)
 # ===========================================================================
@@ -247,7 +278,7 @@ def territorio(cap, obiettivo):
         s += w * (zona[ind] - rif["centro"]) / rif["dispersione"]
     molt = 1.0 + AMPIEZZA_TERRITORIALE * s
     molt = max(CLAMP_TERRITORIALE["min"], min(CLAMP_TERRITORIALE["max"], molt))
-    return {"stato": "calcolato", "molt": round(molt, 4)}
+    return {"stato": "calcolato", "molt": round_js(molt, 4)}
 
 
 def moltiplicatore_territoriale(cap, obiettivo):
@@ -571,11 +602,11 @@ def calcola_segnali(anagrafica, transazioni):
         # R: invertita -> donato di recente = punteggio alto
         r_norm = 1.0 - norm_rec(g["recency_days"])
         segnali[did] = {
-            "R": round(r_norm, 4),
-            "F": round(g["F"], 4),
-            "M_livello": round(norm_mliv(g["M_livello"]), 4),
-            "M_trend": round(norm_mtr(g["M_trend"]), 4),
-            "L": round(norm_l(g["L"]), 4),
+            "R": round_js(r_norm, 4),
+            "F": round_js(g["F"], 4),
+            "M_livello": round_js(norm_mliv(g["M_livello"]), 4),
+            "M_trend": round_js(norm_mtr(g["M_trend"]), 4),
+            "L": round_js(norm_l(g["L"]), 4),
             "_recency_days": g["recency_days"],
             "_n_tx": g["n_tx"],
         }
@@ -621,7 +652,7 @@ def calcola_propensione(segnali, fascia_eta_per_donor, cap_per_donor=None):
             molt = moltiplicatore_territoriale(cap, obiettivo)
             val = val * molt
 
-            scores[obiettivo] = round(min(val, 100.0), 1)
+            scores[obiettivo] = round_js(min(val, 100.0), 1)
         risultati[did] = scores
     return risultati
 
@@ -763,8 +794,9 @@ def valida_lift(anagrafica, propensione, obiettivo="lascito"):
         "positivi_resto": pos_resto,
         "n_top": n_top,
         "n_resto": n_resto,
-        "tasso_top20pct": round(tasso_top * 100, 1),
-        "tasso_resto": round(tasso_resto * 100, 1),
+        # Stesse espressioni del motore JS (Math.round(tt*1000)/10), via round_js.
+        "tasso_top20pct": _math_round(tasso_top * 1000) / 10,
+        "tasso_resto": _math_round(tasso_resto * 1000) / 10,
     })
     # Denominatore zero: tutti i positivi nel top 20%, 0 nel resto -> nessun
     # termine di paragone, il lift NON e un numero (ne 'inf' ne null direbbero
@@ -776,7 +808,7 @@ def valida_lift(anagrafica, propensione, obiettivo="lascito"):
                           f"definito, manca il termine di paragone. Su un segmento "
                           f"piccolo e quasi sempre un artefatto.")
         return diag
-    diag["lift"] = round(tasso_top / tasso_resto, 2)
+    diag["lift"] = round_js(tasso_top / tasso_resto, 2)
     return diag
 
 

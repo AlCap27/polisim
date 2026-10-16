@@ -22,22 +22,20 @@ separatore migliaia, esiti campagna in forme diverse). I numeri qui prodotti NON
 vanno confrontati con output pubblicati in passato: servono solo a verificare che
 le due implementazioni facciano LA STESSA COSA sugli stessi input.
 
-TOLLERANZA (documentata)
-------------------------
-Gli output delle due implementazioni sono arrotondati:
-  - punteggi (prop_*, score_top)      -> 1 decimale  -> 1 ULP = 0.1
-  - segnali grezzi (R,F,M_livello,...) -> 4 decimali  -> 1 ULP = 1e-4
-  - moltiplicatori territoriali molt_* -> 4 decimali  -> 1 ULP = 1e-4
-  - tassi lift (%)                     -> 1 decimale  -> 0.1
-  - lift (rapporto)                    -> 2 decimali  -> 0.01
-La tolleranza e fissata a 1 ULP dell'output arrotornato: e il massimo scarto che
-puo produrre una differenza di arrotondamento cross-linguaggio (Python round()
-usa half-to-even, JS Math.round() usa half-up). Qualsiasi scarto OLTRE 1 ULP e'
-una divergenza LOGICA, non di arrotondamento, e fa fallire il test.
-Campi interi (_recency_days, _n_tx) e categorici (obiettivo_top, engagement,
-coinvolgimento, stato_territoriale, zona_postale, ...) devono coincidere ESATTAMENTE.
-Gli scarti non-nulli ma ENTRO tolleranza vengono riportati come avvisi
-(livello-arrotondamento) senza far fallire il test.
+TOLLERANZA: ZERO
+----------------
+TUTTI i campi devono coincidere ESATTAMENTE fra Python e JS, compresi i campi
+arrotondati (punteggi, segnali, moltiplicatori, tassi e lift). Nessuna tolleranza.
+
+Perche zero e non "1 ULP": la differenza fra round() di Python (bancario,
+half-to-even) e Math.round di JS (mezzo verso +infinito) NON e imprecisione in
+virgola mobile, e una differenza di REGOLA che sposta un punteggio di 0,1 esatti
+sui valori a meta (es. 21,25 -> 21,2 vs 21,3). Una tolleranza di 1 ULP maschererebbe
+per sempre qualunque regressione futura che sposta un output di quella entita'.
+Il Python arrotonda quindi con round_js (replica di Math.round, negativi compresi,
+vedi polisim_propensione.py) OVUNQUE arrotondi un output, e qui il confronto e a
+tolleranza zero. Il caso a meta e coperto in modo permanente dal donatore
+dedicato in donors_*_arrotondamento.csv (punteggio costruito su .x5).
 """
 
 import json
@@ -53,12 +51,14 @@ REPORT = os.path.join(HERE, "divergenze_report.txt")
 
 OBIETTIVI = ["lascito", "upgrade", "sostegno_continuativo", "riattivazione", "one_off_emergenza"]
 
-# --- tolleranze (1 ULP dell'output arrotondato) ---
-TOL_SCORE = 0.1      # prop_*, score_top (1 decimale)
-TOL_SIGNAL = 1e-4    # R,F,M_livello,M_trend,L (4 decimali)
-TOL_MOLT = 1e-4      # molt_* (4 decimali)
-TOL_TASSO = 0.1      # tassi lift % (1 decimale)
-TOL_LIFT = 0.01      # lift ratio (2 decimali)
+# --- tolleranze: ZERO su tutto. Python arrotonda con round_js (= Math.round),
+# quindi gli output devono essere identici al bit. Qualsiasi scarto != 0 e' una
+# divergenza (di regola o di logica) e DEVE far fallire il test. ---
+TOL_SCORE = 0.0      # prop_*, score_top
+TOL_SIGNAL = 0.0     # R,F,M_livello,M_trend,L
+TOL_MOLT = 0.0       # molt_*
+TOL_TASSO = 0.0      # tassi lift %
+TOL_LIFT = 0.0       # lift ratio
 
 SCORE_FIELDS = [f"prop_{o}" for o in OBIETTIVI] + ["score_top"]
 SIGNAL_FIELDS = ["R", "F", "M_livello", "M_trend", "L"]
@@ -246,12 +246,9 @@ def confronta_valore(campo, vjs, vpy):
         return "fail", f"{campo}: JS={vjs!r} PY={vpy!r}"
     if d == 0:
         return "ok", ""
-    # Confronto float-robusto sul confine di 1 ULP: un valore come 21.25 arrotonda
-    # a 21.2 (Python half-to-even) vs 21.3 (JS half-up) -> scarto 1 ULP = tol, ma
-    # 21.3-21.2 in float vale 0.1000...01. L'epsilon evita che questo scarto di
-    # SOLO arrotondamento (documentato e atteso) venga scambiato per divergenza
-    # logica; uno scarto di 2 ULP (es. 0.2) resta OLTRE tolleranza e fallisce.
-    if d <= tol + 1e-9:
+    # Tolleranza zero: qualunque scarto non nullo e' una divergenza. (Con tol=0 il
+    # ramo 'warn' non si attiva mai: Python e JS arrotondano con la stessa regola.)
+    if d <= tol:
         return "warn", f"{campo}: JS={vjs} PY={vpy} (d={d:.6g} entro tol {tol:g})"
     return "fail", f"{campo}: JS={vjs} PY={vpy} (d={d:.6g} OLTRE tol {tol:g})"
 
@@ -561,6 +558,32 @@ def main():
     for d in hs_fail:
         out(f"    FAIL  {d}")
 
+    # --- Arrotondamento (regola Math.round, non bancaria): caso .x5 permanente ---
+    out("")
+    out("-" * 78)
+    out("CONFRONTO ARROTONDAMENTO - regola Math.round (mezzo verso +infinito) su .x5")
+    out("-" * 78)
+    out("  ARR002_mezzo ha prop_riattivazione con grezzo ESATTO 21.25 -> deve dare")
+    out("  21.3 (half-up) in ENTRAMBE; round() bancario di Python darebbe 21.2.")
+    arr_fail = confronta_dataset("arrotondamento", js.get("arrotondamento"),
+                                 py.get("arrotondamento"), out)
+    # Asserzione di REGOLA (non solo equivalenza): se qualcuno reintroduce round()
+    # bancario in Python il valore scende a 21.2 e qui si vede subito, anche se per
+    # ipotesi JS e PY tornassero d'accordo sul valore sbagliato.
+    ATTESO_X5 = 21.3
+    js_arr = (js.get("arrotondamento") or {}).get("donatori", {})
+    py_arr = (py.get("arrotondamento") or {}).get("donatori", {})
+    jv = js_arr.get("ARR002_mezzo", {}).get("riattivazione")   # JS: nome obiettivo nudo
+    pv = py_arr.get("ARR002_mezzo", {}).get("prop_riattivazione")
+    out(f"  ARR002_mezzo.prop_riattivazione: JS={jv} PY={pv} (atteso {ATTESO_X5}; bancario=21.2)")
+    if jv != ATTESO_X5:
+        arr_fail.append(f"ARR002_mezzo: JS prop_riattivazione={jv}, atteso {ATTESO_X5} (regola Math.round)")
+    if pv != ATTESO_X5:
+        arr_fail.append(f"ARR002_mezzo: PY prop_riattivazione={pv}, atteso {ATTESO_X5} "
+                        f"(usare round_js, non round() bancario)")
+    for d in arr_fail:
+        out(f"    FAIL  {d}")
+
     # --- Compito 4: i 7 stati territoriali, con tabella ZONE_POSTALI reale e vuota ---
     out("")
     out("-" * 78)
@@ -584,9 +607,9 @@ def main():
     out("=" * 78)
     divergenze = (len(solo_js) + len(solo_py) + len(donatori_div)
                   + len(lift_fail) + len(ss_fail) + len(dz_fail) + len(csv_fail)
-                  + len(terr_fail))
+                  + len(arr_fail) + len(terr_fail))
     if divergenze == 0:
-        out("ESITO: PASS - le due implementazioni sono equivalenti entro tolleranza.")
+        out("ESITO: PASS - le due implementazioni sono IDENTICHE (tolleranza zero).")
         if n_warn:
             out(f"       ({n_warn} donatori con scarti di solo arrotondamento, entro tolleranza)")
         verdict = 0
@@ -598,6 +621,7 @@ def main():
         out(f"  - divergenze lift sotto-soglia: {len(ss_fail)}")
         out(f"  - divergenze lift denom-zero : {len(dz_fail)}")
         out(f"  - divergenze robustezza CSV  : {len(csv_fail)}")
+        out(f"  - divergenze arrotondamento  : {len(arr_fail)}")
         out(f"  - divergenze stati territoriali: {len(terr_fail)}")
         verdict = 1
     out("=" * 78)

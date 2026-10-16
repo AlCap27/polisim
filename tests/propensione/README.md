@@ -31,24 +31,27 @@ Il test:
 Da rieseguire dopo ogni correzione: quando il motore JS e quello Python saranno
 allineati, il test passerà (exit 0).
 
-## Tolleranza (perché questi valori)
+## Tolleranza: ZERO
 
-Gli output sono arrotondati, quindi la tolleranza è fissata a **1 ULP
-dell'output arrotondato** — il massimo scarto che una differenza di
-arrotondamento cross-linguaggio può produrre (Python `round()` = half-to-even,
-JS `Math.round()` = half-up):
+Tutti i campi devono coincidere **esattamente** fra Python e JS — compresi i
+campi arrotondati (punteggi, segnali, moltiplicatori, tassi, lift):
 
 | campo | arrotondamento | tolleranza |
 |---|---|---|
-| `prop_*`, `score_top` | 1 decimale | **0.1** |
-| `R`, `F`, `M_livello`, `M_trend`, `L` | 4 decimali | **1e-4** |
-| `molt_*` | 4 decimali | **1e-4** |
-| tassi lift (%) | 1 decimale | **0.1** |
-| lift (rapporto) | 2 decimali | **0.01** |
+| `prop_*`, `score_top` | 1 decimale | **0** |
+| `R`, `F`, `M_livello`, `M_trend`, `L` | 4 decimali | **0** |
+| `molt_*` | 4 decimali | **0** |
+| tassi lift (%) | 1 decimale | **0** |
+| lift (rapporto) | 2 decimali | **0** |
 | `_recency_days`, `_n_tx`, campi categorici | — | **esatto** |
 
-Scarti **oltre** 1 ULP = divergenza logica → FAIL. Scarti non nulli ma **entro**
-tolleranza = avviso (livello-arrotondamento), non fanno fallire.
+Perché zero e non "1 ULP": la differenza fra `round()` di Python (bancario,
+half-to-even) e `Math.round` di JS (mezzo verso +∞) **non è imprecisione in
+virgola mobile, è una differenza di regola** che sposta un punteggio di 0,1 esatti
+sui valori a metà (21,25 → 21,2 vs 21,3). Una tolleranza di 1 ULP la
+maschererebbe per sempre. Il Python arrotonda quindi con `round_js` (replica di
+`Math.round`, vedi punto 12 della storia) **ovunque** produca un output, e qui il
+confronto è a tolleranza zero: qualsiasi scarto ≠ 0 → FAIL.
 
 ## Nota sul delimitatore (divergenza D0)
 
@@ -161,6 +164,7 @@ sullo stato e sui conteggi (positivi 5, nel top 5/6, nel resto 0/24).
 | `donors_anagrafica_quotednewline.csv` / `donors_transazioni_quotednewline.csv` | a-capo DENTRO un campo citato: il parser deve leggere la riga intera (0 esclusioni), come Python |
 | `donors_anagrafica_malformed.csv` / `donors_transazioni_malformed.csv` | riga genuinamente malformata (n° campi ≠ intestazione): esclusa e **contata** uguale da JS e Python |
 | `donors_anagrafica_territori.csv` | **strato territoriale**: 5 donatori (senza CAP, `00120` Vaticano, zona `08` esclusa, prefisso `99` inesistente, zona `20` valida) × 5 obiettivi → i 7 stati, con `ZONE_POSTALI` reale e vuota |
+| `donors_anagrafica_arrotondamento.csv` / `donors_transazioni_arrotondamento.csv` | **arrotondamento**: `ARR002_mezzo` ha `prop_riattivazione` grezzo esatto `21.25` → deve dare `21.3` (regola `Math.round`, non `21.2` bancario) in entrambe |
 | `run_js.mjs` | esegue il motore JS via jsdom → `js_output.json` |
 | `run_py.py` | esegue il motore Python → `py_output.json` |
 | `equivalence_test.py` | orchestratore + confronto + verdetto (esegue anche `build_config.py --check`) |
@@ -245,15 +249,23 @@ le logiche.**
     diverso da `calcolato` il moltiplicatore è esattamente `1.0`. Coperto da
     `donors_*_territori.csv`: i 7 stati sono verificati identici fra le due
     implementazioni **e** corretti rispetto all'atteso, sia con `ZONE_POSTALI` reale
-    sia con la tabella vuota (tutti in `dati_non_caricati`). Nota di confine: con lo
-    strato rimosso da `riattivazione`/`one_off` alcuni punteggi cadono esattamente su
-    `.x5` (es. 21.25) → `round` half-to-even (21.2) vs `Math.round` half-up (21.3):
-    scarto di 1 ULP, **solo arrotondamento**, trattato come avviso (confronto sul
-    confine reso robusto al float).
+    sia con la tabella vuota (tutti in `dati_non_caricati`).
+12. **Arrotondamento allineato a JS, tolleranza ZERO.** Tolto lo strato da
+    `riattivazione`/`one_off`, alcuni punteggi cadono esattamente su `.x5` (es.
+    21.25), dove `round()` di Python (bancario, half-to-even → 21.2) diverge da
+    `Math.round` di JS (mezzo verso +∞ → 21.3). **Non è imprecisione in virgola
+    mobile, è una differenza di regola**: una tolleranza di 1 ULP la maschererebbe
+    per sempre. Soluzione: `round_js` in `polisim_propensione.py` replica `Math.round`
+    (negativi compresi: `-0.5→0`, `-2.5→-2`) ed è usata **ovunque** si arrotondi un
+    output (punteggi, segnali, moltiplicatori, tassi, lift). La tolleranza del banco
+    è stata riportata a **0** su tutti i campi. Coperto in permanenza da
+    `donors_*_arrotondamento.csv`: `ARR002_mezzo` ha `prop_riattivazione` grezzo
+    esatto `21.25` → deve dare `21.3` in **entrambe** (asserzione di regola: un
+    ritorno a `round()` bancario lo farebbe scendere a `21.2` e il banco fallirebbe).
 
-Esito finale: **PASS** (exit 0), 21 vs 21 donatori, 0 divergenze logiche. Lift per
-obiettivo concorde JS/PY (lascito 2.83×, riattivazione calcolato, 3 obiettivi
-colonna-assente) + segmenti ausiliari concordi: sotto-soglia (3 positivi, nessun
-lift) e denominatore-zero (5 positivi tutti nel top 20%, lift non definito).
-Scarti residui = solo arrotondamento (`round` half-to-even vs `Math.round`
-half-up), entro 1 ULP.
+Esito finale: **PASS** (exit 0), 21 vs 21 donatori, **0 divergenze, tolleranza
+ZERO** (output identici al bit fra Python e JS). Lift per obiettivo concorde JS/PY
+(lascito 2.83×, riattivazione calcolato, 3 obiettivi colonna-assente) + segmenti
+ausiliari concordi: sotto-soglia (3 positivi, nessun lift), denominatore-zero (5
+positivi tutti nel top 20%, lift non definito), i 7 stati territoriali (reale +
+vuota) e il caso `.x5` (21.25 → 21.3 in entrambe).
