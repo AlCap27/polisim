@@ -799,8 +799,8 @@ footer{padding:24px 48px;border-top:1px solid var(--linea);display:flex;justify-
 <!-- RFML_CONFIG:START (generato da build_config.py - NON editare a mano) -->
 <script type="application/json" id="rfml-config">
 {
-  "versione": "1.0.0",
-  "descrizione": "Configurazione condivisa del motore RFML del Modulo Propensione. UNICA FONTE DI VERITA' per le tabelle e costanti usate sia da polisim_propensione.py (lette a runtime con json.load) sia da propensione_dashboard.html (iniettate a build-time nel blocco <script id='rfml-config'> da build_config.py). NON editare i valori nell'HTML a mano: rigenerare con 'python build_config.py'. equivalence_test.py esegue 'build_config.py --check' e fallisce se l'HTML e' fuori sincrono.",
+  "versione": "2.0.0",
+  "descrizione": "Configurazione condivisa del motore RFML del Modulo Propensione. UNICA FONTE DI VERITA' per le tabelle e costanti usate sia da polisim_propensione.py (lette a runtime con json.load) sia da propensione_dashboard.html (iniettate a build-time nel blocco <script id='rfml-config'> da build_config.py). NON editare i valori nell'HTML a mano: rigenerare con 'python build_config.py'. equivalence_test.py esegue 'build_config.py --check' e fallisce se l'HTML e' fuori sincrono. v2.0.0: strato territoriale rifatto su ZONE POSTALI (prime 2 cifre del CAP) al posto della granularita' regionale; rimosso l'ex indicatore di disuguaglianza (dichiarato indice di disuguaglianza ma privo di fonte tracciabile e mai un vero indice), insieme a ISTAT_REGIONI, ISTAT_NAZIONALE e CAP_PREFISSO_REGIONE.",
   "tabelle": {
     "PESI_OBIETTIVO": {
       "fonte_dati": {
@@ -848,269 +848,759 @@ footer{padding:24px 48px;border-top:1px solid var(--linea);display:flex;justify-
     },
     "PESI_TERRITORIALI": {
       "fonte_dati": {
-        "origine": "expert-calibrated; pesi degli indicatori territoriali ISTAT per obiettivo, derivazione numerica non documentata da fonte specifica",
+        "origine": "pesi DICHIARATI, calibrati sull'esperienza di dominio; NON stimati su esiti reali. Esprimono la sola IMPORTANZA RELATIVA dei tre indicatori territoriali per ciascun obiettivo (stessa natura di PESI_OBIETTIVO). L'ampiezza del moltiplicatore e' il parametro unico AMPIEZZA_TERRITORIALE, non questi pesi.",
         "verificato": false,
-        "note": "Struttura: over65, reddito, gini_penalita (peso applicato al segnale gia' invertito), cap (ampiezza massima del moltiplicatore, es. 0.15 = +/-15%)."
+        "note": "Matrice obiettivo x indicatore; chiavi allineate a ZONE_POSTALI e RIFERIMENTI_NAZIONALI (quota_over65, reddito_medio, istruzione_terziaria_25plus). Riattivazione e one_off_emergenza hanno tutti i pesi a zero: per quei due obiettivi la somma pesata s=0 e il moltiplicatore vale ESATTAMENTE 1.0. Non e' una dimenticanza: la propensione a riattivarsi o a rispondere a un'emergenza dipende dalla storia della persona, non da dove abita. Lo strato territoriale non si applica a questi due obiettivi (stato 'non_applicabile')."
       },
-      "ipotesi_non_validate": [
-        "gini_penalita (peso POSITIVO): si assume che un'alta disuguaglianza interna riduca la propensione a donare. IPOTESI DI DOMINIO PLAUSIBILE, NON DIMOSTRATA. Il peso positivo si combina con l'inversione gia' presente nella formula (gini_norm = -(gini-0.328)/0.04): alta gini -> gini_norm negativo -> contributo negativo -> score piu' basso. NB: nella vecchia copia JS il peso era negativo (-0.20) e, moltiplicato per lo stesso gini_norm invertito, produceva una DOPPIA negazione che ALZAVA lo score con alta gini (bug D6). Il valore canonico qui e' positivo (come nel Python)."
-      ],
       "valori": {
         "lascito": {
-          "over65": 0.5,
-          "reddito": 0.3,
-          "gini_penalita": 0.2,
-          "cap": 0.15
+          "quota_over65": 0.2,
+          "reddito_medio": 0.1,
+          "istruzione_terziaria_25plus": 0.1
         },
         "upgrade": {
-          "over65": 0.0,
-          "reddito": 0.6,
-          "gini_penalita": 0.4,
-          "cap": 0.1
+          "quota_over65": 0.0,
+          "reddito_medio": 0.2,
+          "istruzione_terziaria_25plus": 0.1
         },
         "sostegno_continuativo": {
-          "over65": -0.1,
-          "reddito": 0.6,
-          "gini_penalita": 0.3,
-          "cap": 0.1
+          "quota_over65": 0.0,
+          "reddito_medio": 0.1,
+          "istruzione_terziaria_25plus": 0.1
         },
         "riattivazione": {
-          "over65": 0.05,
-          "reddito": 0.6,
-          "gini_penalita": 0.35,
-          "cap": 0.05
+          "quota_over65": 0.0,
+          "reddito_medio": 0.0,
+          "istruzione_terziaria_25plus": 0.0
         },
         "one_off_emergenza": {
-          "over65": 0.15,
-          "reddito": 0.5,
-          "gini_penalita": 0.35,
-          "cap": 0.12
+          "quota_over65": 0.0,
+          "reddito_medio": 0.0,
+          "istruzione_terziaria_25plus": 0.0
         }
       }
     },
-    "ISTAT_REGIONI": {
+    "RIFERIMENTI_NAZIONALI": {
       "fonte_dati": {
-        "origine": "dichiarata nel codice come ISTAT Censimento Permanente 2021 + MEF redditi per regione; NON ricontrollata su fonte primaria",
-        "verificato": false,
-        "note": "Indicatori per regione: over65 (% popolazione 65+), reddito (medio annuo EUR), gini (indice di disuguaglianza). Da verificare su fonte primaria prima di trattare come dato reale."
+        "origine": "ricalcolati sulle 90 zone postali USABILI (escluse 07, 08, 09) dai totali grezzi di zone_postali.csv (consegna rfml-zone-postali-20261016, SHA256 verificato). centro = somma(numeratori)/somma(denominatori); dispersione = deviazione standard dei valori di zona ponderata per il denominatore della zona (popolazione/frequenza/residenti25+). Copertura: 7516 comuni, 57394741 residenti.",
+        "verificato": true,
+        "unita": {
+          "quota_over65": "frazione 0-1",
+          "reddito_medio": "euro",
+          "istruzione_terziaria_25plus": "punti percentuali"
+        },
+        "note": "Centro e scala per normalizzare i tre indicatori nel moltiplicatore: z = (x - centro)/dispersione. Sostituiscono i numeri magici della versione precedente (un centro e una scala di normalizzazione scritti a mano, di origine ignota): nessuna costante di normalizzazione resta nel codice. L'unita' di centro/dispersione di ogni indicatore e' la STESSA del valore di zona in ZONE_POSTALI (vedi 'unita'): la normalizzazione non uniforma le scale, le tiene per indicatore."
       },
       "valori": {
-        "Piemonte": {
-          "over65": 25.2,
-          "reddito": 28500,
-          "gini": 0.312
+        "quota_over65": {
+          "centro": 0.24277889850570106,
+          "dispersione": 0.021687161339719145
         },
-        "Valle d'Aosta": {
-          "over65": 24.3,
-          "reddito": 31200,
-          "gini": 0.298
+        "reddito_medio": {
+          "centro": 25919.5089916392,
+          "dispersione": 4030.013813103815
         },
-        "Lombardia": {
-          "over65": 23.7,
-          "reddito": 33100,
-          "gini": 0.315
-        },
-        "Liguria": {
-          "over65": 28.7,
-          "reddito": 26800,
-          "gini": 0.321
-        },
-        "Trentino-Alto Adige": {
-          "over65": 22.1,
-          "reddito": 34400,
-          "gini": 0.289
-        },
-        "Veneto": {
-          "over65": 23.7,
-          "reddito": 29600,
-          "gini": 0.305
-        },
-        "Friuli-Venezia Giulia": {
-          "over65": 26.0,
-          "reddito": 27100,
-          "gini": 0.308
-        },
-        "Emilia-Romagna": {
-          "over65": 24.6,
-          "reddito": 31800,
-          "gini": 0.307
-        },
-        "Toscana": {
-          "over65": 26.2,
-          "reddito": 28100,
-          "gini": 0.318
-        },
-        "Umbria": {
-          "over65": 27.1,
-          "reddito": 23600,
-          "gini": 0.323
-        },
-        "Marche": {
-          "over65": 26.6,
-          "reddito": 23800,
-          "gini": 0.318
-        },
-        "Lazio": {
-          "over65": 23.9,
-          "reddito": 28600,
-          "gini": 0.334
-        },
-        "Abruzzo": {
-          "over65": 26.3,
-          "reddito": 21800,
-          "gini": 0.329
-        },
-        "Molise": {
-          "over65": 28.7,
-          "reddito": 18700,
-          "gini": 0.331
-        },
-        "Campania": {
-          "over65": 21.2,
-          "reddito": 17100,
-          "gini": 0.365
-        },
-        "Puglia": {
-          "over65": 22.9,
-          "reddito": 18100,
-          "gini": 0.352
-        },
-        "Basilicata": {
-          "over65": 27.8,
-          "reddito": 17600,
-          "gini": 0.334
-        },
-        "Calabria": {
-          "over65": 23.0,
-          "reddito": 16500,
-          "gini": 0.368
-        },
-        "Sicilia": {
-          "over65": 21.9,
-          "reddito": 17100,
-          "gini": 0.371
-        },
-        "Sardegna": {
-          "over65": 25.8,
-          "reddito": 20800,
-          "gini": 0.341
+        "istruzione_terziaria_25plus": {
+          "centro": 19.75930368503108,
+          "dispersione": 3.643494656276599
         }
       }
     },
-    "ISTAT_NAZIONALE": {
+    "ZONE_POSTALI": {
       "fonte_dati": {
-        "origine": "media nazionale italiana dichiarata nel codice; NON ricontrollata su fonte primaria",
-        "verificato": false,
-        "note": "Fallback se CAP mancante o non riconosciuto. Coincide con i centri usati per normalizzare gli indicatori nella formula del moltiplicatore."
+        "origine": "zone_postali.csv, consegna rfml-zone-postali-20261016 (SHA256 b5bf6f0958... verificato). Una voce per prefisso (prime 2 cifre del CAP), 93 in tutto. I valori sono RAPPORTI dei totali dei soli comuni assegnati, non statistiche certificate dell'intera zona. Redditi anno d'imposta 2024; popolazione e istruzione 2023.",
+        "verificato": true,
+        "unita": {
+          "quota_over65": "frazione 0-1 (es. 0.243 = 24,3%); somma(P27+P28+P29)/somma(P1)",
+          "reddito_medio": "euro; somma ammontare/somma frequenza del reddito complessivo",
+          "istruzione_terziaria_25plus": "punti percentuali (es. 19.76 = 19,76%); 100 x somma(P90)/somma(P19..P29). P90 e' un numeratore 9+, non il numero esatto di laureati 25+",
+          "quota_oltre75k_min": "frazione 0-1; SOLO contesto di visualizzazione, MAI nel punteggio",
+          "quota_oltre75k_max": "frazione 0-1; SOLO contesto di visualizzazione, MAI nel punteggio"
+        },
+        "note": "TRAPPOLA DI UNITA': quota_over65 e' una frazione 0-1 (0,193-0,300), istruzione_terziaria_25plus e' in punti percentuali (14,2-27,7). Scale diverse, NON uniformate: la normalizzazione usa il riferimento (RIFERIMENTI_NAZIONALI) nella stessa unita' del valore. Entrano nel punteggio SOLO quota_over65, reddito_medio, istruzione_terziaria_25plus (pesati in PESI_TERRITORIALI). quota_oltre75k_min/max e' un INTERVALLO di sola visualizzazione: nessun percorso di calcolo del punteggio deve toccarlo (mai un punto medio presentato come stima). Le zone 07, 08, 09 restano in tabella ma con indicatori nulli e 'escluso': true (vedi 'motivo'): base codificata insufficiente, dichiarate non nascoste (l'analisi di sensibilita' mostra escursione zero su 88 zone su 92 e instabilita' solo su 08 e 09; la 07 non ha base)."
       },
       "valori": {
-        "over65": 24.1,
-        "reddito": 24700,
-        "gini": 0.328
+        "00": {
+          "quota_over65": 0.229419921243127,
+          "reddito_medio": 29709.895331456242,
+          "istruzione_terziaria_25plus": 27.651979728849525,
+          "quota_oltre75k_min": 0.05301352468452343,
+          "quota_oltre75k_max": 0.05429199071187934
+        },
+        "01": {
+          "quota_over65": 0.258981559121962,
+          "reddito_medio": 22665.132109821127,
+          "istruzione_terziaria_25plus": 18.752698156700795,
+          "quota_oltre75k_min": 0.019227669937683548,
+          "quota_oltre75k_max": 0.0231895995988826
+        },
+        "02": {
+          "quota_over65": 0.2711416913353068,
+          "reddito_medio": 23314.864739522578,
+          "istruzione_terziaria_25plus": 18.48345550171864,
+          "quota_oltre75k_min": 0.014930190523617182,
+          "quota_oltre75k_max": 0.02043564064257917
+        },
+        "03": {
+          "quota_over65": 0.2543950050453001,
+          "reddito_medio": 21991.603590071096,
+          "istruzione_terziaria_25plus": 17.998423440010257,
+          "quota_oltre75k_min": 0.013952136114701412,
+          "quota_oltre75k_max": 0.016663559169381777
+        },
+        "04": {
+          "quota_over65": 0.2282186662621081,
+          "reddito_medio": 21970.72922593861,
+          "istruzione_terziaria_25plus": 18.597754037493452,
+          "quota_oltre75k_min": 0.01753657309991268,
+          "quota_oltre75k_max": 0.020338821904578423
+        },
+        "05": {
+          "quota_over65": 0.28823791036201735,
+          "reddito_medio": 24366.06464357176,
+          "istruzione_terziaria_25plus": 20.151959738739933,
+          "quota_oltre75k_min": 0.023400304110476854,
+          "quota_oltre75k_max": 0.026179674452227235
+        },
+        "06": {
+          "quota_over65": 0.2643646955064326,
+          "reddito_medio": 24888.899517447673,
+          "istruzione_terziaria_25plus": 21.667669190903187,
+          "quota_oltre75k_min": 0.026245241264524623,
+          "quota_oltre75k_max": 0.028466502021492198
+        },
+        "07": {
+          "quota_over65": null,
+          "reddito_medio": null,
+          "istruzione_terziaria_25plus": null,
+          "quota_oltre75k_min": null,
+          "quota_oltre75k_max": null,
+          "escluso": true,
+          "motivo": "base territoriale codificata insufficiente: nessun comune assegnato nella zona. L'analisi di sensibilita' non ha una base rispetto a cui misurare la variazione. Dichiarata esclusa, non riempita con valori stimati."
+        },
+        "08": {
+          "quota_over65": null,
+          "reddito_medio": null,
+          "istruzione_terziaria_25plus": null,
+          "quota_oltre75k_min": null,
+          "quota_oltre75k_max": null,
+          "escluso": true,
+          "motivo": "base territoriale codificata insufficiente: un solo comune assegnato (Siniscola, da GeoNames). Assegnazioni discordanti fra le fonti; la sensibilita' sui comuni candidati oscilla fino a 6,25 punti di over65, 4.567 EUR di reddito e 7,84 punti di istruzione. Esclusa, non stimata."
+        },
+        "09": {
+          "quota_over65": null,
+          "reddito_medio": null,
+          "istruzione_terziaria_25plus": null,
+          "quota_oltre75k_min": null,
+          "quota_oltre75k_max": null,
+          "escluso": true,
+          "motivo": "base territoriale codificata insufficiente: un solo comune assegnato (Cagliari, dal MEF). Assegnazioni discordanti fra le fonti, in alcuni casi fra zone diverse; la sensibilita' oscilla fino a 4,43 punti di over65, 7.590 EUR di reddito e 15,58 punti di istruzione. Esclusa, non stimata."
+        },
+        "10": {
+          "quota_over65": 0.26363127977260903,
+          "reddito_medio": 28340.27841887612,
+          "istruzione_terziaria_25plus": 20.357673264485857,
+          "quota_oltre75k_min": 0.03647832602044021,
+          "quota_oltre75k_max": 0.03830639975354504
+        },
+        "11": {
+          "quota_over65": 0.25343229408270057,
+          "reddito_medio": 27817.789867339714,
+          "istruzione_terziaria_25plus": 18.12821712681329,
+          "quota_oltre75k_min": 0.03074950670579633,
+          "quota_oltre75k_max": 0.037280020833542
+        },
+        "12": {
+          "quota_over65": 0.2507538327711821,
+          "reddito_medio": 26193.57519157956,
+          "istruzione_terziaria_25plus": 15.56197625620959,
+          "quota_oltre75k_min": 0.02680381410015767,
+          "quota_oltre75k_max": 0.03167522733997871
+        },
+        "13": {
+          "quota_over65": 0.2907920439622241,
+          "reddito_medio": 26054.343367432175,
+          "istruzione_terziaria_25plus": 15.00999454842813,
+          "quota_oltre75k_min": 0.02257700248278589,
+          "quota_oltre75k_max": 0.028196539308241862
+        },
+        "14": {
+          "quota_over65": 0.27311944180390757,
+          "reddito_medio": 25376.719528271868,
+          "istruzione_terziaria_25plus": 14.80757758379293,
+          "quota_oltre75k_min": 0.022149993980979898,
+          "quota_oltre75k_max": 0.02921442283933018
+        },
+        "15": {
+          "quota_over65": 0.2860243365281691,
+          "reddito_medio": 26116.29843714654,
+          "istruzione_terziaria_25plus": 16.047418299757055,
+          "quota_oltre75k_min": 0.022892876737821213,
+          "quota_oltre75k_max": 0.029136680260147783
+        },
+        "16": {
+          "quota_over65": 0.291383122887181,
+          "reddito_medio": 27898.205487104016,
+          "istruzione_terziaria_25plus": 22.646481645746505,
+          "quota_oltre75k_min": 0.03883341376935134,
+          "quota_oltre75k_max": 0.040875940765222954
+        },
+        "17": {
+          "quota_over65": 0.2995921754505321,
+          "reddito_medio": 25927.296127540463,
+          "istruzione_terziaria_25plus": 17.618478546743138,
+          "quota_oltre75k_min": 0.030809792487125114,
+          "quota_oltre75k_max": 0.03366404119963647
+        },
+        "18": {
+          "quota_over65": 0.28452746347699925,
+          "reddito_medio": 22906.26376780919,
+          "istruzione_terziaria_25plus": 15.570763201467559,
+          "quota_oltre75k_min": 0.018468307157108507,
+          "quota_oltre75k_max": 0.026193277740829794
+        },
+        "19": {
+          "quota_over65": 0.27804975568480317,
+          "reddito_medio": 26857.086989707983,
+          "istruzione_terziaria_25plus": 18.808628766410273,
+          "quota_oltre75k_min": 0.02808603341196861,
+          "quota_oltre75k_max": 0.033111068316402675
+        },
+        "20": {
+          "quota_over65": 0.23082437241206322,
+          "reddito_medio": 33904.23388695372,
+          "istruzione_terziaria_25plus": 25.89343132751493,
+          "quota_oltre75k_min": 0.05801304512227861,
+          "quota_oltre75k_max": 0.06298792823819852
+        },
+        "21": {
+          "quota_over65": 0.2472914160296368,
+          "reddito_medio": 28108.888276752587,
+          "istruzione_terziaria_25plus": 18.917349487592503,
+          "quota_oltre75k_min": 0.03440389946818429,
+          "quota_oltre75k_max": 0.03840446040970306
+        },
+        "22": {
+          "quota_over65": 0.24054559837042958,
+          "reddito_medio": 27839.589741669963,
+          "istruzione_terziaria_25plus": 18.6318489038323,
+          "quota_oltre75k_min": 0.03552602406258625,
+          "quota_oltre75k_max": 0.039539471600447046
+        },
+        "23": {
+          "quota_over65": 0.25256617780580815,
+          "reddito_medio": 28249.425157726884,
+          "istruzione_terziaria_25plus": 17.284609964821488,
+          "quota_oltre75k_min": 0.03621063815924662,
+          "quota_oltre75k_max": 0.03915259588927814
+        },
+        "24": {
+          "quota_over65": 0.22473606999829795,
+          "reddito_medio": 27906.827620228218,
+          "istruzione_terziaria_25plus": 16.814238661856564,
+          "quota_oltre75k_min": 0.03266186505286984,
+          "quota_oltre75k_max": 0.035615520482623744
+        },
+        "25": {
+          "quota_over65": 0.22816516053308802,
+          "reddito_medio": 27163.23533813216,
+          "istruzione_terziaria_25plus": 16.389324148915815,
+          "quota_oltre75k_min": 0.031183098710027467,
+          "quota_oltre75k_max": 0.03457732054156134
+        },
+        "26": {
+          "quota_over65": 0.24256144001593302,
+          "reddito_medio": 27517.204208833497,
+          "istruzione_terziaria_25plus": 16.858144611788575,
+          "quota_oltre75k_min": 0.026580763589572853,
+          "quota_oltre75k_max": 0.03144430547182205
+        },
+        "27": {
+          "quota_over65": 0.251837023474161,
+          "reddito_medio": 27194.6713920509,
+          "istruzione_terziaria_25plus": 19.13843018382379,
+          "quota_oltre75k_min": 0.0316664477237232,
+          "quota_oltre75k_max": 0.03511115003430106
+        },
+        "28": {
+          "quota_over65": 0.2592760863344959,
+          "reddito_medio": 26920.28885240024,
+          "istruzione_terziaria_25plus": 16.364272211257926,
+          "quota_oltre75k_min": 0.025455264438676184,
+          "quota_oltre75k_max": 0.03303709036340039
+        },
+        "29": {
+          "quota_over65": 0.252637627939409,
+          "reddito_medio": 28043.36627590215,
+          "istruzione_terziaria_25plus": 18.324060264528057,
+          "quota_oltre75k_min": 0.03532744023904383,
+          "quota_oltre75k_max": 0.036905947638019354
+        },
+        "30": {
+          "quota_over65": 0.2604868297412632,
+          "reddito_medio": 26636.63188787622,
+          "istruzione_terziaria_25plus": 17.782881280030985,
+          "quota_oltre75k_min": 0.02968568633051553,
+          "quota_oltre75k_max": 0.03204820448620168
+        },
+        "31": {
+          "quota_over65": 0.23787793328996984,
+          "reddito_medio": 27201.297236080696,
+          "istruzione_terziaria_25plus": 17.768382141270152,
+          "quota_oltre75k_min": 0.02972146064290539,
+          "quota_oltre75k_max": 0.03431595460840107
+        },
+        "32": {
+          "quota_over65": 0.2810382834145651,
+          "reddito_medio": 26567.332300172126,
+          "istruzione_terziaria_25plus": 16.560204004342665,
+          "quota_oltre75k_min": 0.023595614162198714,
+          "quota_oltre75k_max": 0.029011495918465923
+        },
+        "33": {
+          "quota_over65": 0.2676125067338563,
+          "reddito_medio": 26612.519554551036,
+          "istruzione_terziaria_25plus": 18.13430722717322,
+          "quota_oltre75k_min": 0.028965367397100296,
+          "quota_oltre75k_max": 0.03167073301375919
+        },
+        "34": {
+          "quota_over65": 0.28060592839028115,
+          "reddito_medio": 27175.696791370367,
+          "istruzione_terziaria_25plus": 22.39029662053778,
+          "quota_oltre75k_min": 0.025206864333295245,
+          "quota_oltre75k_max": 0.03359234786817146
+        },
+        "35": {
+          "quota_over65": 0.2417467880769466,
+          "reddito_medio": 28083.906967852752,
+          "istruzione_terziaria_25plus": 21.677777290469717,
+          "quota_oltre75k_min": 0.038777370358258595,
+          "quota_oltre75k_max": 0.04135176694057319
+        },
+        "36": {
+          "quota_over65": 0.23470477138701354,
+          "reddito_medio": 27312.573427494386,
+          "istruzione_terziaria_25plus": 17.10434179022784,
+          "quota_oltre75k_min": 0.02913628162949711,
+          "quota_oltre75k_max": 0.03288103215633954
+        },
+        "37": {
+          "quota_over65": 0.231982696311639,
+          "reddito_medio": 26737.33383387239,
+          "istruzione_terziaria_25plus": 19.013152654913625,
+          "quota_oltre75k_min": 0.03222257452589341,
+          "quota_oltre75k_max": 0.03515140250269239
+        },
+        "38": {
+          "quota_over65": 0.23611210468680355,
+          "reddito_medio": 27249.810949311108,
+          "istruzione_terziaria_25plus": 22.191572133302255,
+          "quota_oltre75k_min": 0.033157895914090095,
+          "quota_oltre75k_max": 0.03622227242530862
+        },
+        "39": {
+          "quota_over65": 0.2057027196469798,
+          "reddito_medio": 29846.21724524076,
+          "istruzione_terziaria_25plus": 16.118128357208214,
+          "quota_oltre75k_min": 0.03764488165968637,
+          "quota_oltre75k_max": 0.04572903477159832
+        },
+        "40": {
+          "quota_over65": 0.2475902572488836,
+          "reddito_medio": 30686.013684198544,
+          "istruzione_terziaria_25plus": 26.429404174119266,
+          "quota_oltre75k_min": 0.043035213769689315,
+          "quota_oltre75k_max": 0.04784404484623584
+        },
+        "41": {
+          "quota_over65": 0.23671057194827622,
+          "reddito_medio": 28855.500313933655,
+          "istruzione_terziaria_25plus": 19.34020791874759,
+          "quota_oltre75k_min": 0.03531748618444401,
+          "quota_oltre75k_max": 0.038401089310417254
+        },
+        "42": {
+          "quota_over65": 0.2262019335308588,
+          "reddito_medio": 28349.684768091767,
+          "istruzione_terziaria_25plus": 17.609934352114966,
+          "quota_oltre75k_min": 0.03315378420115414,
+          "quota_oltre75k_max": 0.03525221850316612
+        },
+        "43": {
+          "quota_over65": 0.23390120863417072,
+          "reddito_medio": 29770.586446896014,
+          "istruzione_terziaria_25plus": 22.158342147086938,
+          "quota_oltre75k_min": 0.042987015934988874,
+          "quota_oltre75k_max": 0.0450157760929768
+        },
+        "44": {
+          "quota_over65": 0.2885233642658627,
+          "reddito_medio": 25371.323349879258,
+          "istruzione_terziaria_25plus": 18.298362806679254,
+          "quota_oltre75k_min": 0.026531417053720096,
+          "quota_oltre75k_max": 0.028021207606695294
+        },
+        "45": {
+          "quota_over65": 0.2808026450001759,
+          "reddito_medio": 23919.61913760042,
+          "istruzione_terziaria_25plus": 14.905909184258029,
+          "quota_oltre75k_min": 0.01725309656911104,
+          "quota_oltre75k_max": 0.020645620958018196
+        },
+        "46": {
+          "quota_over65": 0.2444312312961607,
+          "reddito_medio": 26359.171016047356,
+          "istruzione_terziaria_25plus": 15.8633482082403,
+          "quota_oltre75k_min": 0.027528397206937606,
+          "quota_oltre75k_max": 0.028387553496154714
+        },
+        "47": {
+          "quota_over65": 0.24826758788997186,
+          "reddito_medio": 24765.862791020918,
+          "istruzione_terziaria_25plus": 19.580322013561403,
+          "quota_oltre75k_min": 0.02622049537952901,
+          "quota_oltre75k_max": 0.02875768949350966
+        },
+        "48": {
+          "quota_over65": 0.26035240129225856,
+          "reddito_medio": 26350.748249215165,
+          "istruzione_terziaria_25plus": 18.87993142303741,
+          "quota_oltre75k_min": 0.02614376996805112,
+          "quota_oltre75k_max": 0.02977635782747604
+        },
+        "50": {
+          "quota_over65": 0.26078166638854755,
+          "reddito_medio": 28519.848052238016,
+          "istruzione_terziaria_25plus": 23.312191395214093,
+          "quota_oltre75k_min": 0.03970799503357537,
+          "quota_oltre75k_max": 0.04281526070479026
+        },
+        "51": {
+          "quota_over65": 0.26338012135679517,
+          "reddito_medio": 24469.388950302233,
+          "istruzione_terziaria_25plus": 15.95817052749093,
+          "quota_oltre75k_min": 0.021822204344328237,
+          "quota_oltre75k_max": 0.02459226212243107
+        },
+        "52": {
+          "quota_over65": 0.26586049246424115,
+          "reddito_medio": 25473.88204924387,
+          "istruzione_terziaria_25plus": 18.18195569471861,
+          "quota_oltre75k_min": 0.022003676894793118,
+          "quota_oltre75k_max": 0.02694210044538119
+        },
+        "53": {
+          "quota_over65": 0.2685736484199514,
+          "reddito_medio": 26835.00820624872,
+          "istruzione_terziaria_25plus": 22.258174221444882,
+          "quota_oltre75k_min": 0.03280294831671005,
+          "quota_oltre75k_max": 0.035791238897501146
+        },
+        "54": {
+          "quota_over65": 0.287621268357382,
+          "reddito_medio": 24710.787776435132,
+          "istruzione_terziaria_25plus": 17.766119411838368,
+          "quota_oltre75k_min": 0.02201128565757387,
+          "quota_oltre75k_max": 0.025662110814949242
+        },
+        "55": {
+          "quota_over65": 0.26824784063945356,
+          "reddito_medio": 26182.084920943722,
+          "istruzione_terziaria_25plus": 18.222649142534923,
+          "quota_oltre75k_min": 0.030799741531016278,
+          "quota_oltre75k_max": 0.034848630664320285
+        },
+        "56": {
+          "quota_over65": 0.25305142288004523,
+          "reddito_medio": 26854.43104525806,
+          "istruzione_terziaria_25plus": 22.340904253701847,
+          "quota_oltre75k_min": 0.027560501364882924,
+          "quota_oltre75k_max": 0.035623127640304265
+        },
+        "57": {
+          "quota_over65": 0.2805234206211789,
+          "reddito_medio": 25830.250503268693,
+          "istruzione_terziaria_25plus": 18.230193292077317,
+          "quota_oltre75k_min": 0.027568612600402605,
+          "quota_oltre75k_max": 0.03017957865784386
+        },
+        "58": {
+          "quota_over65": 0.2903216837656741,
+          "reddito_medio": 23693.045495905368,
+          "istruzione_terziaria_25plus": 17.417155950164684,
+          "quota_oltre75k_min": 0.023306024666528643,
+          "quota_oltre75k_max": 0.025329034929460828
+        },
+        "59": {
+          "quota_over65": 0.22891570900388963,
+          "reddito_medio": 24773.510855587036,
+          "istruzione_terziaria_25plus": 15.011393705908343,
+          "quota_oltre75k_min": 0.027901186349655813,
+          "quota_oltre75k_max": 0.028511448518283456
+        },
+        "60": {
+          "quota_over65": 0.2617599847496583,
+          "reddito_medio": 25808.013006564353,
+          "istruzione_terziaria_25plus": 21.54895036565864,
+          "quota_oltre75k_min": 0.024147404056941477,
+          "quota_oltre75k_max": 0.030071870577462054
+        },
+        "61": {
+          "quota_over65": 0.2526937653265958,
+          "reddito_medio": 24716.604224741604,
+          "istruzione_terziaria_25plus": 20.24266227674742,
+          "quota_oltre75k_min": 0.02615070391713473,
+          "quota_oltre75k_max": 0.026880151725144064
+        },
+        "62": {
+          "quota_over65": 0.26541207222609103,
+          "reddito_medio": 24312.120726514524,
+          "istruzione_terziaria_25plus": 19.914367548571885,
+          "quota_oltre75k_min": 0.022245785357886502,
+          "quota_oltre75k_max": 0.026871950984877314
+        },
+        "63": {
+          "quota_over65": 0.2693120285029953,
+          "reddito_medio": 23176.06099222744,
+          "istruzione_terziaria_25plus": 19.467045753554792,
+          "quota_oltre75k_min": 0.020916749641618822,
+          "quota_oltre75k_max": 0.023420121602440523
+        },
+        "64": {
+          "quota_over65": 0.2484412277712063,
+          "reddito_medio": 21824.05554066151,
+          "istruzione_terziaria_25plus": 18.799750637189835,
+          "quota_oltre75k_min": 0.014752496695387689,
+          "quota_oltre75k_max": 0.01912917386902683
+        },
+        "65": {
+          "quota_over65": 0.24841951538210258,
+          "reddito_medio": 23656.832840770498,
+          "istruzione_terziaria_25plus": 23.23791797176077,
+          "quota_oltre75k_min": 0.02706047646522526,
+          "quota_oltre75k_max": 0.02819240069236766
+        },
+        "66": {
+          "quota_over65": 0.2638442536615852,
+          "reddito_medio": 21935.578162696722,
+          "istruzione_terziaria_25plus": 19.66852219832866,
+          "quota_oltre75k_min": 0.016574525469811204,
+          "quota_oltre75k_max": 0.019812474816957852
+        },
+        "67": {
+          "quota_over65": 0.26411976348524574,
+          "reddito_medio": 23477.419040744848,
+          "istruzione_terziaria_25plus": 21.841979863864687,
+          "quota_oltre75k_min": 0.02051139939691695,
+          "quota_oltre75k_max": 0.02388377969620396
+        },
+        "70": {
+          "quota_over65": 0.23665487418166103,
+          "reddito_medio": 22297.033975945465,
+          "istruzione_terziaria_25plus": 18.711180124223603,
+          "quota_oltre75k_min": 0.023119151737433584,
+          "quota_oltre75k_max": 0.025265669817087506
+        },
+        "71": {
+          "quota_over65": 0.23315145731252887,
+          "reddito_medio": 18749.286491061313,
+          "istruzione_terziaria_25plus": 15.89794067552921,
+          "quota_oltre75k_min": 0.011391531922663366,
+          "quota_oltre75k_max": 0.01483029356271936
+        },
+        "72": {
+          "quota_over65": 0.25144205280458065,
+          "reddito_medio": 19868.66156186101,
+          "istruzione_terziaria_25plus": 14.487552505212504,
+          "quota_oltre75k_min": 0.012398289369110246,
+          "quota_oltre75k_max": 0.014714453317185785
+        },
+        "73": {
+          "quota_over65": 0.26096312583824166,
+          "reddito_medio": 19688.17675332937,
+          "istruzione_terziaria_25plus": 17.824617305746333,
+          "quota_oltre75k_min": 0.016653417238125665,
+          "quota_oltre75k_max": 0.01767312793004302
+        },
+        "74": {
+          "quota_over65": 0.25094444273813415,
+          "reddito_medio": 20804.019661357408,
+          "istruzione_terziaria_25plus": 15.000127745660713,
+          "quota_oltre75k_min": 0.01408019263706612,
+          "quota_oltre75k_max": 0.01562512485982404
+        },
+        "75": {
+          "quota_over65": 0.2480405935330375,
+          "reddito_medio": 20355.936723094692,
+          "istruzione_terziaria_25plus": 17.78047464940669,
+          "quota_oltre75k_min": 0.012471748357115684,
+          "quota_oltre75k_max": 0.01694725614076964
+        },
+        "76": {
+          "quota_over65": 0.21604322505020784,
+          "reddito_medio": 18723.28859511069,
+          "istruzione_terziaria_25plus": 14.229275221705308,
+          "quota_oltre75k_min": 0.012919896640826873,
+          "quota_oltre75k_max": 0.016139681608099185
+        },
+        "80": {
+          "quota_over65": 0.20000915524673055,
+          "reddito_medio": 22289.787013407215,
+          "istruzione_terziaria_25plus": 17.59833907037616,
+          "quota_oltre75k_min": 0.024026495718345316,
+          "quota_oltre75k_max": 0.02576800392882345
+        },
+        "81": {
+          "quota_over65": 0.1933841649733818,
+          "reddito_medio": 20525.418558457375,
+          "istruzione_terziaria_25plus": 17.4042439036681,
+          "quota_oltre75k_min": 0.015436841689753998,
+          "quota_oltre75k_max": 0.016949681550881175
+        },
+        "82": {
+          "quota_over65": 0.24593468722625364,
+          "reddito_medio": 19881.453044639227,
+          "istruzione_terziaria_25plus": 19.05752718108021,
+          "quota_oltre75k_min": 0.013219044842722518,
+          "quota_oltre75k_max": 0.01728903065943861
+        },
+        "83": {
+          "quota_over65": 0.23868625825937784,
+          "reddito_medio": 20378.536097392902,
+          "istruzione_terziaria_25plus": 19.10359628099439,
+          "quota_oltre75k_min": 0.014154679000732459,
+          "quota_oltre75k_max": 0.017586454340284878
+        },
+        "84": {
+          "quota_over65": 0.22726456449701235,
+          "reddito_medio": 20516.931276232986,
+          "istruzione_terziaria_25plus": 18.948081702726334,
+          "quota_oltre75k_min": 0.018383408148973057,
+          "quota_oltre75k_max": 0.020282022433211255
+        },
+        "85": {
+          "quota_over65": 0.2572803654457949,
+          "reddito_medio": 20738.316598521946,
+          "istruzione_terziaria_25plus": 17.521036620049102,
+          "quota_oltre75k_min": 0.014445176720260966,
+          "quota_oltre75k_max": 0.016418176467418562
+        },
+        "86": {
+          "quota_over65": 0.2680794124968882,
+          "reddito_medio": 20455.03505049524,
+          "istruzione_terziaria_25plus": 20.31258779645486,
+          "quota_oltre75k_min": 0.014040355399446695,
+          "quota_oltre75k_max": 0.018086281619125854
+        },
+        "87": {
+          "quota_over65": 0.24356472862666476,
+          "reddito_medio": 18530.426962868514,
+          "istruzione_terziaria_25plus": 18.982059953000515,
+          "quota_oltre75k_min": 0.013259663475115925,
+          "quota_oltre75k_max": 0.015421020506700434
+        },
+        "88": {
+          "quota_over65": 0.23883269891615147,
+          "reddito_medio": 19448.32166316853,
+          "istruzione_terziaria_25plus": 18.251008664936787,
+          "quota_oltre75k_min": 0.013913130989109138,
+          "quota_oltre75k_max": 0.01763357266182978
+        },
+        "89": {
+          "quota_over65": 0.2366012207818352,
+          "reddito_medio": 19210.565925701463,
+          "istruzione_terziaria_25plus": 18.37769054062559,
+          "quota_oltre75k_min": 0.014021102868897435,
+          "quota_oltre75k_max": 0.015781621030953832
+        },
+        "90": {
+          "quota_over65": 0.22834602371333376,
+          "reddito_medio": 21994.41708500853,
+          "istruzione_terziaria_25plus": 17.49146400333284,
+          "quota_oltre75k_min": 0.02556208694026733,
+          "quota_oltre75k_max": 0.026495299243942262
+        },
+        "91": {
+          "quota_over65": 0.24665210463353562,
+          "reddito_medio": 19382.00717780141,
+          "istruzione_terziaria_25plus": 15.346634168404654,
+          "quota_oltre75k_min": 0.013994519313788055,
+          "quota_oltre75k_max": 0.015706295281354404
+        },
+        "92": {
+          "quota_over65": 0.24034367174330343,
+          "reddito_medio": 18404.23502570041,
+          "istruzione_terziaria_25plus": 15.81614625279731,
+          "quota_oltre75k_min": 0.011769169360639282,
+          "quota_oltre75k_max": 0.013563394642617198
+        },
+        "93": {
+          "quota_over65": 0.23339861928309552,
+          "reddito_medio": 19302.33296789034,
+          "istruzione_terziaria_25plus": 15.218583745613147,
+          "quota_oltre75k_min": 0.012958328160021957,
+          "quota_oltre75k_max": 0.014605074855092826
+        },
+        "94": {
+          "quota_over65": 0.2521555653963375,
+          "reddito_medio": 18772.040328270254,
+          "istruzione_terziaria_25plus": 15.195683549827141,
+          "quota_oltre75k_min": 0.011456247851321563,
+          "quota_oltre75k_max": 0.013225747740095856
+        },
+        "95": {
+          "quota_over65": 0.2194123415185298,
+          "reddito_medio": 21240.162764040997,
+          "istruzione_terziaria_25plus": 17.189275742023916,
+          "quota_oltre75k_min": 0.02324247638021069,
+          "quota_oltre75k_max": 0.024572206573664986
+        },
+        "96": {
+          "quota_over65": 0.23262248018798617,
+          "reddito_medio": 20781.00048836492,
+          "istruzione_terziaria_25plus": 15.682049926996418,
+          "quota_oltre75k_min": 0.01690574837084383,
+          "quota_oltre75k_max": 0.017896774999479503
+        },
+        "97": {
+          "quota_over65": 0.21493503238983072,
+          "reddito_medio": 18286.61156518678,
+          "istruzione_terziaria_25plus": 15.474005100133732,
+          "quota_oltre75k_min": 0.011995464215093668,
+          "quota_oltre75k_max": 0.015589417751412748
+        },
+        "98": {
+          "quota_over65": 0.25169252480056714,
+          "reddito_medio": 21165.86254702975,
+          "istruzione_terziaria_25plus": 18.83080921038618,
+          "quota_oltre75k_min": 0.020124885150715165,
+          "quota_oltre75k_max": 0.02226620735389779
+        }
       }
     },
-    "CAP_PREFISSO_REGIONE": {
+    "CAP_NON_ITALIANI": {
       "fonte_dati": {
-        "origine": "prefissi CAP postali italiani (prime 2 cifre -> regione)",
+        "origine": "codici che condividono il prefisso con zone italiane ma non sono Italia. Il controllo su questa lista va fatto PRIMA di leggere le prime due cifre, altrimenti 00120 diventerebbe zona 00.",
         "verificato": false,
-        "note": "Copertura prefissi 00-98. Alcuni prefissi non assegnati (49, 77-79) sono assenti di proposito."
+        "note": "Ogni voce ha 'tipo': 'cap_esatto' (la chiave e' il CAP a 5 cifre) o 'intervallo' (cap_min/cap_max, confronto fra stringhe a 5 cifre). Una voce con cap_min/cap_max vuoti NON esclude alcun CAP: resta dichiarata ma inerte finche' non verificata. Non inventare intervalli."
       },
       "valori": {
-        "00": "Lazio",
-        "01": "Lazio",
-        "02": "Lazio",
-        "03": "Lazio",
-        "04": "Lazio",
-        "05": "Umbria",
-        "06": "Umbria",
-        "07": "Sardegna",
-        "08": "Sardegna",
-        "09": "Sardegna",
-        "10": "Piemonte",
-        "11": "Valle d'Aosta",
-        "12": "Piemonte",
-        "13": "Piemonte",
-        "14": "Piemonte",
-        "15": "Piemonte",
-        "16": "Liguria",
-        "17": "Liguria",
-        "18": "Liguria",
-        "19": "Liguria",
-        "20": "Lombardia",
-        "21": "Lombardia",
-        "22": "Lombardia",
-        "23": "Lombardia",
-        "24": "Lombardia",
-        "25": "Lombardia",
-        "26": "Lombardia",
-        "27": "Lombardia",
-        "28": "Piemonte",
-        "29": "Emilia-Romagna",
-        "30": "Veneto",
-        "31": "Veneto",
-        "32": "Veneto",
-        "33": "Friuli-Venezia Giulia",
-        "34": "Friuli-Venezia Giulia",
-        "35": "Veneto",
-        "36": "Veneto",
-        "37": "Veneto",
-        "38": "Trentino-Alto Adige",
-        "39": "Trentino-Alto Adige",
-        "40": "Emilia-Romagna",
-        "41": "Emilia-Romagna",
-        "42": "Emilia-Romagna",
-        "43": "Emilia-Romagna",
-        "44": "Emilia-Romagna",
-        "45": "Emilia-Romagna",
-        "46": "Emilia-Romagna",
-        "47": "Emilia-Romagna",
-        "48": "Emilia-Romagna",
-        "50": "Toscana",
-        "51": "Toscana",
-        "52": "Toscana",
-        "53": "Toscana",
-        "54": "Toscana",
-        "55": "Toscana",
-        "56": "Toscana",
-        "57": "Toscana",
-        "58": "Toscana",
-        "59": "Toscana",
-        "60": "Marche",
-        "61": "Marche",
-        "62": "Marche",
-        "63": "Marche",
-        "64": "Abruzzo",
-        "65": "Abruzzo",
-        "66": "Abruzzo",
-        "67": "Abruzzo",
-        "68": "Molise",
-        "69": "Molise",
-        "70": "Puglia",
-        "71": "Puglia",
-        "72": "Puglia",
-        "73": "Puglia",
-        "74": "Puglia",
-        "75": "Basilicata",
-        "76": "Puglia",
-        "80": "Campania",
-        "81": "Campania",
-        "82": "Campania",
-        "83": "Campania",
-        "84": "Campania",
-        "85": "Basilicata",
-        "86": "Molise",
-        "87": "Calabria",
-        "88": "Calabria",
-        "89": "Calabria",
-        "90": "Sicilia",
-        "91": "Sicilia",
-        "92": "Sicilia",
-        "93": "Sicilia",
-        "94": "Sicilia",
-        "95": "Sicilia",
-        "96": "Sicilia",
-        "97": "Sicilia",
-        "98": "Sicilia"
+        "00120": {
+          "nome": "Citta' del Vaticano",
+          "tipo": "cap_esatto",
+          "verificato": true,
+          "fonte": "vaticanstate.va; gia' escluso dalle fonti dati (esclusioni.csv, consegna 20261016)"
+        },
+        "san_marino": {
+          "nome": "Repubblica di San Marino",
+          "tipo": "intervallo",
+          "cap_min": "",
+          "cap_max": "",
+          "verificato": false,
+          "fonte": "",
+          "nota": "San Marino usa CAP nel blocco 47xxx (es. 47890 San Marino, 47899 Serravalle secondo gov.sm) condivisi con la zona italiana 47. L'intervallo ESATTO non e' verificato su questi archivi: cap_min/cap_max lasciati vuoti, nessun CAP sammarinese viene escluso finche' non verificato. Non inventare l'intervallo."
+        }
       }
     },
     "BONUS_DEMOGRAFICO": {
@@ -1182,6 +1672,18 @@ footer{padding:24px 48px;border-top:1px solid var(--linea);display:flex;justify-
         "anagrafica_mb_avviso": 25,
         "transazioni_mb_avviso": 200,
         "file_mb_massimo": 450
+      }
+    },
+    "AMPIEZZA_TERRITORIALE": {
+      "fonte_dati": {
+        "origine": "scelta di MODELLO dichiarata, non stimata su esiti reali. Ampiezza unica del moltiplicatore territoriale: molt = clamp(1 + AMPIEZZA_TERRITORIALE * s, min, max), con s = somma pesata degli z-score dei tre indicatori (pesi = importanza relativa in PESI_TERRITORIALI). E' l'UNICO parametro di ampiezza: un solo numero invece di un cap per obiettivo.",
+        "verificato": false,
+        "note": "Con valore 0.25 e i pesi correnti, sulle 90 zone usabili il moltiplicatore varia entro: lascito 0.836-1.144, upgrade 0.873-1.141, sostegno_continuativo 0.917-1.092; riattivazione e one_off_emergenza esattamente 1.000 (pesi tutti zero -> s=0). clamp_guardia [min=0.5, max=1.5] e' una GUARDIA, non un parametro di taratura: su queste 90 zone non si attiva per nessun obiettivo; impedisce solo che un futuro aggiornamento della tabella produca un moltiplicatore <= 0 o estremo. Si legge con ['AMPIEZZA_TERRITORIALE']['valore'] e ['AMPIEZZA_TERRITORIALE']['clamp_guardia'][...]."
+      },
+      "valore": 0.25,
+      "clamp_guardia": {
+        "min": 0.5,
+        "max": 1.5
       }
     }
   }
