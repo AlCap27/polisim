@@ -35,7 +35,7 @@ INPUT
 - anagrafica CSV : donor_id, anzianita_anni, fascia_eta, canale_acquisizione,
                    tipo_sostegno_prevalente, metodo_pagamento_prevalente,
                    volontariato, eventi_partecipati, lascito_dichiarato,
-                   cap (opzionale: abilita layer territoriale ISTAT 2021) ...
+                   cap (opzionale: abilita lo strato territoriale per zone postali) ...
 - transazioni CSV: donor_id, data_donazione, importo_eur, metodo_pagamento, ...
 
 OUTPUT
@@ -65,7 +65,7 @@ from statistics import mean, pstdev
 # ===========================================================================
 # 1. CONFIGURAZIONE CONDIVISA   <-- UNICA FONTE: rfml_config.json
 # ===========================================================================
-# Tabelle e costanti del motore RFML (pesi obiettivo, layer territoriale ISTAT,
+# Tabelle e costanti del motore RFML (pesi obiettivo, strato territoriale zone postali,
 # bonus demografico, soglie) NON vivono piu' come literal qui: stanno in
 # rfml_config.json, letto a runtime. La dashboard (propensione_dashboard.html)
 # usa LO STESSO file, iniettato a build-time da build_config.py. Unico punto di
@@ -119,102 +119,140 @@ METODI_RICORRENTI = set(_COST["METODI_RICORRENTI"])
 
 
 # ===========================================================================
-# LAYER TERRITORIALE ISTAT 2021  <-- moltiplicatori calibrati su dati reali
+# STRATO TERRITORIALE — ZONE POSTALI (prime 2 cifre del CAP)
 # ===========================================================================
-# Fonte: ISTAT Censimento Permanente 2021 + MEF redditi per regione.
-# Granularità: regione (ricavata dal CAP in input).
-# Entra come MOLTIPLICATORE DICHIARATO su prop_lascito e prop_one_off_emergenza.
-# Non modifica gli altri 3 obiettivi — non ci sono basi empiriche sufficienti.
+# Granularità: ZONA POSTALE (prime 2 cifre del CAP), non più la regione — le prime
+# due cifre identificano una zona postale, non una regione. I valori di zona vengono
+# da ZONE_POSTALI; i riferimenti di normalizzazione (centro/scala) da
+# RIFERIMENTI_NAZIONALI, calcolati sulle 90 zone usabili. Nessuna costante di
+# normalizzazione resta nel codice.
 #
-# Logica dei tre indicatori:
-#   pct_over65       → proxy diretto legacy prospect (Sargeant: 65+ ha tasso
-#                       lasciti ~3x rispetto a 45-64)
-#   reddito_medio    → proxy capacità donativa
-#   gini_index       → disuguaglianza interna: alta gini = più varianza nelle
-#                       donazioni, penalizza leggermente la stima media
+# Entra come MOLTIPLICATORE DICHIARATO e ISOLATO sul punteggio di ogni obiettivo
+# con pesi non nulli — non contamina i segnali RFML. Tre indicatori pesati:
+#   quota_over65                → frazione 0-1 (proxy legacy prospect)
+#   reddito_medio               → euro (proxy capacità donativa)
+#   istruzione_terziaria_25plus → punti percentuali
+# quota_oltre75k_min/max NON entra nel punteggio: è solo contesto di visualizzazione.
 #
-# Il moltiplicatore finale è compreso tra 0.85 e 1.15 (±15% sullo score).
-# Dichiarato e isolato — non contamina i segnali RFML.
-
-ISTAT_REGIONI = _TAB["ISTAT_REGIONI"]["valori"]
-
-# Lookup CAP (prime 2 cifre = prefisso provincia) → regione.
-# Copertura: prefissi CAP italiani 00-98 (49, 77-79 non assegnati, assenti).
-CAP_PREFISSO_REGIONE = _TAB["CAP_PREFISSO_REGIONE"]["valori"]
-
-# Valori nazionali medi — usati come fallback se CAP mancante o non riconosciuto
-ISTAT_NAZIONALE = _TAB["ISTAT_NAZIONALE"]["valori"]
-
-
-def cap_to_regione(cap: str) -> str | None:
-    """Ricava la regione dalle prime 2 cifre del CAP. None se non riconosciuto."""
-    if not cap:
-        return None
-    cap_clean = str(cap).strip().zfill(5)[:2]
-    return CAP_PREFISSO_REGIONE.get(cap_clean)
-
-
-# Pesi dei tre indicatori ISTAT per ogni obiettivo.
-# Struttura (dict per obiettivo): over65, reddito, gini_penalita, cap
-# cap: ampiezza massima del moltiplicatore (es. 0.15 = ±15%)
-# gini_penalita e' POSITIVO: combinato con l'inversione gia' presente nella
-# formula (gini_norm = -(gini-0.328)/0.04), un'alta gini ABBASSA lo score.
-# Ipotesi di dominio NON validata (vedi "ipotesi_non_validate" nel JSON).
+# Formula (ampiezza unica AMPIEZZA_TERRITORIALE, clamp di sola guardia):
+#   z_ind = (valore_zona - centro) / dispersione          # per indicatore, stessa unità
+#   s     = Σ pesi[ind] * z_ind                            # pesi = importanza relativa
+#   molt  = clamp(1 + AMPIEZZA_TERRITORIALE * s, min, max) # min/max = guardia
+# Riattivazione e one_off_emergenza hanno tutti i pesi a zero -> s = 0 -> molt = 1.0
+# per costruzione (nessun ramo speciale): lo strato non si applica a quegli obiettivi.
 #
-# Razionale per obiettivo:
-#   lascito            — over65 dominante (legacy prospect); reddito secondario;
-#                        gini penalizza. Cap ±15%: impatto forte e documentato.
-#   upgrade            — reddito dominante (capacità di aumentare); over65 neutro;
-#                        gini penalizza (alta disuguaglianza = donatore medio meno
-#                        rappresentativo). Cap ±10%.
-#   sostegno_continu.  — reddito favorisce stabilità RID; over65 lievemente negativo
-#                        (anziani preferiscono one-off a RID automatico); gini
-#                        penalizza. Cap ±10%.
-#   riattivazione      — territorio conta meno (dipende da storia individuale);
-#                        reddito ha un piccolo effetto; over65 neutro; gini lieve
-#                        penalità. Cap smorzato ±5%.
-#   one_off_emergenza  — reddito dominante; over65 secondario (donano anche 65+
-#                        in emergenza); gini penalizza fortemente (alta
-#                        disuguaglianza = risposta all'appello meno prevedibile).
-#                        Cap ±12%.
+# SETTE STATI espliciti (nessuno silenzioso). In ogni stato diverso da 'calcolato'
+# il moltiplicatore è ESATTAMENTE 1.0 — il punteggio resta valido, non penalizzato:
+#   calcolato             zona riconosciuta, non esclusa, obiettivo con pesi
+#   cap_assente           il donatore non ha CAP
+#   cap_non_italiano      il CAP è in CAP_NON_ITALIANI (controllato PRIMA del prefisso)
+#   zona_esclusa          il prefisso è dichiarato inaffidabile (07/08/09)
+#   zona_non_riconosciuta il prefisso non è in tabella
+#   non_applicabile       tutti i pesi dell'obiettivo sono zero
+#   dati_non_caricati     ZONE_POSTALI è vuota
+# cap_non_italiano e zona_non_riconosciuta sono cose diverse: contate separatamente.
+
 PESI_TERRITORIALI = _TAB["PESI_TERRITORIALI"]["valori"]
+RIFERIMENTI_NAZIONALI = _TAB["RIFERIMENTI_NAZIONALI"]["valori"]
+ZONE_POSTALI = _TAB["ZONE_POSTALI"]["valori"]
+CAP_NON_ITALIANI = _TAB["CAP_NON_ITALIANI"]["valori"]
+
+# I soli indicatori che entrano nel punteggio (chiavi condivise con ZONE_POSTALI e
+# RIFERIMENTI_NAZIONALI). quota_oltre75k_min/max è ESCLUSO di proposito.
+INDICATORI_TERRITORIALI = ("quota_over65", "reddito_medio", "istruzione_terziaria_25plus")
+
+# Ampiezza unica del moltiplicatore + clamp di guardia (non un parametro di taratura).
+AMPIEZZA_TERRITORIALE = _COST["AMPIEZZA_TERRITORIALE"]["valore"]
+CLAMP_TERRITORIALE = _COST["AMPIEZZA_TERRITORIALE"]["clamp_guardia"]
 
 
-def calcola_moltiplicatore_territoriale(cap: str, obiettivo: str) -> float:
-    """
-    Restituisce un moltiplicatore territoriale per tutti e 5 gli obiettivi.
-    Range: 1 ± cap_variazione (es. 0.85–1.15 per lascito, 0.95–1.05 per
-    riattivazione). Dichiarato e isolato — non contamina i segnali RFML.
+def _cap_normalizzato(cap):
+    """CAP a 5 cifre (zeri iniziali conservati). '' se assente."""
+    return str(cap).strip().zfill(5) if cap else ""
 
-    Se CAP mancante o non riconosciuto: moltiplicatore neutro 1.0.
-    """
+
+def cap_prefisso(cap):
+    """Prime due cifre del CAP normalizzato. '' se CAP assente."""
+    c = _cap_normalizzato(cap)
+    return c[:2] if c else ""
+
+
+def cap_non_italiano(cap):
+    """True se il CAP appartiene a CAP_NON_ITALIANI. Da controllare PRIMA di
+    leggere il prefisso, altrimenti 00120 (Città del Vaticano) diventerebbe zona 00.
+    'cap_esatto': la chiave è il CAP a 5 cifre. 'intervallo': cap_min/cap_max (se
+    vuoti la voce è inerte — es. San Marino, intervallo non verificato)."""
+    if not cap:
+        return False
+    c = _cap_normalizzato(cap)
+    for chiave, v in CAP_NON_ITALIANI.items():
+        tipo = v.get("tipo")
+        if tipo == "cap_esatto" and c == chiave:
+            return True
+        if tipo == "intervallo":
+            lo, hi = v.get("cap_min", ""), v.get("cap_max", "")
+            if lo and hi and lo <= c <= hi:
+                return True
+    return False
+
+
+def stato_donatore_territoriale(cap):
+    """Risoluzione territoriale a livello di DONATORE (indipendente dall'obiettivo):
+    dati_non_caricati, cap_assente, cap_non_italiano, zona_esclusa,
+    zona_non_riconosciuta o zona_ok."""
+    if not ZONE_POSTALI:
+        return "dati_non_caricati"
+    if not cap:
+        return "cap_assente"
+    if cap_non_italiano(cap):
+        return "cap_non_italiano"
+    zona = ZONE_POSTALI.get(cap_prefisso(cap))
+    if zona is None:
+        return "zona_non_riconosciuta"
+    if zona.get("escluso"):
+        return "zona_esclusa"
+    return "zona_ok"
+
+
+def _pesi_tutti_zero(obiettivo):
     pesi = PESI_TERRITORIALI.get(obiettivo)
     if not pesi:
-        return 1.0
+        return True
+    return all(float(pesi.get(ind, 0.0)) == 0.0 for ind in INDICATORI_TERRITORIALI)
 
-    regione = cap_to_regione(cap)
-    dati = ISTAT_REGIONI.get(regione, ISTAT_NAZIONALE) if regione else ISTAT_NAZIONALE
 
-    w_over65 = pesi["over65"]
-    w_reddito = pesi["reddito"]
-    w_gini = pesi["gini_penalita"]
-    cap_var = pesi["cap"]
+def territorio(cap, obiettivo):
+    """Stato territoriale e moltiplicatore per (donatore, obiettivo).
+    Ritorna {"stato": <uno dei 7 stati>, "molt": float}. In ogni stato diverso da
+    'calcolato' il moltiplicatore è ESATTAMENTE 1.0.
 
-    # Normalizza i tre indicatori rispetto ai range nazionali italiani
-    # over65: range 21.2–28.7 → centro 24.1
-    over65_norm = (dati["over65"] - 24.1) / 4.5
+    Funziona anche con ZONE_POSTALI vuota: ogni obiettivo con pesi finisce in
+    'dati_non_caricati' (molt 1.0) e il modulo continua a produrre punteggi.
+    """
+    # non_applicabile: obiettivo senza pesi territoriali (riattivazione, one_off).
+    if _pesi_tutti_zero(obiettivo):
+        return {"stato": "non_applicabile", "molt": 1.0}
+    stato = stato_donatore_territoriale(cap)
+    if stato != "zona_ok":
+        return {"stato": stato, "molt": 1.0}
+    # calcolato: z-score pesati, ampiezza unica, clamp di guardia.
+    zona = ZONE_POSTALI[cap_prefisso(cap)]
+    pesi = PESI_TERRITORIALI[obiettivo]
+    s = 0.0
+    for ind in INDICATORI_TERRITORIALI:
+        w = float(pesi.get(ind, 0.0))
+        if w == 0.0:
+            continue
+        rif = RIFERIMENTI_NAZIONALI[ind]
+        s += w * (zona[ind] - rif["centro"]) / rif["dispersione"]
+    molt = 1.0 + AMPIEZZA_TERRITORIALE * s
+    molt = max(CLAMP_TERRITORIALE["min"], min(CLAMP_TERRITORIALE["max"], molt))
+    return {"stato": "calcolato", "molt": round(molt, 4)}
 
-    # reddito: range 16500–34400 → centro 24700
-    reddito_norm = (dati["reddito"] - 24700) / 9000
 
-    # gini: range 0.289–0.371 → centro 0.328 — alto gini penalizza (invertito)
-    gini_norm = -(dati["gini"] - 0.328) / 0.04
-
-    score = w_over65 * over65_norm + w_reddito * reddito_norm + w_gini * gini_norm
-
-    # Cappa al range dichiarato per questo obiettivo
-    moltiplicatore = 1.0 + max(-cap_var, min(cap_var, score * cap_var))
-    return round(moltiplicatore, 4)
+def moltiplicatore_territoriale(cap, obiettivo):
+    """Solo il moltiplicatore (percorso di scoring)."""
+    return territorio(cap, obiettivo)["molt"]
 
 # Soglia minima di positivi storici (lascito_dichiarato) sotto la quale
 # l'addestramento ML supervisionato e sconsigliato (overfitting).
@@ -551,9 +589,9 @@ def calcola_propensione(segnali, fascia_eta_per_donor, cap_per_donor=None):
     """
     Per ogni donatore e ogni obiettivo applica i pesi e produce 0-100.
     Aggiunge il BONUS_DEMOGRAFICO (dichiarato, isolato) agli obiettivi previsti.
-    Applica il MOLTIPLICATORE TERRITORIALE ISTAT (dichiarato, isolato) se CAP
-    disponibile — solo su lascito e one_off_emergenza.
-    Lo score resta cappato a 100.
+    Applica il MOLTIPLICATORE TERRITORIALE (zone postali, dichiarato e isolato):
+    attivo sugli obiettivi con pesi non nulli e zona riconosciuta; 1.0 in ogni
+    altro stato (vedi territorio()). Lo score resta cappato a 100.
     """
     if cap_per_donor is None:
         cap_per_donor = {}
@@ -578,8 +616,9 @@ def calcola_propensione(segnali, fascia_eta_per_donor, cap_per_donor=None):
             fascia = fascia_eta_per_donor.get(did, "")
             val += bonus_tab.get(fascia, 0.0)
 
-            # moltiplicatore territoriale ISTAT: dichiarato, solo lascito/one_off
-            molt = calcola_moltiplicatore_territoriale(cap, obiettivo)
+            # moltiplicatore territoriale (zone postali): dichiarato e isolato.
+            # 1.0 in ogni stato diverso da 'calcolato' (vedi territorio()).
+            molt = moltiplicatore_territoriale(cap, obiettivo)
             val = val * molt
 
             scores[obiettivo] = round(min(val, 100.0), 1)
@@ -621,11 +660,19 @@ def calcola_contesto(anagrafica):
         else:
             coinvolgimento = "solo_donatore"
 
+        # strato territoriale (livello donatore, indipendente dall'obiettivo):
+        # stato + zona postale (prefisso) per trasparenza nell'interfaccia.
+        cap = (r.get("cap") or r.get("cap_donatore") or "").strip()
+        stato_terr = stato_donatore_territoriale(cap)
+        zona = cap_prefisso(cap) if stato_terr in ("zona_ok", "zona_esclusa", "zona_non_riconosciuta") else ""
+
         contesto[did] = {
             "canale_acquisizione": canale,
             "tipo_sostegno": (r.get("tipo_sostegno_prevalente") or "").strip(),
             "engagement": engagement,
             "coinvolgimento": coinvolgimento,
+            "stato_territoriale": stato_terr,
+            "zona_postale": zona,
         }
     return contesto
 
@@ -810,16 +857,16 @@ def main():
     fascia_eta_per_donor = {
         r["donor_id"]: (r.get("fascia_eta") or "").strip() for r in anagrafica
     }
-    # CAP: campo opzionale — se presente abilita il layer territoriale ISTAT
+    # CAP: campo opzionale — se presente abilita lo strato territoriale (zone postali)
     cap_per_donor = {
         r["donor_id"]: (r.get("cap") or r.get("cap_donatore") or "").strip()
         for r in anagrafica
     }
     n_con_cap = sum(1 for v in cap_per_donor.values() if v)
     if n_con_cap > 0:
-        print(f"  layer territoriale ISTAT: {n_con_cap}/{len(anagrafica)} donatori con CAP")
+        print(f"  strato territoriale (zone postali): {n_con_cap}/{len(anagrafica)} donatori con CAP")
     else:
-        print("  layer territoriale ISTAT: CAP non presente — moltiplicatore neutro")
+        print("  strato territoriale (zone postali): CAP non presente — moltiplicatore neutro")
     propensione = calcola_propensione(segnali, fascia_eta_per_donor, cap_per_donor)
 
     print("Calcolo matrice di contesto...")
@@ -831,9 +878,10 @@ def main():
              + [f"prop_{o}" for o in obiettivi]
              + ["obiettivo_top", "score_top"]
              + ["R", "F", "M_livello", "M_trend", "L"]
-             + ["regione_istat", "molt_lascito", "molt_upgrade",
+             + ["molt_lascito", "molt_upgrade",
                 "molt_sostegno_continuativo", "molt_riattivazione", "molt_one_off"]
-             + ["canale_acquisizione", "tipo_sostegno", "engagement", "coinvolgimento"])
+             + ["stato_territoriale", "zona_postale",
+                "canale_acquisizione", "tipo_sostegno", "engagement", "coinvolgimento"])
 
     with open(args.out, "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=campi)
@@ -848,15 +896,14 @@ def main():
             row["score_top"] = prop[top_ob]
             for k in ("R", "F", "M_livello", "M_trend", "L"):
                 row[k] = segnali[did][k]
-            # layer territoriale: regione e moltiplicatori per trasparenza
+            # strato territoriale: moltiplicatori per obiettivo (trasparenza).
+            # stato_territoriale e zona_postale arrivano dal contesto (row.update).
             cap = cap_per_donor.get(did, "")
-            regione = cap_to_regione(cap) or "n/d"
-            row["regione_istat"] = regione
-            row["molt_lascito"] = calcola_moltiplicatore_territoriale(cap, "lascito")
-            row["molt_upgrade"] = calcola_moltiplicatore_territoriale(cap, "upgrade")
-            row["molt_sostegno_continuativo"] = calcola_moltiplicatore_territoriale(cap, "sostegno_continuativo")
-            row["molt_riattivazione"] = calcola_moltiplicatore_territoriale(cap, "riattivazione")
-            row["molt_one_off"] = calcola_moltiplicatore_territoriale(cap, "one_off_emergenza")
+            row["molt_lascito"] = moltiplicatore_territoriale(cap, "lascito")
+            row["molt_upgrade"] = moltiplicatore_territoriale(cap, "upgrade")
+            row["molt_sostegno_continuativo"] = moltiplicatore_territoriale(cap, "sostegno_continuativo")
+            row["molt_riattivazione"] = moltiplicatore_territoriale(cap, "riattivazione")
+            row["molt_one_off"] = moltiplicatore_territoriale(cap, "one_off_emergenza")
             row.update(contesto.get(did, {}))
             w.writerow(row)
     print(f"  output scritto: {args.out}")

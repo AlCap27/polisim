@@ -1995,10 +1995,15 @@ const L_SAT=__COST.L_SATURAZIONE_ANNI;
 // nel JSON). Unica costante con struttura {fonte_dati, valore} -> si legge .valore.
 const SOGLIA_LIFT=__COST.SOGLIA_LIFT_POSITIVI.valore;
 const BONUS_DEM=__T.BONUS_DEMOGRAFICO.valori;
-const PESI_T=__T.PESI_TERRITORIALI.valori;  // chiavi: over65,reddito,gini_penalita,cap
-const ISTAT=__T.ISTAT_REGIONI.valori;       // chiavi: over65,reddito,gini
-const ISTAT_NAZ=__T.ISTAT_NAZIONALE.valori; // chiavi: over65,reddito,gini
-const CAP_REG=__T.CAP_PREFISSO_REGIONE.valori;
+// Strato territoriale per ZONE POSTALI (prime 2 cifre del CAP). Chiavi indicatore
+// condivise fra PESI_TERRITORIALI, ZONE_POSTALI e RIFERIMENTI_NAZIONALI.
+const PESI_T=__T.PESI_TERRITORIALI.valori;
+const RIF_NAZ=__T.RIFERIMENTI_NAZIONALI.valori; // centro/dispersione per indicatore
+const ZONE_P=__T.ZONE_POSTALI.valori;           // 93 prefissi (07/08/09 esclusi)
+const CAP_NI=__T.CAP_NON_ITALIANI.valori;       // 00120 Vaticano; San Marino (inerte)
+const IND_TERR=['quota_over65','reddito_medio','istruzione_terziaria_25plus'];
+const AMP_TERR=__COST.AMPIEZZA_TERRITORIALE.valore;       // ampiezza unica
+const CLAMP_TERR=__COST.AMPIEZZA_TERRITORIALE.clamp_guardia; // guardia, non parametro
 
 // Mapping obiettivo → colonna esito campagna, dal JSON condiviso (fonte unica,
 // non duplicare: la stessa tabella serve a valida_lift in Python).
@@ -2112,8 +2117,43 @@ function pstd(a){const m=avg(a);return Math.sqrt(a.reduce((x,y)=>x+(y-m)**2,0)/a
 // limite: è l'oracolo, qui ci si allinea senza cambiare il risultato.
 function maxArr(a){let m=-Infinity;for(let i=0;i<a.length;i++){const v=+a[i];if(v!==v)return NaN;if(v>m)m=v;}return m;}
 function minArr(a){let m= Infinity;for(let i=0;i<a.length;i++){const v=+a[i];if(v!==v)return NaN;if(v<m)m=v;}return m;}
-function capR(cap){if(!cap)return null;return CAP_REG[String(cap).trim().padStart(5,'0').slice(0,2)]||null;}
-function molt(cap,ob){const pw=PESI_T[ob];if(!pw)return 1;const reg=capR(cap);const d=(reg&&ISTAT[reg])?ISTAT[reg]:ISTAT_NAZ;const on=(d.over65-24.1)/4.5,rn=(d.reddito-24700)/9000,gn=-(d.gini-.328)/.04;const sc=pw.over65*on+pw.reddito*rn+pw.gini_penalita*gn;return Math.round((1+Math.max(-pw.cap,Math.min(pw.cap,sc*pw.cap)))*1e4)/1e4;}
+// --- STRATO TERRITORIALE (identico a polisim_propensione.py) -------------------
+// 7 stati; molt ESATTAMENTE 1.0 in ogni stato diverso da 'calcolato'. CAP_NON_ITALIANI
+// controllato PRIMA del prefisso (altrimenti 00120 -> zona 00). quota_oltre75k_min/max
+// MAI nel punteggio (non e' in IND_TERR). Riattivazione/one_off: pesi zero -> s=0 -> 1.0.
+function capNorm(cap){cap=String(cap||'').trim();return cap?cap.padStart(5,'0'):'';}
+function capPrefisso(cap){const c=capNorm(cap);return c?c.slice(0,2):'';}
+function zonePostaliVuote(){for(const _ in ZONE_P)return false;return true;}
+function capNonItaliano(cap){
+  if(!cap)return false;
+  const c=capNorm(cap);
+  for(const k in CAP_NI){const v=CAP_NI[k];
+    if(v.tipo==='cap_esatto'&&c===k)return true;
+    if(v.tipo==='intervallo'){const lo=v.cap_min,hi=v.cap_max;if(lo&&hi&&lo<=c&&c<=hi)return true;}
+  }
+  return false;
+}
+function statoDonatoreTerr(cap){
+  if(zonePostaliVuote())return 'dati_non_caricati';
+  if(!cap)return 'cap_assente';
+  if(capNonItaliano(cap))return 'cap_non_italiano';
+  const z=ZONE_P[capPrefisso(cap)];
+  if(!z)return 'zona_non_riconosciuta';
+  if(z.escluso)return 'zona_esclusa';
+  return 'zona_ok';
+}
+function pesiTuttiZero(ob){const p=PESI_T[ob];if(!p)return true;return IND_TERR.every(i=>(+p[i]||0)===0);}
+function territorio(cap,ob){
+  if(pesiTuttiZero(ob))return {stato:'non_applicabile',molt:1};
+  const st=statoDonatoreTerr(cap);
+  if(st!=='zona_ok')return {stato:st,molt:1};
+  const z=ZONE_P[capPrefisso(cap)],p=PESI_T[ob];let s=0;
+  for(const i of IND_TERR){const w=+p[i]||0;if(w===0)continue;const r=RIF_NAZ[i];s+=w*(z[i]-r.centro)/r.dispersione;}
+  let m=1+AMP_TERR*s;
+  m=Math.max(CLAMP_TERR.min,Math.min(CLAMP_TERR.max,m));
+  return {stato:'calcolato',molt:Math.round(m*1e4)/1e4};
+}
+function molt(cap,ob){return territorio(cap,ob).molt;}
 
 // ═══════════════════════════════════════════════════════
 // UPLOAD
@@ -2481,7 +2521,9 @@ function calcolaCtx(ana){
     const cn=(r.canale_acquisizione||'').trim(),mt=(r.metodo_pagamento_prevalente||'').trim();
     const dig=cn==='web'||['carta_credito','RID_SEPA'].includes(mt);
     const cart=cn==='direct_mail'||['bollettino','assegno'].includes(mt);
-    ctx[r.donor_id]={canale_acquisizione:cn,tipo_sostegno:(r.tipo_sostegno_prevalente||'').trim(),engagement:dig&&!cart?'digitale':cart&&!dig?'cartaceo':'misto',coinvolgimento:pF(r.volontariato)>0?'volontario':pF(r.eventi_partecipati)>0?'partecipa_eventi':'solo_donatore',regione_istat:capR(r.cap||'')||'n/d'};
+    const _cap=(r.cap||'').trim();const _st=statoDonatoreTerr(_cap);
+    const _zona=(_st==='zona_ok'||_st==='zona_esclusa'||_st==='zona_non_riconosciuta')?capPrefisso(_cap):'';
+    ctx[r.donor_id]={canale_acquisizione:cn,tipo_sostegno:(r.tipo_sostegno_prevalente||'').trim(),engagement:dig&&!cart?'digitale':cart&&!dig?'cartaceo':'misto',coinvolgimento:pF(r.volontariato)>0?'volontario':pF(r.eventi_partecipati)>0?'partecipa_eventi':'solo_donatore',stato_territoriale:_st,zona_postale:_zona};
   }
   return ctx;
 }
