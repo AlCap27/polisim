@@ -170,7 +170,7 @@ sullo stato e sui conteggi (positivi 5, nel top 5/6, nel resto 0/24).
 | `equivalence_test.py` | orchestratore + confronto + verdetto (esegue anche `build_config.py --check`) |
 | `divergenze_report.txt` | report leggibile dell'ultima esecuzione |
 | `../../rfml_config.json` | **fonte unica** di tabelle/costanti RFML (pesi obiettivo e territoriali, zone postali, riferimenti nazionali, CAP non italiani, bonus, `AMPIEZZA_TERRITORIALE`) |
-| `../../build_config.py` | inietta il JSON nel dashboard (blocco `<script id="rfml-config">`); `--check` verifica la sincronia |
+| `../../build_config.py` | inietta il JSON nel dashboard (blocco `<script id="rfml-config">`) e genera i parametri territoriali in `metodologia.html` (regione `RFML_TERRITORIALE`); `--check` verifica la sincronia di entrambe |
 
 ## Storia delle correzioni
 

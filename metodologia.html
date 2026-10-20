@@ -530,8 +530,52 @@ terziaria. La correzione è diversa per ciascun obiettivo; per <strong>riattivaz
 one-off</strong> non si applica, perché la propensione a riattivarsi o a rispondere a
 un'emergenza dipende dalla storia della persona, non da dove abita. Alcune zone, dove la base
 dati codificata è insufficiente, sono dichiarate escluse: lì il moltiplicatore resta neutro
-(1,00) anziché basarsi su numeri non affidabili. I pesi esatti non sono pubblicati: fanno parte
-della configurazione interna del modello.</p>
+(1,00) anziché basarsi su numeri non affidabili.</p>
+<!-- RFML_TERRITORIALE:START (generato da build_config.py da rfml_config.json - NON editare a mano) -->
+<p>Per ciascun indicatore si calcola lo scarto dal valore nazionale, diviso per la dispersione nazionale. Gli scarti si combinano con i pesi dell'obiettivo, e il risultato, moltiplicato per l'ampiezza territoriale, corregge il punteggio:</p>
+<p><em>moltiplicatore</em> = 1 + ampiezza × Σ peso<sub>i</sub> × (valore di zona<sub>i</sub> − valore nazionale<sub>i</sub>) / dispersione<sub>i</sub></p>
+<table>
+  <thead>
+    <tr><th>Obiettivo</th><th>Quota over 65</th><th>Reddito medio</th><th>Istruzione terziaria</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Lascito</td><td>0,20</td><td>0,10</td><td>0,10</td></tr>
+    <tr><td>Upgrade</td><td>0,00</td><td>0,20</td><td>0,10</td></tr>
+    <tr><td>Sostegno continuativo</td><td>0,00</td><td>0,10</td><td>0,10</td></tr>
+    <tr><td>Riattivazione</td><td>0,00</td><td>0,00</td><td>0,00</td></tr>
+    <tr><td>One-off emergenza</td><td>0,00</td><td>0,00</td><td>0,00</td></tr>
+  </tbody>
+</table>
+<p class="table-note">Pesi dichiarati, calibrati sull'esperienza di dominio, non stimati su esiti reali.</p>
+<p><strong>Ampiezza territoriale: 0,25.</strong> Indica quanto lo strato territoriale può spostare un punteggio. Anch'essa dichiarata, non stimata.</p>
+<p>I riferimenti nazionali, senza i quali i pesi da soli non permettono di riprodurre un moltiplicatore, sono calcolati sulle 90 zone usabili:</p>
+<table>
+  <thead>
+    <tr><th>Indicatore</th><th>Valore nazionale</th><th>Dispersione</th><th>Unità</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Quota over 65</td><td>0,2428</td><td>0,0217</td><td>frazione</td></tr>
+    <tr><td>Reddito medio</td><td>25.920</td><td>4.030</td><td>euro</td></tr>
+    <tr><td>Istruzione terziaria</td><td>19,76</td><td>3,64</td><td>punti percentuali</td></tr>
+  </tbody>
+</table>
+<p class="table-note">Valori arrotondati; i valori esatti sono in <code>rfml_config.json</code> nel <a href="https://github.com/AlCap27/polisim">repository pubblico</a>.</p>
+<p>L'effetto risultante:</p>
+<table>
+  <thead>
+    <tr><th>Obiettivo</th><th>Moltiplicatore, minimo e massimo sulle 90 zone</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Lascito</td><td>0,836 – 1,144</td></tr>
+    <tr><td>Upgrade</td><td>0,873 – 1,141</td></tr>
+    <tr><td>Sostegno continuativo</td><td>0,917 – 1,092</td></tr>
+    <tr><td>Riattivazione, one-off emergenza</td><td>1,000 esatto</td></tr>
+  </tbody>
+</table>
+<p><strong>Guardia.</strong> Il moltiplicatore è limitato all'intervallo 0,5–1,5. È una protezione contro aggiornamenti futuri dei dati, non un parametro del modello, e non si attiva su nessuna delle 90 zone.</p>
+<p><strong>Copertura.</strong> 90 zone usabili su 93, 7.516 comuni, 57.394.741 residenti. 3 zone escluse con motivo dichiarato.</p>
+<p class="table-note">Zona 07: base territoriale codificata insufficiente: nessun comune assegnato nella zona. L'analisi di sensibilita' non ha una base rispetto a cui misurare la variazione. Dichiarata esclusa, non riempita con valori stimati.<br>Zona 08: base territoriale codificata insufficiente: un solo comune assegnato (Siniscola, da GeoNames). Assegnazioni discordanti fra le fonti; la sensibilita' sui comuni candidati oscilla fino a 6,25 punti di over65, 4.567 EUR di reddito e 7,84 punti di istruzione. Esclusa, non stimata.<br>Zona 09: base territoriale codificata insufficiente: un solo comune assegnato (Cagliari, dal MEF). Assegnazioni discordanti fra le fonti, in alcuni casi fra zone diverse; la sensibilita' oscilla fino a 4,43 punti di over65, 7.590 EUR di reddito e 15,58 punti di istruzione. Esclusa, non stimata.</p>
+<!-- RFML_TERRITORIALE:END -->
 
 <h3>Come sono calibrati i pesi</h3>
 <p>I pesi che combinano le cinque dimensioni in un punteggio finale sono calibrati per
