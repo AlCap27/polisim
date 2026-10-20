@@ -17,8 +17,10 @@ one-off). Niente cluster unico: un punteggio per ogni obiettivo.
 
 ONESTA METODOLOGICA
 -------------------
-I pesi in PESI_OBIETTIVO sono EXPERT-CALIBRATED (Sargeant 2007 adattato al
-contesto italiano), NON validati su A/B test propri. Sono il punto di aggancio
+I pesi in PESI_OBIETTIVO sono DICHIARATI: la struttura segue la pratica RFM
+standard nella raccolta fondi, i pesi sono calibrati sull'esperienza di dominio,
+non stimati su esiti reali ne' derivati da uno studio pubblicato. NON validati
+su A/B test propri. Sono il punto di aggancio
 del feedback loop futuro: dopo ~20 campagne con esito misurato, QUESTA matrice
 si ricalibra sui donatori reali. Finche cio non avviene, vanno trattati come
 ipotesi ragionate, non come verita.
@@ -97,8 +99,9 @@ OBIETTIVI_RECENCY_INVERSA = set(_COST["OBIETTIVI_RECENCY_INVERSA"])
 # ---------------------------------------------------------------------------
 # BONUS DEMOGRAFICO  <-- fattore dichiarato e ISOLATO, non un quinto segnale
 # ---------------------------------------------------------------------------
-# L'eta NON e un segnale RFML, ma e il predittore reale del lascito (Sargeant;
-# confermato sui dati: 65+ ha tasso lasciti ~3x rispetto a 45-64). Ignorarla
+# L'eta NON e un segnale RFML. Nel modello e' ASSUNTA come predittore del lascito
+# (sui dati sintetici 65+ ha tasso lasciti ~3x rispetto a 45-64; non verificato
+# su dati reali). Ignorarla
 # per purezza architetturale sarebbe una scorciatoia al contrario.
 #
 # Si applica SOLO agli obiettivi elencati qui (di default solo 'lascito') ed
@@ -1008,8 +1011,9 @@ def main():
     print("PROMEMORIA ONESTA METODOLOGICA")
     print("=" * 67)
     print("  I pesi in PESI_OBIETTIVO e i valori in BONUS_DEMOGRAFICO sono")
-    print("  EXPERT-CALIBRATED (Sargeant adattato + tasso lasciti per eta sui")
-    print("  dati), NON validati su A/B test propri. Il lift sopra misura solo")
+    print("  DICHIARATI: pesi calibrati sull'esperienza di dominio, non stimati")
+    print("  su esiti reali; bonus eta dal tasso lasciti osservato sui dati")
+    print("  sintetici. NON validati su A/B test propri. Il lift sopra misura solo")
     print("  il verticale 'lascito' su dati sintetici. Gli altri 4 obiettivi non")
     print("  hanno colonna-esito nei dati: non sono validabili affatto, vanno")
     print("  trattati come ipotesi ragionate finche il feedback loop non gira.")
