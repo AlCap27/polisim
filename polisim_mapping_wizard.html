@@ -4,584 +4,66 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PoliSim — Import Wizard · Modulo Propensione NGO</title>
+<meta name="description" content="Questa pagina è stata sostituita dalla dashboard del Modulo Propensione di PoliSim.">
 <meta name="robots" content="noindex, nofollow">
+<link rel="canonical" href="https://polisim.dev/propensione_dashboard.html">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<meta http-equiv="refresh" content="0; url=/propensione_dashboard.html">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#faf9f7;--bg2:#f0ede8;--bg3:#e8e4de;--white:#ffffff;
-  --black:#0d0d0d;--ink:#1a1a1a;--gray:#3a3a3a;--gray-mid:#666;--gray-lt:#999;--ghost:#ccc;
-  --border:#e0ddd8;--border2:#ccc8c2;
-  --blue:#1e3a5f;--blue-lt:#4a7eb5;--blue-dim:#e8f0f8;--blue-dim2:#d0e4f4;
-  --green:#1a4a2a;--green-lt:#2a7a3a;--green-dim:#e8f4ec;
-  --orange:#92400e;--orange-dim:#fef3c7;
-  --red-lt:#c0392b;--red-dim:#fef2f2;
-  --font-serif:"Cormorant Garamond",Georgia,serif;
-  --font-sans:"DM Sans",system-ui,sans-serif;
-  --font-mono:"JetBrains Mono",monospace;
+  --bg:#fafaf8;--bg2:#f0ede8;--ink:#0a0a0a;--mid:#3a3a3a;--light:#7a7a7a;--ghost:#b0a898;
+  --line:#e0dbd4;--accent:#8a6a3a;--accent2:#c8a870;
+  --serif:'Cormorant Garamond',Georgia,serif;--sans:'DM Sans',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
 }
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--ink);font-family:var(--font-sans);font-size:14px;line-height:1.7;min-height:100vh}
-
-.nav{position:sticky;top:0;z-index:100;background:rgba(250,249,247,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between}
-.nav-logo{font-family:var(--font-mono);font-size:13px;letter-spacing:3px;color:var(--black);text-decoration:none;text-transform:uppercase}
-.nav-logo span{color:var(--blue-lt)}
-.nav-right{display:flex;align-items:center;gap:24px}
-.nav-link{font-size:12px;letter-spacing:1px;color:var(--gray-mid);text-decoration:none;text-transform:uppercase;transition:color .2s}
-.nav-link:hover{color:var(--black)}
-.nav-badge{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;padding:4px 12px;border:1px solid var(--border2);background:var(--bg2);color:var(--gray-mid);text-transform:uppercase}
-
-.anon-banner{background:var(--blue-dim);border-bottom:1px solid var(--blue-dim2);padding:12px 40px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
-.anon-text{font-size:13px;color:var(--blue);line-height:1.5}
-.anon-text strong{font-weight:500}
-.anon-btn{font-family:var(--font-mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--white);background:var(--blue);padding:8px 18px;text-decoration:none;white-space:nowrap;transition:opacity .2s;flex-shrink:0}
-.anon-btn:hover{opacity:.85}
-
-.hero{max-width:760px;margin:0 auto;padding:48px 40px 32px;text-align:center}
-.hero-kicker{font-family:var(--font-mono);font-size:10px;letter-spacing:4px;color:var(--blue-lt);text-transform:uppercase;margin-bottom:12px}
-.hero-title{font-family:var(--font-serif);font-size:clamp(36px,4vw,52px);font-weight:300;line-height:1.1;margin-bottom:14px}
-.hero-title em{font-style:italic;color:var(--blue)}
-.hero-sub{font-size:14px;color:var(--gray-mid);max-width:520px;margin:0 auto;line-height:1.7}
-
-.progress-wrap{max-width:760px;margin:32px auto 0;padding:0 40px}
-.steps{display:flex;align-items:center}
-.step-item{display:flex;align-items:center;gap:10px;flex:1}
-.step-item:last-child{flex:0}
-.step-num{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:12px;color:var(--gray-lt);flex-shrink:0;transition:all .25s}
-.step-num.done{border-color:var(--green-lt);background:var(--green-dim);color:var(--green-lt)}
-.step-num.active{border-color:var(--blue);background:var(--blue-dim);color:var(--blue);font-weight:500}
-.step-label{font-size:12px;color:var(--gray-lt);font-family:var(--font-mono);white-space:nowrap;transition:color .25s}
-.step-label.active{color:var(--gray)}
-.step-label.done{color:var(--green-lt)}
-.step-connector{flex:1;height:1px;background:var(--border);margin:0 10px;transition:background .25s}
-.step-connector.done{background:var(--green-lt);opacity:.5}
-
-.main{max-width:760px;margin:24px auto 60px;padding:0 40px}
-
-.panel{background:var(--white);border:1px solid var(--border);display:none}
-.panel.active{display:block}
-.panel-head{padding:24px 28px 20px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
-.panel-title{font-family:var(--font-serif);font-size:22px;font-weight:300;color:var(--black);margin-bottom:4px}
-.panel-sub{font-size:13px;color:var(--gray-mid)}
-.step-counter{font-family:var(--font-mono);font-size:11px;color:var(--gray-lt);white-space:nowrap;margin-top:4px}
-.panel-body{padding:28px}
-
-.dropzone{border:1.5px dashed var(--border2);padding:36px 24px;text-align:center;cursor:pointer;transition:all .2s;position:relative;background:var(--bg)}
-.dropzone:hover,.dropzone.drag{border-color:var(--blue-lt);background:var(--blue-dim)}
-.dropzone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
-.dz-icon{font-size:28px;margin-bottom:10px}
-.dz-title{font-size:14px;color:var(--gray);margin-bottom:4px;font-weight:500}
-.dz-sub{font-size:12px;color:var(--gray-lt)}
-.dz-loaded{border-color:var(--green-lt);background:var(--green-dim)}
-
-.preview-wrap{margin-top:20px;border:1px solid var(--border);overflow:hidden}
-.preview-label{font-family:var(--font-mono);font-size:10px;color:var(--gray-lt);text-transform:uppercase;letter-spacing:.1em;padding:8px 14px;border-bottom:1px solid var(--border);background:var(--bg2)}
-.preview-scroll{overflow-x:auto}
-.preview-table{width:100%;border-collapse:collapse;font-size:12px;font-family:var(--font-mono)}
-.preview-table th{padding:8px 12px;background:var(--bg2);color:var(--gray-mid);text-align:left;white-space:nowrap;font-weight:500;border-right:1px solid var(--border)}
-.preview-table td{padding:7px 12px;color:var(--gray);border-right:1px solid var(--border);border-top:1px solid var(--border);white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis}
-.preview-table tr:hover td{background:var(--bg)}
-
-.mapping-section{margin-top:24px}
-.mapping-title{font-family:var(--font-mono);font-size:10px;color:var(--gray-lt);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px}
-.legend{display:flex;gap:20px;font-size:12px;color:var(--gray-mid);margin-bottom:16px}
-.leg-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle}
-
-.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media(max-width:600px){.field-grid{grid-template-columns:1fr}}
-
-.field-row{background:var(--bg);border:1px solid var(--border);padding:14px 16px;transition:border-color .15s}
-.field-row.mapped{border-color:rgba(42,122,58,.35);background:#f8fdf9}
-.field-row.skipped{opacity:.6}
-.field-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
-.field-name{font-size:13px;font-weight:500;color:var(--black);display:flex;align-items:center;gap:6px}
-.req-dot{width:6px;height:6px;border-radius:50%;background:var(--red-lt);flex-shrink:0}
-.opt-dot{width:6px;height:6px;border-radius:50%;background:var(--ghost);flex-shrink:0}
-.field-status{font-family:var(--font-mono);font-size:10px;padding:2px 8px;border-radius:2px}
-.field-status.ok{background:var(--green-dim);color:var(--green-lt);border:1px solid rgba(42,122,58,.2)}
-.field-status.miss{background:var(--red-dim);color:var(--red-lt);border:1px solid rgba(192,57,43,.2)}
-.field-status.opt{background:var(--bg2);color:var(--gray-lt);border:1px solid var(--border)}
-.field-desc{font-size:12px;color:var(--gray-mid);margin-bottom:8px;line-height:1.5}
-
-select.col-select{width:100%;background:var(--white);border:1px solid var(--border2);color:var(--gray);font-family:var(--font-mono);font-size:12px;padding:7px 32px 7px 10px;cursor:pointer;outline:none;transition:border-color .15s;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
-select.col-select:focus{border-color:var(--blue-lt)}
-select.col-select.mapped{border-color:var(--green-lt);color:var(--green)}
-.impute-note{margin-top:6px;font-size:11px;color:var(--gray-lt);font-style:italic;font-family:var(--font-mono)}
-
-.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
-.sum-card{background:var(--bg);border:1px solid var(--border);padding:16px}
-.sum-card-label{font-family:var(--font-mono);font-size:10px;color:var(--gray-lt);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px}
-.sum-field-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:.5px solid var(--border);font-size:12px}
-.sum-field-row:last-child{border-bottom:none}
-.sum-field-name{font-family:var(--font-mono);font-size:11px;color:var(--gray-mid)}
-.sum-field-val{font-family:var(--font-mono);font-size:11px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sum-field-val.ok{color:var(--green-lt)}
-.sum-field-val.miss{color:var(--red-lt)}
-.sum-field-val.impute{color:var(--orange)}
-
-.warning-box{border:1px solid rgba(146,64,14,.25);background:var(--orange-dim);padding:14px 16px;font-size:13px;color:var(--gray);line-height:1.6;margin-bottom:14px}
-.warning-box b{color:var(--orange)}
-.ok-box{border:1px solid rgba(42,122,58,.25);background:var(--green-dim);padding:14px 16px;font-size:13px;color:var(--gray);line-height:1.6;margin-bottom:14px}
-.ok-box b{color:var(--green-lt)}
-.note-meto{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--orange);padding:14px 16px;font-size:12px;color:var(--gray-mid);line-height:1.7}
-.note-meto strong{color:var(--orange)}
-
-.export-block{background:var(--bg);border:1px solid var(--border);padding:20px;margin-bottom:12px}
-.export-title{font-family:var(--font-mono);font-size:12px;color:var(--black);margin-bottom:4px}
-.export-desc{font-size:12px;color:var(--gray-mid);margin-bottom:14px;line-height:1.5}
-.export-meta{font-family:var(--font-mono);font-size:10px;color:var(--gray-lt);margin-top:8px}
-
-.next-action{background:var(--blue-dim);border:1px solid var(--blue-dim2);padding:20px;margin-top:4px}
-.next-title{font-family:var(--font-mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--blue-lt);margin-bottom:8px}
-.next-desc{font-size:13px;color:var(--blue);line-height:1.6;margin-bottom:14px}
-.next-desc strong{font-weight:500}
-
-.btn-row{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;border-top:1px solid var(--border);background:var(--bg2)}
-.btn{padding:10px 22px;font-family:var(--font-mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border:1px solid transparent;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
-.btn-ghost{background:transparent;border-color:var(--border2);color:var(--gray-mid)}
-.btn-ghost:hover{color:var(--black);background:var(--bg3);border-color:var(--border2)}
-.btn-primary{background:var(--black);color:var(--white);border-color:var(--black)}
-.btn-primary:hover{opacity:.85}
-.btn-primary:disabled{opacity:.3;cursor:not-allowed}
-.btn-green{background:var(--green-dim);border-color:rgba(42,122,58,.3);color:var(--green-lt)}
-.btn-green:hover{background:rgba(42,122,58,.15)}
-.btn-blue{background:var(--blue);color:var(--white);border-color:var(--blue)}
-.btn-blue:hover{opacity:.85}
-
-.page-footer{text-align:center;padding:24px 40px;border-top:1px solid var(--border)}
-.page-footer p{font-size:11px;color:var(--gray-lt);font-family:var(--font-mono);letter-spacing:.5px}
-.page-footer a{color:var(--gray-mid);text-decoration:none}
-.page-footer a:hover{color:var(--black)}
-
-::-webkit-scrollbar{width:4px;height:4px}
-::-webkit-scrollbar-track{background:var(--bg)}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
-
-@media(max-width:640px){
-  .nav,.anon-banner{padding-left:20px;padding-right:20px}
-  .hero,.progress-wrap,.main{padding-left:20px;padding-right:20px}
-  .summary-grid{grid-template-columns:1fr}
-}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.7}
+.nav{padding:20px 56px;border-bottom:0.5px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:var(--mono);font-size:11px;letter-spacing:4px;color:var(--ink);text-decoration:none;text-transform:uppercase}
+.logo span{color:var(--accent)}
+.nav-back{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--light);text-decoration:none;text-transform:uppercase}
+.nav-back:hover{color:var(--ink)}
+.page{max-width:720px;margin:0 auto;padding:80px 40px}
+.page-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:4px;color:var(--accent);text-transform:uppercase;margin-bottom:16px}
+.page-title{font-family:var(--serif);font-size:clamp(40px,5vw,64px);font-weight:300;line-height:1;color:var(--ink);margin-bottom:12px}
+.page-sub{font-size:13px;color:var(--light);margin-bottom:48px;padding-bottom:40px;border-bottom:0.5px solid var(--line)}
+p{font-size:14px;color:var(--mid);font-weight:300;margin-bottom:14px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.highlight{background:var(--bg2);border-left:3px solid var(--accent);padding:16px 20px;margin:20px 0;font-size:13px;color:var(--mid)}
+footer{border-top:0.5px solid var(--line);padding:32px 56px;display:flex;justify-content:space-between;align-items:center;margin-top:80px}
+.footer-copy{font-family:var(--mono);font-size:9px;color:var(--ghost)}
+.footer-links{display:flex;gap:24px}
+.footer-links a{font-size:12px;color:var(--light);text-decoration:none}
+.footer-links a:hover{color:var(--ink)}
+@media(max-width:600px){.nav{padding:16px 20px}.page{padding:48px 20px}footer{padding:24px 20px;flex-direction:column;gap:16px}}
 </style>
 </head>
 <body>
-
 <nav class="nav">
-  <a class="nav-logo" href="/"><span>POLI</span>SIM.DEV</a>
-  <div class="nav-right">
-    <a class="nav-link" href="/propensione.html">← Modulo Propensione</a>
-    <span class="nav-badge">Import Wizard</span>
-  </div>
+  <a class="logo" href="/"><span>POLI</span>SIM.DEV</a>
+  <a class="nav-back" href="/">← Home</a>
 </nav>
 
-<div class="anon-banner">
-  <div class="anon-text">
-    <strong>Prima di caricare i dati:</strong> rimuovi nomi, indirizzi e dati personali con Data Shield — tutto nel browser, nessun dato inviato a server.
+<div class="page">
+  <div class="page-eyebrow">Modulo Propensione · Import Wizard</div>
+  <h1 class="page-title">Questa pagina<br>si è spostata</h1>
+  <p class="page-sub">Il vecchio wizard di import faceva solo mappatura ed esportazione delle colonne. Mappatura e calcolo dei punteggi sono ora nello stesso strumento.</p>
+
+  <div class="highlight">
+    <strong>Lo strumento è su <a href="/propensione_dashboard.html">/propensione_dashboard.html</a>.</strong> Caricamento dei CSV, mappatura delle colonne e punteggi di propensione RFML, tutto nel browser.
   </div>
-  <a class="anon-btn" href="/anonimizza.html" target="_blank">Apri Data Shield →</a>
+
+  <p>Se hai salvato questo indirizzo nei preferiti, aggiornalo: <a href="/propensione_dashboard.html">polisim.dev/propensione_dashboard.html</a>.</p>
 </div>
 
-<div class="hero">
-  <p class="hero-kicker">Modulo Propensione · NGO · Import</p>
-  <h1 class="hero-title">Carica i tuoi dati.<br><em>Noi facciamo il resto.</em></h1>
-  <p class="hero-sub">In quattro passi guidati: carica il file anagrafica, poi lo storico transazioni, associa le colonne ai campi del modello, invia i file per ricevere i punteggi.</p>
-</div>
-
-<div class="progress-wrap">
-  <div class="steps">
-    <div class="step-item">
-      <div class="step-num active" id="sn1">1</div>
-      <div class="step-label active" id="sl1">Anagrafica</div>
-    </div>
-    <div class="step-connector" id="sc1"></div>
-    <div class="step-item">
-      <div class="step-num" id="sn2">2</div>
-      <div class="step-label" id="sl2">Transazioni</div>
-    </div>
-    <div class="step-connector" id="sc2"></div>
-    <div class="step-item">
-      <div class="step-num" id="sn3">3</div>
-      <div class="step-label" id="sl3">Verifica</div>
-    </div>
-    <div class="step-connector" id="sc3"></div>
-    <div class="step-item" style="flex:0">
-      <div class="step-num" id="sn4">4</div>
-      <div class="step-label" id="sl4">Invia</div>
-    </div>
+<footer>
+  <div class="footer-copy">© 2026 PoliSim.dev — Tutti i diritti riservati</div>
+  <div class="footer-links">
+    <a href="/metodologia.html">Metodologia</a>
+    <a href="/fonti.html">Fonti</a>
+    <a href="/tool.html">Tool</a>
   </div>
-</div>
-
-<div class="main">
-
-  <!-- STEP 1 -->
-  <div class="panel active" id="panel1">
-    <div class="panel-head">
-      <div>
-        <div class="panel-title">File anagrafica donatori</div>
-        <div class="panel-sub">Un record per donatore. Hai già anonimizzato con Data Shield?</div>
-      </div>
-      <div class="step-counter">passo 1 di 4</div>
-    </div>
-    <div class="panel-body">
-      <div class="dropzone" id="dz1" onclick="document.getElementById('f1').click()">
-        <input type="file" id="f1" accept=".csv" onchange="loadFile(1,this)">
-        <div class="dz-icon">📄</div>
-        <div class="dz-title">Trascina il file CSV o clicca per sfogliare</div>
-        <div class="dz-sub">Formato CSV · UTF-8 · fino a ~25 MB consigliato (~300 mila donatori)</div>
-      </div>
-      <div id="preview1" style="display:none">
-        <div class="preview-wrap">
-          <div class="preview-label">Anteprima — prime 3 righe</div>
-          <div class="preview-scroll"><table class="preview-table" id="pt1"></table></div>
-        </div>
-        <div class="mapping-section">
-          <div class="mapping-title">Associa le tue colonne ai campi del modello</div>
-          <div class="legend">
-            <span><span class="leg-dot" style="background:var(--red-lt)"></span>obbligatorio</span>
-            <span><span class="leg-dot" style="background:var(--ghost)"></span>facoltativo (imputato se assente)</span>
-          </div>
-          <div class="field-grid" id="map1"></div>
-        </div>
-      </div>
-    </div>
-    <div class="btn-row">
-      <div style="font-size:11px;color:var(--gray-lt);font-family:var(--font-mono)">I dati non lasciano mai il browser</div>
-      <button class="btn btn-primary" id="btn1" disabled onclick="goStep(2)">Continua →</button>
-    </div>
-  </div>
-
-  <!-- STEP 2 -->
-  <div class="panel" id="panel2">
-    <div class="panel-head">
-      <div>
-        <div class="panel-title">File storico transazioni</div>
-        <div class="panel-sub">Una riga per donazione. Servono almeno 3 anni di storico.</div>
-      </div>
-      <div class="step-counter">passo 2 di 4</div>
-    </div>
-    <div class="panel-body">
-      <div class="dropzone" id="dz2" onclick="document.getElementById('f2').click()">
-        <input type="file" id="f2" accept=".csv" onchange="loadFile(2,this)">
-        <div class="dz-icon">📄</div>
-        <div class="dz-title">Trascina il file CSV o clicca per sfogliare</div>
-        <div class="dz-sub">Formato CSV · UTF-8 · fino a ~200 MB consigliato (~4 milioni di transazioni)</div>
-      </div>
-      <div id="preview2" style="display:none">
-        <div class="preview-wrap">
-          <div class="preview-label">Anteprima — prime 3 righe</div>
-          <div class="preview-scroll"><table class="preview-table" id="pt2"></table></div>
-        </div>
-        <div class="mapping-section">
-          <div class="mapping-title">Associa le tue colonne ai campi del modello</div>
-          <div class="legend">
-            <span><span class="leg-dot" style="background:var(--red-lt)"></span>obbligatorio</span>
-            <span><span class="leg-dot" style="background:var(--ghost)"></span>facoltativo</span>
-          </div>
-          <div class="field-grid" id="map2"></div>
-        </div>
-      </div>
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-ghost" onclick="goStep(1)">← Indietro</button>
-      <button class="btn btn-primary" id="btn2" disabled onclick="goStep(3)">Continua →</button>
-    </div>
-  </div>
-
-  <!-- STEP 3 -->
-  <div class="panel" id="panel3">
-    <div class="panel-head">
-      <div>
-        <div class="panel-title">Verifica il mapping</div>
-        <div class="panel-sub">Controlla cosa userà il modello e come gestirà i campi mancanti.</div>
-      </div>
-      <div class="step-counter">passo 3 di 4</div>
-    </div>
-    <div class="panel-body" id="summary-body"></div>
-    <div class="btn-row">
-      <button class="btn btn-ghost" onclick="goStep(2)">← Modifica</button>
-      <button class="btn btn-primary" onclick="goStep(4)">Conferma ed esporta →</button>
-    </div>
-  </div>
-
-  <!-- STEP 4 -->
-  <div class="panel" id="panel4">
-    <div class="panel-head">
-      <div>
-        <div class="panel-title">Scarica e invia per l'analisi</div>
-        <div class="panel-sub">Scarica i file mappati, poi inviali per ricevere i punteggi di propensione.</div>
-      </div>
-      <div class="step-counter">passo 4 di 4</div>
-    </div>
-    <div class="panel-body">
-
-      <div class="export-block">
-        <div class="export-title">donors_anagrafica_mapped.csv</div>
-        <div class="export-desc">Anagrafica con colonne rinominate nel formato del modello. Campi mancanti imputati come indicato nella verifica.</div>
-        <button class="btn btn-green" onclick="downloadMapped(1)">⬇ Scarica anagrafica</button>
-        <div class="export-meta" id="meta1"></div>
-      </div>
-
-      <div class="export-block">
-        <div class="export-title">donors_transazioni_mapped.csv</div>
-        <div class="export-desc">Storico transazioni con colonne rinominate. Pronto per il calcolo dei segnali R, F, M.</div>
-        <button class="btn btn-green" onclick="downloadMapped(2)">⬇ Scarica transazioni</button>
-        <div class="export-meta" id="meta2"></div>
-      </div>
-
-      <div class="export-block" style="opacity:.75">
-        <div class="export-title" style="color:var(--gray-mid)">mapping_config.json</div>
-        <div class="export-desc" style="color:var(--gray-lt)">Configurazione del mapping. Ricaricala la prossima volta per non rifare il wizard da zero.</div>
-        <button class="btn btn-ghost" onclick="downloadConfig()">⬇ Scarica configurazione</button>
-      </div>
-
-      <div class="next-action">
-        <div class="next-title">Passo successivo — Invia i file per l'analisi</div>
-        <div class="next-desc">
-          Scarica i due file qui sopra, poi allegali all'email. Riceverai il file con i <strong>punteggi di propensione</strong> e il dashboard interattivo entro <strong>24 ore</strong>.
-        </div>
-        <a class="btn btn-blue" id="mailto-btn" href="mailto:info@polisim.dev">
-          ✉ Invia i file a PoliSim →
-        </a>
-        <p style="font-size:11px;color:var(--blue-lt);margin-top:10px;font-family:var(--font-mono)">
-          Output: propensione_output.csv · 5 punteggi per donatore · dashboard HTML
-        </p>
-      </div>
-
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-ghost" onclick="goStep(1); resetAll()">↺ Nuovo import</button>
-      <div style="font-size:11px;color:var(--gray-lt);font-family:var(--font-mono)">nessun dato inviato automaticamente</div>
-    </div>
-  </div>
-
-</div>
-
-<div class="page-footer">
-  <p>I dati non lasciano mai il tuo browser &nbsp;·&nbsp; <a href="/anonimizza.html">Data Shield</a> &nbsp;·&nbsp; <a href="/propensione.html">Modulo Propensione</a> &nbsp;·&nbsp; <a href="mailto:info@polisim.dev">info@polisim.dev</a></p>
-</div>
-
-<script>
-const ANA_FIELDS = [
-  { key:'donor_id', label:'ID donatore', req:true, desc:'Identificatore unico per donatore. Può essere un hash SHA-256.', impute:null },
-  { key:'fascia_eta', label:'Fascia età / anno nascita', req:true, desc:'Fascia (35-44, 45-54…) o anno di nascita. Predittore principale lasciti.', impute:null },
-  { key:'anno_primo_contatto', label:'Anno primo contatto', req:false, desc:'Anno del primo contatto con la ONG (non necessariamente la prima donazione).', impute:'Imputato dalla prima transazione nel file storico.' },
-  { key:'metodo_pagamento_prevalente', label:'Metodo pagamento', req:false, desc:'RID_SEPA / bonifico_ricorrente → bonus regolarità nel segnale F.', impute:'Imputato come "non_ricorrente" (nessun bonus).' },
-  { key:'tipo_sostegno_prevalente', label:'Tipo sostegno prevalente', req:false, desc:'Donazione ricorrente, singola, adozione distanza, misto.', impute:'Imputato come "sconosciuto" — non influenza il modello quantitativo.' },
-  { key:'canale_acquisizione', label:'Canale acquisizione', req:false, desc:'web, direct_mail, eventi, passaparola, telefono, agenzia.', impute:'Usato solo per Matrice di Contesto (non entra nei punteggi RFML).' },
-  { key:'volontariato', label:'Volontariato (0/1)', req:false, desc:'Il donatore fa anche volontariato? Flag binario.', impute:'Imputato come 0. Usato solo per Matrice di Contesto.' },
-  { key:'eventi_partecipati', label:'Partecipazione eventi (0/1)', req:false, desc:'Ha partecipato a eventi dell\'organizzazione? Flag binario.', impute:'Imputato come 0. Usato solo per Matrice di Contesto.' },
-  { key:'lascito_dichiarato', label:'Lascito dichiarato (0/1)', req:false, desc:'VARIABILE-ESITO: non entra nel modello. Usata solo per misurare il lift.', impute:'Se assente, il lift non può essere calcolato (solo output di propensione).' },
-];
-
-const TX_FIELDS = [
-  { key:'donor_id', label:'ID donatore', req:true, desc:'Deve corrispondere all\'ID nell\'anagrafica.', impute:null },
-  { key:'data_donazione', label:'Data donazione', req:true, desc:'Formato YYYY-MM-DD o DD/MM/YYYY. Serve per calcolare R (recency) e M-trend.', impute:null },
-  { key:'importo_eur', label:'Importo (EUR)', req:true, desc:'Importo numerico. Usato per M-livello (media) e M-trend (pendenza nel tempo).', impute:null },
-  { key:'metodo_pagamento', label:'Metodo pagamento (per transazione)', req:false, desc:'Se presente sovrascrive il metodo prevalente dell\'anagrafica per calcolare F.', impute:'Usa il metodo dall\'anagrafica se disponibile.' },
-  { key:'tipo_donazione', label:'Tipo donazione', req:false, desc:'Ricorrente, singola, ecc. Usato per tag di contesto.', impute:'Imputato come "sconosciuto".' },
-  { key:'campagna', label:'Campagna / causale', req:false, desc:'Nome della campagna. Usato per tag di contesto e futuro social listening.', impute:'Imputato come "standard".' },
-];
-
-const state = { csv:[null,null], mapping:[{},{}] };
-let currentStep = 1;
-
-function goStep(n) {
-  document.getElementById('panel'+currentStep).classList.remove('active');
-  document.getElementById('panel'+n).classList.add('active');
-  currentStep = n;
-  updateProgress();
-  if (n===3) buildSummary();
-  if (n===4) buildExportMeta();
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-
-function updateProgress() {
-  [1,2,3,4].forEach(i => {
-    const sn=document.getElementById('sn'+i), sl=document.getElementById('sl'+i);
-    sn.className='step-num '+(i<currentStep?'done':i===currentStep?'active':'');
-    sl.className='step-label '+(i<currentStep?'done':i===currentStep?'active':'');
-    if(i<4){ const sc=document.getElementById('sc'+i); sc.className='step-connector '+(i<currentStep?'done':''); }
-    sn.textContent = i<currentStep ? '✓' : i;
-  });
-}
-
-function loadFile(idx, input) {
-  const file=input.files[0]; if(!file) return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    const raw=e.target.result, parsed=parseCSV(raw);
-    state.csv[idx-1]={headers:parsed.headers,rows:parsed.rows,raw,filename:file.name};
-    const dz=document.getElementById('dz'+idx);
-    dz.classList.add('dz-loaded');
-    dz.querySelector('.dz-icon').textContent='✅';
-    dz.querySelector('.dz-title').textContent=file.name;
-    dz.querySelector('.dz-sub').textContent=`${parsed.rows.length.toLocaleString()} righe · ${parsed.headers.length} colonne`;
-    document.getElementById('preview'+idx).style.display='block';
-    buildPreview(idx,parsed); buildMapping(idx,parsed.headers); checkStep(idx);
-  };
-  reader.readAsText(file,'UTF-8');
-}
-
-function parseCSV(text) {
-  text=text.replace(/^\uFEFF/,'');
-  const lines=text.split(/\r?\n/).filter(l=>l.trim());
-  const first=lines[0];
-  const delim=(first.split(';').length>first.split(',').length)?';':',';
-  function parseLine(line){
-    const res=[];let cur='',inQ=false;
-    for(let i=0;i<line.length;i++){
-      const c=line[i];
-      if(c==='"'){inQ=!inQ;continue;}
-      if(c===delim&&!inQ){res.push(cur.trim());cur='';continue;}
-      cur+=c;
-    }
-    res.push(cur.trim());return res;
-  }
-  return {headers:parseLine(lines[0]),rows:lines.slice(1,4).map(parseLine)};
-}
-
-function buildPreview(idx,parsed){
-  const tbl=document.getElementById('pt'+idx);
-  const heads=parsed.headers.map(h=>`<th>${esc(h)}</th>`).join('');
-  const body=parsed.rows.map(r=>'<tr>'+r.map(c=>`<td>${esc(c)}</td>`).join('')+'</tr>').join('');
-  tbl.innerHTML=`<thead><tr>${heads}</tr></thead><tbody>${body}</tbody>`;
-}
-
-function buildMapping(idx,headers){
-  const fields=idx===1?ANA_FIELDS:TX_FIELDS;
-  const container=document.getElementById('map'+idx);
-  const mi=idx-1;
-  const opts=['<option value="__skip__">— non disponibile —</option>']
-    .concat(headers.map(h=>`<option value="${esc(h)}">${esc(h)}</option>`)).join('');
-  container.innerHTML=fields.map(f=>`
-    <div class="field-row" id="fr_${mi}_${f.key}">
-      <div class="field-header">
-        <div class="field-name"><span class="${f.req?'req-dot':'opt-dot'}"></span>${esc(f.label)}</div>
-        <span class="field-status ${f.req?'miss':'opt'}" id="fs_${mi}_${f.key}">${f.req?'mancante':'facoltativo'}</span>
-      </div>
-      <div class="field-desc">${esc(f.desc)}</div>
-      <select class="col-select" id="sel_${mi}_${f.key}" onchange="onMapChange(${mi},'${f.key}',this)">${opts}</select>
-      ${f.impute?`<div class="impute-note">↳ se assente: ${esc(f.impute)}</div>`:''}
-    </div>`).join('');
-  fields.forEach(f=>{
-    const match=headers.find(h=>h.toLowerCase().replace(/[\s_\/\-\.]/g,'').includes(f.key.toLowerCase().replace(/[\s_\/\-\.]/g,'').slice(0,6)));
-    if(match){const sel=document.getElementById(`sel_${mi}_${f.key}`);sel.value=match;onMapChange(mi,f.key,sel);}
-  });
-}
-
-function onMapChange(mi,key,sel){
-  const val=sel.value;
-  state.mapping[mi][key]=val;
-  const fields=mi===0?ANA_FIELDS:TX_FIELDS;
-  const f=fields.find(x=>x.key===key);
-  const row=document.getElementById(`fr_${mi}_${key}`);
-  const stat=document.getElementById(`fs_${mi}_${key}`);
-  if(val==='__skip__'){
-    sel.classList.remove('mapped');row.classList.remove('mapped');row.classList.add('skipped');
-    stat.textContent=f.req?'mancante':'non mappato';
-    stat.className=`field-status ${f.req?'miss':'opt'}`;
-  } else {
-    sel.classList.add('mapped');row.classList.add('mapped');row.classList.remove('skipped');
-    stat.textContent='mappato';stat.className='field-status ok';
-  }
-  checkStep(mi+1);
-}
-
-function checkStep(idx){
-  const mi=idx-1;
-  const fields=mi===0?ANA_FIELDS:TX_FIELDS;
-  const ok=fields.filter(f=>f.req).every(f=>state.mapping[mi][f.key]&&state.mapping[mi][f.key]!=='__skip__');
-  document.getElementById('btn'+idx).disabled=!ok;
-}
-
-function buildSummary(){
-  const body=document.getElementById('summary-body');
-  const allFields=[{title:'Anagrafica',fields:ANA_FIELDS,mi:0},{title:'Transazioni',fields:TX_FIELDS,mi:1}];
-  let warnings=[],html='<div class="summary-grid">';
-  allFields.forEach(({title,fields,mi})=>{
-    html+=`<div class="sum-card"><div class="sum-card-label">${title}</div>`;
-    fields.forEach(f=>{
-      const mapped=state.mapping[mi][f.key];
-      const ok=mapped&&mapped!=='__skip__';
-      const cls=ok?'ok':(f.req?'miss':'impute');
-      const val=ok?mapped:(f.impute?'imputato':'mancante');
-      if(!ok&&f.req) warnings.push(`${title}: "${f.label}" mancante`);
-      html+=`<div class="sum-field-row"><span class="sum-field-name">${esc(f.label)}</span><span class="sum-field-val ${cls}" title="${esc(val)}">${esc(val)}</span></div>`;
-    });
-    html+='</div>';
-  });
-  html+='</div>';
-  html+=warnings.length
-    ?`<div class="warning-box"><b>⚠ Attenzione:</b> ${warnings.map(esc).join('; ')}.</div>`
-    :`<div class="ok-box"><b>✓ Mapping completo.</b> Tutti i campi obbligatori sono mappati. I campi facoltativi mancanti saranno imputati come indicato.</div>`;
-  html+=`<div class="note-meto"><strong>⚠ Nota metodologica</strong><br>I pesi RFML sono <strong>expert-calibrated</strong> (Sargeant 2007 adattato), non validati su A/B test propri. Il modello produce 5 punteggi di propensione: lascito, upgrade, sostegno continuativo, riattivazione, one-off emergenza. Lift lascito misurato: 1.97× su dataset sintetico strutturato.</div>`;
-  body.innerHTML=html;
-}
-
-function buildExportMeta(){
-  [{mi:0,fields:ANA_FIELDS,id:'meta1'},{mi:1,fields:TX_FIELDS,id:'meta2'}].forEach(({mi,fields,id})=>{
-    const n=fields.filter(f=>state.mapping[mi][f.key]&&state.mapping[mi][f.key]!=='__skip__').length;
-    document.getElementById(id).textContent=`${n}/${fields.length} campi mappati`;
-  });
-  const subj=encodeURIComponent('PoliSim Modulo Propensione — invio file per analisi');
-  const body=encodeURIComponent('Salve,\n\nallego i due file CSV mappati per l\'analisi di propensione:\n\n1. donors_anagrafica_mapped.csv\n2. donors_transazioni_mapped.csv\n\nFile anonimizzati con Data Shield.\n\nAttendo l\'output entro 24 ore.\n\nGrazie');
-  document.getElementById('mailto-btn').href=`mailto:info@polisim.dev?subject=${subj}&body=${body}`;
-}
-
-function downloadMapped(idx){
-  const mi=idx-1,fields=mi===0?ANA_FIELDS:TX_FIELDS,csv=state.csv[mi];
-  if(!csv) return;
-  const raw=csv.raw.replace(/^\uFEFF/,'');
-  const lines=raw.split(/\r?\n/).filter(l=>l.trim());
-  const delim=(lines[0].split(';').length>lines[0].split(',').length)?';':',';
-  function parseLine(line){const res=[];let cur='',inQ=false;for(let i=0;i<line.length;i++){const c=line[i];if(c==='"'){inQ=!inQ;continue;}if(c===delim&&!inQ){res.push(cur.trim());cur='';continue;}cur+=c;}res.push(cur.trim());return res;}
-  const headers=parseLine(lines[0]),rows=lines.slice(1).map(parseLine);
-  const outFields=fields.filter(f=>state.mapping[mi][f.key]&&state.mapping[mi][f.key]!=='__skip__');
-  const outHeaders=outFields.map(f=>f.key);
-  const srcCols=outFields.map(f=>headers.indexOf(state.mapping[mi][f.key]));
-  const outLines=[outHeaders.join(',')];
-  rows.forEach(row=>{
-    const vals=srcCols.map(ci=>{const v=ci>=0?(row[ci]||''):'';return v.includes(',')||v.includes('"')?`"${v.replace(/"/g,'""')}"`:''+v;});
-    outLines.push(vals.join(','));
-  });
-  const blob=new Blob(['\uFEFF'+outLines.join('\n')],{type:'text/csv;charset=utf-8'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download=mi===0?'donors_anagrafica_mapped.csv':'donors_transazioni_mapped.csv';a.click();
-}
-
-function downloadConfig(){
-  const cfg={version:'1.0',created:new Date().toISOString(),anagrafica:state.mapping[0],transazioni:state.mapping[1]};
-  const blob=new Blob([JSON.stringify(cfg,null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='polisim_mapping_config.json';a.click();
-}
-
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-
-function resetAll(){
-  state.csv=[null,null];state.mapping=[{},{}];
-  [1,2].forEach(i=>{
-    document.getElementById('preview'+i).style.display='none';
-    const dz=document.getElementById('dz'+i);
-    dz.classList.remove('dz-loaded');
-    dz.querySelector('.dz-icon').textContent='📄';
-    dz.querySelector('.dz-title').textContent='Trascina il file CSV o clicca per sfogliare';
-    dz.querySelector('.dz-sub').textContent='Formato CSV · UTF-8 · max '+(i===1?'50':'100')+' MB';
-    document.getElementById('btn'+i).disabled=true;
-  });
-  updateProgress();
-}
-
-[1,2].forEach(i=>{
-  const dz=document.getElementById('dz'+i);
-  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag');});
-  dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
-  dz.addEventListener('drop',e=>{
-    e.preventDefault();dz.classList.remove('drag');
-    const file=e.dataTransfer.files[0];
-    if(file){const input=document.getElementById('f'+i);const dt=new DataTransfer();dt.items.add(file);input.files=dt.files;loadFile(i,input);}
-  });
-});
-</script>
+</footer>
 </body>
 </html>
