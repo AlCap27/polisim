@@ -176,7 +176,7 @@
           "quota_oltre75k_min": null,
           "quota_oltre75k_max": null,
           "escluso": true,
-          "motivo": "base territoriale codificata insufficiente: nessun comune assegnato nella zona. L'analisi di sensibilita' non ha una base rispetto a cui misurare la variazione. Dichiarata esclusa, non riempita con valori stimati."
+          "motivo": "base territoriale codificata insufficiente: nessun comune assegnato nella zona. L'analisi di sensibilità non ha una base rispetto a cui misurare la variazione. Dichiarata esclusa, non riempita con valori stimati."
         },
         "08": {
           "quota_over65": null,
@@ -185,7 +185,7 @@
           "quota_oltre75k_min": null,
           "quota_oltre75k_max": null,
           "escluso": true,
-          "motivo": "base territoriale codificata insufficiente: un solo comune assegnato (Siniscola, da GeoNames). Assegnazioni discordanti fra le fonti; la sensibilita' sui comuni candidati oscilla fino a 6,25 punti di over65, 4.567 EUR di reddito e 7,84 punti di istruzione. Esclusa, non stimata."
+          "motivo": "base territoriale codificata insufficiente: un solo comune assegnato (Siniscola, da GeoNames). Assegnazioni discordanti fra le fonti; la sensibilità sui comuni candidati oscilla fino a 6,25 punti di over65, 4.567 EUR di reddito e 7,84 punti di istruzione. Esclusa, non stimata."
         },
         "09": {
           "quota_over65": null,
@@ -194,7 +194,7 @@
           "quota_oltre75k_min": null,
           "quota_oltre75k_max": null,
           "escluso": true,
-          "motivo": "base territoriale codificata insufficiente: un solo comune assegnato (Cagliari, dal MEF). Assegnazioni discordanti fra le fonti, in alcuni casi fra zone diverse; la sensibilita' oscilla fino a 4,43 punti di over65, 7.590 EUR di reddito e 15,58 punti di istruzione. Esclusa, non stimata."
+          "motivo": "base territoriale codificata insufficiente: un solo comune assegnato (Cagliari, dal MEF). Assegnazioni discordanti fra le fonti, in alcuni casi fra zone diverse; la sensibilità oscilla fino a 4,43 punti di over65, 7.590 EUR di reddito e 15,58 punti di istruzione. Esclusa, non stimata."
         },
         "10": {
           "quota_over65": 0.26363127977260903,
