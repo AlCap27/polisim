@@ -6,7 +6,7 @@
 <title>Modulo Propensione — PoliSim · Analisi donatori per ONG</title>
 <meta name="description" content="Il Modulo Propensione di PoliSim analizza il tuo database donatori e risponde alla domanda: chi raggiungere, con quale obiettivo e come. Lasciti, upgrade, riattivazione, sostegno continuativo, emergenze. Lift 1.65× su dataset sintetico.">
 <meta property="og:title" content="Modulo Propensione PoliSim — Analisi donatori NGO">
-<meta property="og:description" content="Analisi RFML multi-obiettivo per ONG. Chi contattare per lasciti, upgrade, riattivazione, sostegno continuativo. Lift misurato 1.65×.">
+<meta property="og:description" content="Analisi RFML multi-obiettivo per ONG. Chi contattare per lasciti, upgrade, riattivazione, sostegno continuativo. Lift 1.65× su dataset sintetico, non su campagne reali.">
 <link rel="canonical" href="https://polisim.dev/propensione.html">
 <script type="application/ld+json">
 {
@@ -18,7 +18,7 @@
       "name": "Cos'è il Modulo Propensione di PoliSim?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Il Modulo Propensione analizza il database donatori di una ONG e calcola, per ogni donatore, la propensione a rispondere positivamente a cinque obiettivi di raccolta fondi: lascito testamentario, upgrade dell'importo, conversione a sostegno continuativo, riattivazione dopo inattività, risposta a campagne one-off. Non è un RFM generico: i pesi variano per obiettivo e includono un modello RFML (Recency, Frequency, Monetary, Longevity) calibrato su letteratura scientifica (Sargeant 2007)."
+        "text": "Il Modulo Propensione analizza il database donatori di una ONG e calcola, per ogni donatore, la propensione a rispondere positivamente a cinque obiettivi di raccolta fondi: lascito testamentario, upgrade dell'importo, conversione a sostegno continuativo, riattivazione dopo inattività, risposta a campagne one-off. Non è un RFM generico: i pesi variano per obiettivo e includono un modello RFML (Recency, Frequency, Monetary, Longevity). La struttura segue la pratica RFM standard nella raccolta fondi; i pesi sono dichiarati, calibrati sull'esperienza di dominio, non stimati su esiti reali né derivati da uno studio pubblicato."
       }
     },
     {
@@ -34,7 +34,7 @@
       "name": "Qual è il lift misurato del modello propensione lasciti?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Su dataset sintetico strutturato, il top 20% per score lascito ha una frequenza di lasciti dichiarati superiore al resto del database: lift 1.65×. I pesi sono expert-calibrated (Sargeant 2007 adattato), non ancora validati su A/B test propri. Il lift sarà aggiornato con i dati delle prime campagne reali."
+        "text": "Su dataset sintetico strutturato, il top 20% per score lascito ha una frequenza di lasciti dichiarati superiore al resto del database: lift 1.65×. I pesi sono dichiarati, calibrati sull'esperienza di dominio, non stimati su esiti reali e non ancora validati su A/B test propri. Il lift sarà aggiornato con i dati delle prime campagne reali."
       }
     }
   ]
@@ -301,7 +301,7 @@ footer{border-top:0.5px solid var(--border);padding:32px 40px;display:flex;justi
 <div class="page-hero">
   <p class="page-kicker">Modulo Propensione · ONG · Fundraising</p>
   <h1 class="page-title">Non chi dona di più.<br><em>Chi risponderà</em> al tuo prossimo obiettivo.</h1>
-  <p class="page-sub">Il Modulo Propensione analizza il tuo database donatori e calcola la probabilità di risposta positiva per cinque obiettivi distinti: lascito, upgrade, sostegno continuativo, riattivazione, campagna emergenza. Un punteggio per obiettivo, non un cluster unico.</p>
+  <p class="page-sub">Il Modulo Propensione analizza il tuo database donatori e calcola un punteggio di propensione per cinque obiettivi distinti: lascito, upgrade, sostegno continuativo, riattivazione, campagna emergenza. Un punteggio per obiettivo, non un cluster unico: ordina i donatori tra loro, non è una probabilità.</p>
 
   <div class="beta-notice">
     <span class="beta-dot"></span>
@@ -311,7 +311,7 @@ footer{border-top:0.5px solid var(--border);padding:32px 40px;display:flex;justi
   <div class="hero-stats">
     <div class="hero-stat">
       <span class="hero-stat-n">1.65×</span>
-      <span class="hero-stat-l">Lift lasciti — top 20% score</span>
+      <span class="hero-stat-l">Lift lasciti — top 20% score · dataset sintetico</span>
     </div>
     <div class="hero-stat">
       <span class="hero-stat-n">5</span>
@@ -340,7 +340,7 @@ footer{border-top:0.5px solid var(--border);padding:32px 40px;display:flex;justi
     <div class="problema-cell">
       <span class="prob-label bad">RFM standard — cosa sbaglia</span>
       <div class="prob-title">Il trentenne entusiasta vince sempre.</div>
-      <p class="prob-desc">L'RFM puro massimizza il valore transazionale corrente. Premia chi ha donato di recente, spesso e molto. Penalizza l'over-70 fedele da 15 anni con donazioni modeste e costanti — che è esattamente il profilo del legacy prospect reale.</p>
+      <p class="prob-desc">L'RFM puro massimizza il valore transazionale corrente. Premia chi ha donato di recente, spesso e molto. Penalizza l'over-70 fedele da 15 anni con donazioni modeste e costanti — che nel nostro modello è l'assunzione di partenza sul profilo del legacy prospect, non un risultato misurato.</p>
     </div>
     <div class="problema-cell" style="background:var(--bg2)">
       <span class="prob-label good">Modulo Propensione — cosa fa diversamente</span>
@@ -356,13 +356,13 @@ footer{border-top:0.5px solid var(--border);padding:32px 40px;display:flex;justi
 <section class="section">
   <p class="section-kicker">Cinque obiettivi · Un'analisi</p>
   <h2 class="section-title">La domanda giusta<br><em>per ogni campagna.</em></h2>
-  <p class="section-sub">Non "chi vale di più" in assoluto. "Chi ha la più alta probabilità di rispondere positivamente a questo specifico obiettivo."</p>
+  <p class="section-sub">Non "chi vale di più" in assoluto. "Chi ha il punteggio di propensione più alto per questo specifico obiettivo."</p>
 
   <div class="obiettivi-grid">
     <div class="ob-card ob-lascito">
       <span class="ob-label">Lascito</span>
       <div class="ob-title">Legacy prospect non identificati</div>
-      <p class="ob-desc">Donatori fedeli da anni, importi modesti, over 65. Il CRM li classifica come "medi". Il modello li separa dal resto con lift 1.65×.</p>
+      <p class="ob-desc">Donatori fedeli da anni, importi modesti, over 65. Il CRM li classifica come "medi". Il modello li separa dal resto con lift 1.65× su dataset sintetico.</p>
       <p class="ob-note">Pesi: L=0.45 · F=0.30 · M-trend=0.15 · R=0.05</p>
     </div>
     <div class="ob-card ob-upgrade">
@@ -386,11 +386,11 @@ footer{border-top:0.5px solid var(--border);padding:32px 40px;display:flex;justi
     <div class="ob-card ob-oneoff">
       <span class="ob-label">One-off / Emergenza</span>
       <div class="ob-title">Chi risponde agli appelli</div>
-      <p class="ob-desc">Reattività recente e storico di risposta a campagne contingenti. Tempismo e urgenza del messaggio battono la fedeltà storica.</p>
+      <p class="ob-desc">Reattività recente e storico di risposta a campagne contingenti. Nel nostro modello, per l'emergenza, il tempismo pesa più della fedeltà storica.</p>
       <p class="ob-note">Pesi: R=0.45 · F=0.30 · M-liv=0.15 · L=0.05</p>
     </div>
   </div>
-  <p style="font-size:11px;color:var(--gray-light);font-family:var(--font-mono);margin-top:8px">Pesi expert-calibrated (Sargeant 2007 adattato) · non ancora validati su A/B test propri · aggiornati dopo le prime campagne reali</p>
+  <p style="font-size:11px;color:var(--gray-light);font-family:var(--font-mono);margin-top:8px">Struttura RFM standard nella raccolta fondi · pesi dichiarati, calibrati sull'esperienza di dominio, non stimati su esiti reali · non ancora validati su A/B test propri · aggiornati dopo le prime campagne reali</p>
 </section>
 
 <hr class="div">
@@ -492,7 +492,7 @@ footer{border-top:0.5px solid var(--border);padding:32px 40px;display:flex;justi
     </table>
   </div>
   <div class="disclaimer-box">
-    <strong>⚠ Expert-calibrated, non validato.</strong> I pesi derivano da Sargeant (2007) adattato al contesto italiano e calibrato sui tassi di risposta misurati sui dati. Non sono ancora stati validati su A/B test propri. Il lift lascito (1.65×) è misurato su dataset sintetico strutturato, non su campagne reali. I pesi saranno aggiornati automaticamente dopo le prime 20 campagne con esito misurato — questo è il feedback loop che trasforma il modello euristico in modello validato.
+    <strong>⚠ Expert-calibrated, non validato.</strong> La struttura segue la pratica RFM standard nella raccolta fondi; i pesi sono dichiarati, calibrati sull'esperienza di dominio, non stimati su esiti reali né derivati da uno studio pubblicato. Non sono ancora stati validati su A/B test propri. Il lift lascito (1.65×) è misurato su dataset sintetico strutturato, non su campagne reali. È previsto, non ancora attivo, un aggiornamento dei pesi dopo le prime 20 campagne con esito misurato — il feedback loop che trasformerebbe il modello euristico in modello validato.
   </div>
 </section>
 
@@ -500,8 +500,8 @@ footer{border-top:0.5px solid var(--border);padding:32px 40px;display:flex;justi
 
 <!-- LIFT -->
 <section class="section">
-  <p class="section-kicker">Validazione · Lift misurato</p>
-  <h2 class="section-title">Il top 20% contiene<br><em>quasi il doppio</em> dei legacy prospect.</h2>
+  <p class="section-kicker">Lift · Dataset sintetico</p>
+  <h2 class="section-title">Il top 20% contiene<br><em>più legacy prospect</em> del resto del database.</h2>
 
   <div class="lift-block">
     <div>
@@ -509,7 +509,7 @@ footer{border-top:0.5px solid var(--border);padding:32px 40px;display:flex;justi
       <div class="lift-number">1.65×</div>
       <p class="lift-desc">Il 20% dei donatori con il punteggio lascito più alto ha una frequenza di lasciti dichiarati 1.65× superiore al resto del database.</p>
       <p class="lift-detail">
-        Dataset sintetico con struttura causale reale<br>
+        Dataset sintetico con struttura causale ipotizzata, non osservata<br>
         Segnali usati: RFML + fascia età · nessuna colonna-esito come input
       </p>
     </div>
@@ -654,16 +654,16 @@ footer{border-top:0.5px solid var(--border);padding:32px 40px;display:flex;justi
 <section class="section">
   <p class="section-kicker">Verticali · Roadmap</p>
   <h2 class="section-title">NGO oggi.<br><em>Sindacato e municipalità</em> in arrivo.</h2>
-  <p class="section-sub">Il modello è parametrizzato per verticale. Il verticale NGO è l'unico calibrato su dati reali. Gli altri sono predisposti — verranno rilasciati quando saranno validati, non prima.</p>
+  <p class="section-sub">Il modello è parametrizzato per verticale. Il verticale NGO è l'unico con pesi definiti: dichiarati, non ancora validati su esiti reali. Gli altri sono predisposti — verranno rilasciati quando saranno validati, non prima.</p>
 
   <div class="verticali-grid">
     <div class="vert-card">
       <span class="vert-badge badge-active">● Attivo — Beta</span>
       <div class="vert-title">ONG &amp; Fundraising</div>
-      <p class="vert-desc">Lasciti, upgrade, sostegno continuativo, riattivazione, emergenze. Matrice pesi calibrata su Sargeant 2007. Integrazione diretta con Data Shield e Stage 3 message optimizer.</p>
+      <p class="vert-desc">Lasciti, upgrade, sostegno continuativo, riattivazione, emergenze. Matrice pesi dichiarata, calibrata sull'esperienza di dominio. Integrazione diretta con Data Shield e Stage 3 message optimizer.</p>
       <ul class="vert-feats">
         <li>5 obiettivi di raccolta modellati</li>
-        <li>Lift lasciti misurato: 1.65×</li>
+        <li>Lift lasciti 1.65× su dataset sintetico</li>
         <li>Wizard mapping CSV 4-step</li>
         <li>Dashboard interattivo per esplorazione</li>
         <li>Bonus demografico per fascia età (lasciti)</li>
@@ -678,7 +678,7 @@ footer{border-top:0.5px solid var(--border);padding:32px 40px;display:flex;justi
         <li>Participation sostituisce Monetary</li>
         <li>Obiettivi: iscrizione, rinnovo, attivismo</li>
         <li>Integrazione registro deleghe</li>
-        <li>Pesi calibrati su letteratura sindacale</li>
+        <li>Pesi da definire</li>
       </ul>
       <div class="interesse-form">
         <div class="interesse-title">Notificami al rilascio</div>
@@ -738,7 +738,6 @@ footer{border-top:0.5px solid var(--border);padding:32px 40px;display:flex;justi
 <script>
 // Ticker
 const TICKER_ITEMS = [
-  {label:'Sargeant A. (2007)', desc:'Charitable Giving — Major Donors and Gift Aid'},
   {label:'Wang et al. (2015)', desc:'MRP Electoral Forecasting · Journal of the American Statistical Association'},
   {label:'ESS Round 11 (2023-24)', desc:'European Social Survey · N=2.865 IT · fiducia istituzionale, scala sx-dx'},
   {label:'TRIPOL IT (2021-22)', desc:'Polarizzazione affettiva italiana · N=1.231 · WAPSV score'},
