@@ -47,7 +47,7 @@ const txMalPath = join(__dirname, 'donors_transazioni_malformed.csv');
 // Math.max/min non alteri il percorso "nessuna data valida").
 const anaNvPath = join(__dirname, 'donors_anagrafica_novaliddate.csv');
 const txNvPath = join(__dirname, 'donors_transazioni_novaliddate.csv');
-// Compito 4 (strato territoriale): 5 donatori x 5 obiettivi -> i 7 stati, con
+// Compito 4 (strato territoriale): 6 donatori x 5 obiettivi -> i 7 stati, con
 // ZONE_POSTALI reale e con ZONE_POSTALI svuotata (tutti in dati_non_caricati).
 const anaTerrPath = join(__dirname, 'donors_anagrafica_territori.csv');
 // Arrotondamento: donatore con punteggio riattivazione su .x5 (21.25) -> 21.3

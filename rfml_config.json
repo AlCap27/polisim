@@ -783,7 +783,7 @@
       "fonte_dati": {
         "origine": "codici che condividono il prefisso con zone italiane ma non sono Italia. Il controllo su questa lista va fatto PRIMA di leggere le prime due cifre, altrimenti 00120 diventerebbe zona 00.",
         "verificato": false,
-        "note": "Ogni voce ha 'tipo': 'cap_esatto' (la chiave e' il CAP a 5 cifre) o 'intervallo' (cap_min/cap_max, confronto fra stringhe a 5 cifre). Una voce con cap_min/cap_max vuoti NON esclude alcun CAP: resta dichiarata ma inerte finche' non verificata. Non inventare intervalli."
+        "note": "Ogni voce ha 'tipo': 'cap_esatto' (la chiave e' il CAP a 5 cifre) o 'intervallo' (cap_min/cap_max, confronto fra stringhe a 5 cifre). Una voce con cap_min/cap_max vuoti NON esclude alcun CAP: resta dichiarata ma inerte finche' non verificata. Non inventare intervalli. SAN MARINO - elenco PARZIALE: le voci 47890, 47891, 47893, 47899 sono i CAP di enti pubblici sammarinesi documentati sulla pagina 'Enti Autonomi' di gov.sm (https://www.gov.sm/pub1/GovSM/Amministrazione-Trasparente/Organizzazione-dell-Amministrazione/Enti-Autonomi.html, consultata il 2026-10-16). NON sono la gamma completa assegnata a San Marino: ogni CAP elencato e' verificato, l'elenco no (per questo 'verificato' di tabella resta false). Non estendere per analogia a 47890-47899: gli altri sei codici non sono documentati da questa fonte."
       },
       "valori": {
         "00120": {
@@ -792,14 +792,29 @@
           "verificato": true,
           "fonte": "vaticanstate.va; gia' escluso dalle fonti dati (esclusioni.csv, consegna 20261016)"
         },
-        "san_marino": {
+        "47890": {
           "nome": "Repubblica di San Marino",
-          "tipo": "intervallo",
-          "cap_min": "",
-          "cap_max": "",
-          "verificato": false,
-          "fonte": "",
-          "nota": "San Marino usa CAP nel blocco 47xxx (es. 47890 San Marino, 47899 Serravalle secondo gov.sm) condivisi con la zona italiana 47. L'intervallo ESATTO non e' verificato su questi archivi: cap_min/cap_max lasciati vuoti, nessun CAP sammarinese viene escluso finche' non verificato. Non inventare l'intervallo."
+          "tipo": "cap_esatto",
+          "verificato": true,
+          "fonte": "gov.sm, pagina 'Enti Autonomi' (https://www.gov.sm/pub1/GovSM/Amministrazione-Trasparente/Organizzazione-dell-Amministrazione/Enti-Autonomi.html), consultata il 2026-10-16 e ricontrollata il 2026-10-20: CAP che compare negli indirizzi ufficiali di enti pubblici sammarinesi. Ente: UNIRSM, Contrada Omerelli; Poste San Marino, Divisione Filatelica e Numismatica."
+        },
+        "47891": {
+          "nome": "Repubblica di San Marino",
+          "tipo": "cap_esatto",
+          "verificato": true,
+          "fonte": "gov.sm, pagina 'Enti Autonomi' (https://www.gov.sm/pub1/GovSM/Amministrazione-Trasparente/Organizzazione-dell-Amministrazione/Enti-Autonomi.html), consultata il 2026-10-16 e ricontrollata il 2026-10-20: CAP che compare negli indirizzi ufficiali di enti pubblici sammarinesi. Ente: A.A.C.N.M., Via III Settembre, Dogana."
+        },
+        "47893": {
+          "nome": "Repubblica di San Marino",
+          "tipo": "cap_esatto",
+          "verificato": true,
+          "fonte": "gov.sm, pagina 'Enti Autonomi' (https://www.gov.sm/pub1/GovSM/Amministrazione-Trasparente/Organizzazione-dell-Amministrazione/Enti-Autonomi.html), consultata il 2026-10-16 e ricontrollata il 2026-10-20: CAP che compare negli indirizzi ufficiali di enti pubblici sammarinesi. Ente: A.A.S.S., A.A.S.L.P., I.S.S. (Borgo Maggiore / Cailungo)."
+        },
+        "47899": {
+          "nome": "Repubblica di San Marino",
+          "tipo": "cap_esatto",
+          "verificato": true,
+          "fonte": "gov.sm, pagina 'Enti Autonomi' (https://www.gov.sm/pub1/GovSM/Amministrazione-Trasparente/Organizzazione-dell-Amministrazione/Enti-Autonomi.html), consultata il 2026-10-16 e ricontrollata il 2026-10-20: CAP che compare negli indirizzi ufficiali di enti pubblici sammarinesi. Ente: C.O.N.S. e Poste San Marino S.p.A., Serravalle."
         }
       }
     },

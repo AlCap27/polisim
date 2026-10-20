@@ -212,7 +212,7 @@ def cap_non_italiano(cap):
     """True se il CAP appartiene a CAP_NON_ITALIANI. Da controllare PRIMA di
     leggere il prefisso, altrimenti 00120 (Città del Vaticano) diventerebbe zona 00.
     'cap_esatto': la chiave è il CAP a 5 cifre. 'intervallo': cap_min/cap_max (se
-    vuoti la voce è inerte — es. San Marino, intervallo non verificato)."""
+    vuoti la voce è inerte). San Marino: quattro CAP esatti documentati, elenco parziale."""
     if not cap:
         return False
     c = _cap_normalizzato(cap)

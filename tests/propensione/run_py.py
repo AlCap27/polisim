@@ -49,8 +49,8 @@ TX_MAL = os.path.join(HERE, "donors_transazioni_malformed.csv")
 # Compito 2: un donatore con TUTTE le date non valide -> saltato da entrambe.
 ANA_NV = os.path.join(HERE, "donors_anagrafica_novaliddate.csv")
 TX_NV = os.path.join(HERE, "donors_transazioni_novaliddate.csv")
-# Compito 4 (strato territoriale): 5 donatori (senza CAP, 00120, zona 08, prefisso
-# inesistente, zona valida) x 5 obiettivi -> i 7 stati territoriali. Calcolati con
+# Compito 4 (strato territoriale): 6 donatori (senza CAP, 00120, zona 08, prefisso
+# inesistente, zona valida, 47890 San Marino) x 5 obiettivi -> i 7 stati territoriali. Calcolati con
 # la tabella ZONE_POSTALI reale e con la tabella VUOTA (tutti in dati_non_caricati).
 ANA_TERR = os.path.join(HERE, "donors_anagrafica_territori.csv")
 # Arrotondamento (regola JS Math.round, non bancaria): un donatore il cui punteggio

@@ -303,6 +303,9 @@ DONOR_STATO_ATTESO = {
     "T3_zona08": "zona_esclusa",
     "T4_prefisso99": "zona_non_riconosciuta",
     "T5_zona20": "calcolato",
+    # 47890 (San Marino) condivide il prefisso con la zona italiana 47: deve
+    # risultare cap_non_italiano, non zona 47.
+    "T6_sanmarino": "cap_non_italiano",
 }
 
 
@@ -589,7 +592,7 @@ def main():
     out("-" * 78)
     out("CONFRONTO STATI TERRITORIALI - 7 stati, identici JS/PY e corretti (reale+vuota)")
     out("-" * 78)
-    out("  5 donatori (senza CAP, 00120, zona 08, prefisso inesistente, zona valida)")
+    out("  6 donatori (senza CAP, 00120, zona 08, prefisso inesistente, zona valida, 47890 San Marino)")
     out("  x 5 obiettivi, con tabella reale e con tabella vuota (dati_non_caricati).")
     terr_fail, stati_osservati = confronta_stati_territoriali(
         js.get("statiTerritoriali"), py.get("stati_territoriali"), out)
