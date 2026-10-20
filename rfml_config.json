@@ -89,6 +89,10 @@
           "reddito_medio": "euro",
           "istruzione_terziaria_25plus": "punti percentuali"
         },
+        "copertura": {
+          "comuni": 7516,
+          "residenti": 57394741
+        },
         "note": "Centro e scala per normalizzare i tre indicatori nel moltiplicatore: z = (x - centro)/dispersione. Sostituiscono i numeri magici della versione precedente (un centro e una scala di normalizzazione scritti a mano, di origine ignota): nessuna costante di normalizzazione resta nel codice. L'unita' di centro/dispersione di ogni indicatore e' la STESSA del valore di zona in ZONE_POSTALI (vedi 'unita'): la normalizzazione non uniforma le scale, le tiene per indicatore."
       },
       "valori": {

@@ -147,16 +147,23 @@ def verifica_contro_motore(cfg, zone_usabili):
 
 
 def copertura_dichiarata(cfg):
-    """Comuni e residenti sono dichiarati solo nel testo di
-    RIFERIMENTI_NAZIONALI.fonte_dati.origine. Se la frase cambia forma, si
-    fallisce invece di pubblicare un numero vecchio."""
-    origine = cfg["tabelle"]["RIFERIMENTI_NAZIONALI"]["fonte_dati"]["origine"]
-    m = re.search(r"Copertura:\s*(\d+)\s+comuni,\s*(\d+)\s+residenti", origine)
-    if not m:
+    """Comuni e residenti coperti, dal campo numerico
+    RIFERIMENTI_NAZIONALI.fonte_dati.copertura. Il testo di 'origine' li ripete
+    in prosa: se li cita, devono coincidere, altrimenti si fallisce invece di
+    lasciare due versioni dello stesso numero."""
+    fd = cfg["tabelle"]["RIFERIMENTI_NAZIONALI"]["fonte_dati"]
+    cop = fd.get("copertura")
+    if not cop or not all(isinstance(cop.get(k), int) for k in ("comuni", "residenti")):
         raise SystemExit(
-            "[build_config] ERRORE: 'Copertura: N comuni, M residenti' non trovata "
-            "in RIFERIMENTI_NAZIONALI.fonte_dati.origine.")
-    return int(m.group(1)), int(m.group(2))
+            "[build_config] ERRORE: RIFERIMENTI_NAZIONALI.fonte_dati.copertura "
+            "deve avere 'comuni' e 'residenti' interi.")
+    m = re.search(r"Copertura:\s*(\d+)\s+comuni,\s*(\d+)\s+residenti", fd.get("origine", ""))
+    if m and (int(m.group(1)), int(m.group(2))) != (cop["comuni"], cop["residenti"]):
+        raise SystemExit(
+            "[build_config] ERRORE: copertura in fonte_dati.origine "
+            f"({m.group(1)} comuni, {m.group(2)} residenti) diversa dal campo "
+            f"copertura ({cop['comuni']}, {cop['residenti']}).")
+    return cop["comuni"], cop["residenti"]
 
 
 def blocco_metodologia(cfg, start, end):
