@@ -324,14 +324,14 @@ footer{padding:24px 48px;border-top:1px solid var(--linea);display:flex;justify-
 <div class="hero">
   <div class="hero-eyebrow">Analisi donatori · Verticale ONG</div>
   <h1>Propensione<br><em>multi-obiettivo</em></h1>
-  <p class="hero-sub">Quattro passi: anonimizza i tuoi dati, carica i CSV, associa le colonne ai campi del modello, ricevi 5 score di propensione per ogni donatore. Tutto elaborato localmente — nessun dato lascia il tuo browser.</p>
+  <p class="hero-sub">Quattro passi: pseudonimizza i tuoi dati, carica i CSV, associa le colonne ai campi del modello, ricevi 5 score di propensione per ogni donatore. Tutto elaborato localmente — nessun dato lascia il tuo browser.</p>
 </div>
 
 <!-- STEP NAV -->
 <div class="step-nav">
   <button class="step-btn active" id="step-btn-0" onclick="goStep(0)">
     <span class="step-num">1</span>
-    <span class="step-label">Anonimizza</span>
+    <span class="step-label">Pseudonimizza</span>
   </button>
   <button class="step-btn" id="step-btn-1" onclick="goStep(1)">
     <span class="step-num">2</span>
@@ -415,19 +415,19 @@ footer{padding:24px 48px;border-top:1px solid var(--linea);display:flex;justify-
       <div class="ds-report-title"><span class="ds-gdpr-dot"></span>REPORT CONFORMITÀ</div>
       <div class="ds-report-line" id="ds-reportText"></div>
     </div>
-    <button class="ds-run-btn" id="ds-runBtn" onclick="dsRunAnon()">Avvia anonimizzazione →</button>
+    <button class="ds-run-btn" id="ds-runBtn" onclick="dsRunAnon()">Avvia pseudonimizzazione →</button>
   </div>
 
   <!-- STEP 04: RISULTATO -->
   <div class="ds-card ds-hidden" id="ds-resultCard">
     <div class="ds-card-title">04 · RISULTATO — ANTEPRIMA</div>
     <div class="ds-report-box">
-      <div class="ds-report-title"><span class="ds-gdpr-dot"></span>ANONIMIZZAZIONE COMPLETATA</div>
+      <div class="ds-report-title"><span class="ds-gdpr-dot"></span>PSEUDONIMIZZAZIONE COMPLETATA</div>
       <div class="ds-report-line" id="ds-resultReport"></div>
     </div>
     <div class="ds-preview-wrap"><table class="ds-preview-table" id="ds-previewTable"></table></div>
     <div class="ds-more-rows ds-hidden" id="ds-moreRows"></div>
-    <button class="ds-dl-btn" onclick="dsDownloadCSV()">↓ Scarica CSV anonimizzato</button>
+    <button class="ds-dl-btn" onclick="dsDownloadCSV()">↓ Scarica CSV pseudonimizzato</button>
   </div>
 
   <!-- FOOTER GDPR -->
@@ -475,7 +475,7 @@ footer{padding:24px 48px;border-top:1px solid var(--linea);display:flex;justify-
 
         <div class="dyn-cell csv">donor_id</div>
         <div class="dyn-cell dyn">contact.contactid</div>
-        <div class="dyn-cell note">GUID anonimizzato con Data Shield</div>
+        <div class="dyn-cell note">GUID pseudonimizzato con Data Shield</div>
 
         <div class="dyn-cell csv">fascia_eta</div>
         <div class="dyn-cell dyn">contact.birthdate → calcola età</div>
@@ -533,7 +533,7 @@ footer{padding:24px 48px;border-top:1px solid var(--linea);display:flex;justify-
         <div class="dyn-cell header">Note</div>
 
         <div class="dyn-cell csv">donor_id</div>
-        <div class="dyn-cell dyn">Contact.Id (anonimizzato)</div>
+        <div class="dyn-cell dyn">Contact.Id (pseudonimizzato)</div>
         <div class="dyn-cell note">Salesforce for Nonprofits — NPSP</div>
 
         <div class="dyn-cell csv">anzianita_anni</div>
@@ -555,7 +555,7 @@ footer{padding:24px 48px;border-top:1px solid var(--linea);display:flex;justify-
         <div class="dyn-cell header">Note</div>
 
         <div class="dyn-cell csv">donor_id</div>
-        <div class="dyn-cell dyn">Constituent.Id (anonimizzato)</div>
+        <div class="dyn-cell dyn">Constituent.Id (pseudonimizzato)</div>
         <div class="dyn-cell note">Diffuso in ONG internazionali con sede IT</div>
 
         <div class="dyn-cell csv">anzianita_anni</div>
@@ -577,7 +577,7 @@ footer{padding:24px 48px;border-top:1px solid var(--linea);display:flex;justify-
         <div class="dyn-cell header">Note</div>
 
         <div class="dyn-cell csv">donor_id</div>
-        <div class="dyn-cell dyn">Anagrafica.CodiceDonoatore (anonimizzato)</div>
+        <div class="dyn-cell dyn">Anagrafica.CodiceDonoatore (pseudonimizzato)</div>
         <div class="dyn-cell note">CRM italiano specifico per ONG</div>
 
         <div class="dyn-cell csv">metodo_pagamento_prevalente</div>
@@ -599,7 +599,7 @@ footer{padding:24px 48px;border-top:1px solid var(--linea);display:flex;justify-
         <div class="dyn-cell header">Note</div>
 
         <div class="dyn-cell csv">donor_id</div>
-        <div class="dyn-cell dyn">contact.hs_object_id (anonimizzato)</div>
+        <div class="dyn-cell dyn">contact.hs_object_id (pseudonimizzato)</div>
         <div class="dyn-cell note">Usato da ONG digitali e startup sociali</div>
 
         <div class="dyn-cell csv">canale_acquisizione</div>
@@ -621,7 +621,7 @@ footer{padding:24px 48px;border-top:1px solid var(--linea);display:flex;justify-
         <div class="dyn-cell header">Note</div>
 
         <div class="dyn-cell csv">donor_id</div>
-        <div class="dyn-cell dyn">Anagrafica.CodiceDonoatore (anonimizzato)</div>
+        <div class="dyn-cell dyn">Anagrafica.CodiceDonoatore (pseudonimizzato)</div>
         <div class="dyn-cell note">Il CRM nonprofit italiano più diffuso — mydonor.org</div>
 
         <div class="dyn-cell csv">anzianita_anni</div>
@@ -663,7 +663,7 @@ footer{padding:24px 48px;border-top:1px solid var(--linea);display:flex;justify-
 
         <div class="dyn-cell csv">donor_id</div>
         <div class="dyn-cell dyn">da confermare sull'export reale</div>
-        <div class="dyn-cell note">Identificativo donatore (anonimizzato)</div>
+        <div class="dyn-cell note">Identificativo donatore (pseudonimizzato)</div>
 
         <div class="dyn-cell csv">fascia_eta</div>
         <div class="dyn-cell dyn">da confermare sull'export reale</div>
@@ -1946,7 +1946,7 @@ function dsRunAnon() {
     Record elaborati: <span>${outRows.length}</span><br>
     Colonne output: <span>${outHeaders.length}</span> (da ${headers.length} originali)<br>
     File originale: <span>NON modificato — rimane invariato sul tuo computer</span><br>
-    Dati inviati a PoliSim: <span>nessuno — solo il CSV anonimizzato scaricato localmente</span><br>
+    Dati inviati a PoliSim: <span>nessuno — solo il CSV pseudonimizzato scaricato localmente</span><br>
     Pronto per caricamento: <span>✓</span>
   `;
   const table = document.getElementById('ds-previewTable');
@@ -1965,7 +1965,7 @@ function dsDownloadCSV() {
   const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = dsState.fileName.replace(/\.(xlsx?|csv|txt)$/i,'')+'_anonimizzato.csv';
+  a.download = dsState.fileName.replace(/\.(xlsx?|csv|txt)$/i,'')+'_pseudonimizzato.csv';
   a.click();
   URL.revokeObjectURL(a.href);
 }

@@ -166,7 +166,7 @@ body{background:#07090f;font-family:'DM Sans',sans-serif;color:#c8d4f0;min-heigh
   <!-- HEADER -->
   <div class="header">
     <div class="logo">POLISIM // DATA SHIELD</div>
-    <div class="title">Anonimizza i tuoi <span>dati</span></div>
+    <div class="title">Pseudonimizza i tuoi <span>dati</span></div>
     <p class="subtitle">Prepara il dataset prima di caricarlo su PoliSim. Quattro operazioni, zero rischi.</p>
   </div>
 
@@ -241,19 +241,19 @@ body{background:#07090f;font-family:'DM Sans',sans-serif;color:#c8d4f0;min-heigh
         <div class="report-title"><span class="gdpr-dot"></span>REPORT CONFORMITÀ</div>
         <div class="report-line" id="reportText"></div>
       </div>
-      <button class="run-btn" id="runBtn" onclick="runAnon()">Avvia anonimizzazione →</button>
+      <button class="run-btn" id="runBtn" onclick="runAnon()">Avvia pseudonimizzazione →</button>
     </div>
 
     <!-- STEP 4: RISULTATO -->
     <div class="card hidden" id="resultCard">
       <div class="card-title">04 · RISULTATO — ANTEPRIMA</div>
       <div class="report-box">
-        <div class="report-title"><span class="gdpr-dot"></span>ANONIMIZZAZIONE COMPLETATA</div>
+        <div class="report-title"><span class="gdpr-dot"></span>PSEUDONIMIZZAZIONE COMPLETATA</div>
         <div class="report-line" id="resultReport"></div>
       </div>
       <div class="preview-wrap"><table class="preview-table" id="previewTable"></table></div>
       <div class="more-rows hidden" id="moreRows"></div>
-      <button class="dl-btn" onclick="downloadCSV()">Scarica CSV anonimizzato</button>
+      <button class="dl-btn" onclick="downloadCSV()">Scarica CSV pseudonimizzato</button>
     </div>
 
   </div>
@@ -435,7 +435,7 @@ function runAnon() {
     Record elaborati: <span>${outRows.length}</span><br>
     Colonne output: <span>${outHeaders.length}</span> (da ${headers.length} originali)<br>
     File originale: <span>NON modificato — rimane invariato sul tuo computer</span><br>
-    Dati inviati a PoliSim: <span>nessuno — solo il CSV anonimizzato scaricato localmente</span><br>
+    Dati inviati a PoliSim: <span>nessuno — solo il CSV pseudonimizzato scaricato localmente</span><br>
     Pronto per caricamento su PoliSim: <span>✓</span>
   `;
 
@@ -465,7 +465,7 @@ function downloadCSV() {
   const a = document.createElement('a');
   a.href = url;
   const baseName = state.fileName.replace(/\.(xlsx?|csv|txt)$/i,'');
-  a.download = baseName + '_anonimizzato.csv';
+  a.download = baseName + '_pseudonimizzato.csv';
   a.click();
   URL.revokeObjectURL(url);
 }

@@ -26,7 +26,7 @@
       "name": "Che dati servono per usare il Modulo Propensione?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Servono due file CSV: anagrafica donatori (ID anonimo, fascia età, anno primo contatto, metodo pagamento, tipo sostegno) e storico transazioni degli ultimi 3-7 anni (data, importo, metodo, campagna). I dati vengono anonimizzati browser-side con Data Shield prima del caricamento. Nessun dato personale transita sui server PoliSim."
+        "text": "Servono due file CSV: anagrafica donatori (ID anonimo, fascia età, anno primo contatto, metodo pagamento, tipo sostegno) e storico transazioni degli ultimi 3-7 anni (data, importo, metodo, campagna). I dati vengono pseudonimizzati browser-side con Data Shield prima del caricamento. Nessun dato personale transita sui server PoliSim."
       }
     },
     {
@@ -282,7 +282,7 @@ footer{border-top:0.5px solid var(--border);padding:32px 40px;display:flex;justi
         <a href="#" class="nav-dropdown-toggle" onclick="return false">Tools ▾</a>
         <div class="nav-dropdown-menu">
           <a href="/propensione.html" class="active">Modulo Propensione NGO</a>
-          <a href="/anonimizza.html">Data Shield Anonimizzatore</a>
+          <a href="/anonimizza.html">Data Shield</a>
           <a href="https://watchdog.polisim.dev" target="_blank">Watchdog Trump ↗</a>
         </div>
       </span>
@@ -323,7 +323,7 @@ footer{border-top:0.5px solid var(--border);padding:32px 40px;display:flex;justi
     </div>
     <div class="hero-stat">
       <span class="hero-stat-n">GDPR</span>
-      <span class="hero-stat-l">Anonimizzazione browser-side · nessun dato sui server</span>
+      <span class="hero-stat-l">Pseudonimizzazione browser-side · nessun dato sui server</span>
     </div>
   </div>
 </div>
@@ -559,7 +559,7 @@ footer{border-top:0.5px solid var(--border);padding:32px 40px;display:flex;justi
     </div>
     <div class="flow-step">
       <div class="flow-n">02</div>
-      <div class="flow-title">Anonimizza con Data Shield</div>
+      <div class="flow-title">Pseudonimizza con Data Shield</div>
       <p class="flow-desc">Carica i CSV nel Data Shield — browser-only, nessun dato trasmesso. SHA-256 per gli ID, rimozione nome/cognome/indirizzo, conservazione dei campi analitici. Pseudonimizzazione nel browser (art. 4, punto 5, GDPR): i dati pseudonimizzati restano dati personali, e l'organizzazione resta titolare del trattamento e ne stabilisce la base giuridica.</p>
       <span class="flow-tag">Browser-side · pseudonimizzazione · art. 4.5 GDPR</span>
     </div>
@@ -592,7 +592,7 @@ footer{border-top:0.5px solid var(--border);padding:32px 40px;display:flex;justi
       <ul class="db-fields">
         <li class="db-field">
           <span class="db-req obbligatorio">obbligatorio</span>
-          <div><div class="db-fname">ID donatore (anonimizzato)</div><div class="db-fnote">Hash SHA-256 o qualsiasi identificatore anonimo</div></div>
+          <div><div class="db-fname">ID donatore (pseudonimizzato)</div><div class="db-fnote">Hash SHA-256 o qualsiasi identificatore anonimo</div></div>
         </li>
         <li class="db-field">
           <span class="db-req">facoltativo</span>
@@ -714,7 +714,7 @@ footer{border-top:0.5px solid var(--border);padding:32px 40px;display:flex;justi
   <p class="cta-sub">Non lo vedi perché il tuo sistema lo classifica come "donatore medio". Il Modulo Propensione lo separa dal resto con dati che hai già.</p>
   <div class="cta-buttons">
     <a class="btn-primary-inv" href="/accesso.html">Richiedi accesso beta →</a>
-    <a class="btn-ghost-inv" href="/anonimizza.html">Data Shield — anonimizza prima →</a>
+    <a class="btn-ghost-inv" href="/anonimizza.html">Data Shield — pseudonimizza prima →</a>
   </div>
 </div>
 
