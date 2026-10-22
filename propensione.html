@@ -210,7 +210,7 @@ hr.div{border:none;border-top:0.5px solid var(--border);margin:0}
 .interesse-input{flex:1;min-width:200px;border:0.5px solid var(--border2);background:#fff;color:var(--black);padding:10px 14px;font-family:var(--font-mono);font-size:12px;outline:none;transition:border-color .15s}
 .interesse-input:focus{border-color:var(--black)}
 .interesse-select{flex:0 0 180px;border:0.5px solid var(--border2);background:#fff;color:var(--gray-mid);padding:10px 14px;font-family:var(--font-mono);font-size:12px;outline:none;appearance:none;cursor:pointer}
-.interesse-btn{background:var(--black);color:var(--bg);border:none;padding:10px 24px;font-family:var(--font-mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;white-space:nowrap;transition:opacity .2s}
+.interesse-btn{background:var(--black);color:var(--bg);border:none;padding:10px 24px;font-family:var(--font-mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:opacity .2s;display:inline-block;text-decoration:none;line-height:1.6}
 .interesse-btn:hover{opacity:.8}
 .interesse-ok{display:none;font-family:var(--font-mono);font-size:11px;color:var(--green-light);margin-top:10px;letter-spacing:1px}
 
@@ -683,10 +683,8 @@ footer{border-top:0.5px solid var(--border);padding:32px 40px;display:flex;justi
       <div class="interesse-form">
         <div class="interesse-title">Notificami al rilascio</div>
         <div class="interesse-row">
-          <input class="interesse-input" type="email" placeholder="email@organizzazione.it" id="email-sind">
-          <button class="interesse-btn" onclick="submitInteresse('sind')">Avvisami →</button>
+          <a class="interesse-btn" href="mailto:info@polisim.dev?subject=Avviso%20rilascio%20modulo%20Sindacato">Scrivi a info@polisim.dev per essere avvisato al rilascio</a>
         </div>
-        <div class="interesse-ok" id="ok-sind">✓ Registrato. Ti avvisiamo al rilascio.</div>
       </div>
     </div>
     <div class="vert-card coming">
@@ -702,10 +700,8 @@ footer{border-top:0.5px solid var(--border);padding:32px 40px;display:flex;justi
       <div class="interesse-form">
         <div class="interesse-title">Notificami al rilascio</div>
         <div class="interesse-row">
-          <input class="interesse-input" type="email" placeholder="email@comune.it" id="email-mun">
-          <button class="interesse-btn" onclick="submitInteresse('mun')">Avvisami →</button>
+          <a class="interesse-btn" href="mailto:info@polisim.dev?subject=Avviso%20rilascio%20modulo%20Municipalit%C3%A0">Scrivi a info@polisim.dev per essere avvisato al rilascio</a>
         </div>
-        <div class="interesse-ok" id="ok-mun">✓ Registrato. Ti avvisiamo al rilascio.</div>
       </div>
     </div>
   </div>
@@ -752,16 +748,6 @@ if(track){
   track.innerHTML = all.map(i=>`<span class="ticker-item"><span>${i.label}</span> — ${i.desc}</span>`).join('');
 }
 
-// Form interesse
-function submitInteresse(vert){
-  const input = document.getElementById('email-'+vert);
-  const ok = document.getElementById('ok-'+vert);
-  if(input && input.value.includes('@')){
-    input.style.display='none';
-    input.closest('.interesse-row').querySelector('.interesse-btn').style.display='none';
-    ok.style.display='block';
-  }
-}
 </script>
 </body>
 </html>
